@@ -1,0 +1,599 @@
+import type { Random } from '../random'
+import { TOWER_CATALOG } from '../rules/towerCatalog'
+import type { TowerType } from '../rules/towerCatalog'
+import type { Enemy } from './Enemy'
+import { Projectile, ExplosiveProjectile } from './Projectile'
+export abstract class Tower {
+    id: string
+    type: TowerType
+    x = 0
+    y = 0
+    active = true
+    level = 0
+    broken = false
+    repairing = false
+    repairProgress = 0
+    repairTime = 180
+    upgrading = false
+    upgradeProgress = 0
+    upgradeTime = 240
+    damage = 0
+    range = 0
+    fireRate = 0
+    fireTimer = 0
+    disabled = false
+    disableTimer = 0
+    angle = 0
+    targetAngle = 0
+    projectiles: Projectile[] = []
+    baseStats: { damage: number; range: number; fireRate: number; explosionRadius?: number }
+    abilities: { name: string; description: string }[]
+    showShockEffect = 0
+
+    constructor(type: TowerType, x: number, y: number, id: string) {
+        this.id = id
+        this.type = type
+        this.x = x
+        this.y = y
+
+        this.baseStats = { damage: 0, range: 0, fireRate: 0 }
+        this.abilities = []
+    }
+
+    snapshot(): TowerSnapshot {
+        return {
+            id: this.id,
+            type: this.type,
+            level: this.level,
+            x: this.x,
+            y: this.y,
+            active: this.active,
+            broken: this.broken,
+            repairing: this.repairing,
+            repairProgress: this.repairProgress,
+            repairTime: this.repairTime,
+            upgrading: this.upgrading,
+            upgradeProgress: this.upgradeProgress,
+            upgradeTime: this.upgradeTime,
+            disabled: this.disabled,
+            disableTimer: this.disableTimer,
+            fireTimer: this.fireTimer,
+            fireRate: this.fireRate,
+            damage: this.damage,
+            range: this.range,
+            abilities: this.abilities.map((ability) => ({ ...ability })),
+            showShockEffect: this.showShockEffect || 0,
+        }
+    }
+
+    abstract setBaseStats(): void
+
+    resetAbilities(): void {
+        this.abilities = []
+    }
+
+    unlockAbility(name: string, description: string): void {
+        if (!name) return
+        if (!this.abilities.some((ability) => ability.name === name)) {
+            this.abilities.push({ name, description: description || '' })
+        }
+    }
+
+    unlockAbilityByLevel(level: number = this.level): void {
+        const benefits = TOWER_CATALOG[this.type].benefits
+        if (!benefits) return
+        const ability = level >= 1 && level <= 3 ? benefits[level as 1 | 2 | 3] : undefined
+        if (ability) {
+            this.unlockAbility(ability.name, ability.description)
+        }
+    }
+
+    startRepair(): boolean {
+        if (this.active || this.repairing) return false
+        this.repairing = true
+        this.repairProgress = 0
+        return true
+    }
+
+    updateRepair(militaryCount: number, deltaTime: number = 1): boolean {
+        if (!this.repairing) return false
+
+        const repairSpeed = Math.max(1, militaryCount * 0.5)
+        this.repairProgress += repairSpeed * deltaTime
+
+        if (this.repairProgress >= this.repairTime) {
+            this.active = true
+            this.broken = false
+            this.repairing = false
+            this.repairProgress = 0
+            return true
+        }
+
+        return false
+    }
+
+    startUpgrade(): boolean {
+        if (!this.active || this.upgrading || this.level >= 3) return false
+        this.upgrading = true
+        this.upgradeProgress = 0
+        return true
+    }
+
+    updateUpgrade(militaryCount: number, deltaTime: number = 1): boolean {
+        if (!this.upgrading) return false
+
+        const upgradeSpeed = Math.max(1, militaryCount * 0.3)
+        this.upgradeProgress += upgradeSpeed * deltaTime
+
+        if (this.upgradeProgress >= this.upgradeTime) {
+            this.level++
+            this.upgrading = false
+            this.upgradeProgress = 0
+            this.applyUpgrade()
+            return true
+        }
+
+        return false
+    }
+
+    abstract applyUpgrade(): void
+
+    disable(duration: number): void {
+        this.disabled = true
+        this.disableTimer = duration
+    }
+
+    update(deltaTime: number, enemies: Enemy[], rng: Random): void {
+        if (!this.active) return
+
+        if (this.disabled) {
+            this.disableTimer = Math.max(0, this.disableTimer - deltaTime)
+            if (this.disableTimer <= 0) {
+                this.disabled = false
+            }
+            return
+        }
+
+        if (this.fireTimer > 0) {
+            this.fireTimer = Math.max(0, this.fireTimer - deltaTime)
+        }
+
+        this.projectiles = this.projectiles.filter((proj) => {
+            proj.update(deltaTime)
+            return proj.active
+        })
+
+        if (this.fireTimer <= 0) {
+            this.findTargetAndFire(enemies, deltaTime, rng)
+        }
+        this.updateRotation()
+    }
+
+    findTargetAndFire(enemies: Enemy[], deltaTime: number, rng: Random): void {
+        const target = this.findTarget(enemies)
+        if (target) {
+            this.targetAngle = Math.atan2(target.y - this.y, target.x - this.x)
+            this.fire(target, enemies, rng)
+            this.fireTimer = this.fireRate
+        }
+    }
+
+    findTarget(enemies: Enemy[]): Enemy | null {
+        let closest: Enemy | null = null
+        let closestDist = this.range
+
+        for (const enemy of enemies) {
+            if (!enemy.alive) continue
+
+            const dist = this.distanceTo(enemy.x, enemy.y)
+            if (dist <= this.range && dist < closestDist) {
+                closestDist = dist
+                closest = enemy
+            }
+        }
+
+        return closest
+    }
+
+    findStrongestTarget(enemies: Enemy[]): Enemy | null {
+        let strongest: Enemy | null = null
+        let maxHealth = 0
+
+        for (const enemy of enemies) {
+            if (!enemy.alive) continue
+
+            const dist = this.distanceTo(enemy.x, enemy.y)
+            if (dist <= this.range && enemy.maxHealth > maxHealth) {
+                maxHealth = enemy.maxHealth
+                strongest = enemy
+            }
+        }
+
+        return strongest
+    }
+
+    fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
+        const projectile = new Projectile(
+            this.x,
+            this.y,
+            target,
+            this.damage,
+            rng.id('projectile'),
+            'bullet',
+            false,
+            this.id,
+        )
+        this.projectiles.push(projectile)
+    }
+
+    updateRotation(): void {
+        const angleDiff = this.targetAngle - this.angle
+        const normalizedDiff = Math.atan2(Math.sin(angleDiff), Math.cos(angleDiff))
+        this.angle += normalizedDiff * 0.2
+    }
+
+    distanceTo(x: number, y: number): number {
+        const dx = this.x - x
+        const dy = this.y - y
+        return Math.sqrt(dx * dx + dy * dy)
+    }
+}
+export class CannonTower extends Tower {
+    multiTarget = false
+
+    constructor(x: number, y: number, id: string) {
+        super('cannon', x, y, id)
+        this.damage = 15
+        this.range = 120
+        this.fireRate = 60
+
+        this.baseStats = {
+            damage: 15,
+            range: 120,
+            fireRate: 60,
+        }
+    }
+
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.damage = this.baseStats.damage
+        this.range = this.baseStats.range
+        this.fireRate = this.baseStats.fireRate
+        this.multiTarget = false
+    }
+
+    applyUpgrade(): void {
+        if (this.level === 1) {
+            this.damage = 25
+        } else if (this.level === 2) {
+            this.damage = 35
+        } else if (this.level === 3) {
+            this.multiTarget = true
+        }
+        this.unlockAbilityByLevel()
+    }
+
+    fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
+        if (this.multiTarget && this.level >= 3) {
+            const targets = allEnemies
+                .filter((e) => e.alive && this.distanceTo(e.x, e.y) <= this.range)
+                .sort((a, b) => this.distanceTo(a.x, a.y) - this.distanceTo(b.x, b.y))
+                .slice(0, 3)
+
+            targets.forEach((t) => {
+                const projectile = new Projectile(
+                    this.x,
+                    this.y,
+                    t,
+                    this.damage,
+                    rng.id('projectile'),
+                    'cannon',
+                    false,
+                    this.id,
+                )
+                this.projectiles.push(projectile)
+            })
+        } else {
+            const projectile = new Projectile(
+                this.x,
+                this.y,
+                target,
+                this.damage,
+                rng.id('projectile'),
+                'cannon',
+                false,
+                this.id,
+            )
+            this.projectiles.push(projectile)
+        }
+    }
+}
+export class RocketTower extends Tower {
+    explosionRadius = 40
+    knockback = false
+
+    constructor(x: number, y: number, id: string) {
+        super('rocket', x, y, id)
+        this.damage = 20
+        this.range = 100
+        this.fireRate = 120
+
+        this.baseStats = {
+            damage: 20,
+            range: 100,
+            fireRate: 120,
+            explosionRadius: 40,
+        }
+    }
+
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.damage = this.baseStats.damage
+        this.range = this.baseStats.range
+        this.fireRate = this.baseStats.fireRate
+        this.explosionRadius = this.baseStats.explosionRadius ?? 40
+        this.knockback = false
+    }
+
+    applyUpgrade(): void {
+        if (this.level === 1) {
+            this.damage = 30
+        } else if (this.level === 2) {
+            this.range = 150
+            this.explosionRadius = 60
+        } else if (this.level === 3) {
+            this.knockback = true
+        }
+        this.unlockAbilityByLevel()
+    }
+
+    fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
+        const projectile = new ExplosiveProjectile(
+            this.x,
+            this.y,
+            target,
+            this.damage,
+            this.explosionRadius,
+            this.knockback,
+            allEnemies,
+            rng.id('projectile'),
+            this.id,
+        )
+        this.projectiles.push(projectile)
+    }
+}
+export class MachineGunTower extends Tower {
+    slowEffect = false
+
+    constructor(x: number, y: number, id: string) {
+        super('machinegun', x, y, id)
+        this.damage = 5
+        this.range = 100
+        this.fireRate = 15
+
+        this.baseStats = {
+            damage: 5,
+            range: 100,
+            fireRate: 15,
+        }
+    }
+
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.damage = this.baseStats.damage
+        this.range = this.baseStats.range
+        this.fireRate = this.baseStats.fireRate
+        this.slowEffect = false
+    }
+
+    applyUpgrade(): void {
+        if (this.level === 1) {
+            this.fireRate = 10
+        } else if (this.level === 2) {
+            this.damage = 10
+        } else if (this.level === 3) {
+            this.slowEffect = true
+        }
+        this.unlockAbilityByLevel()
+    }
+
+    fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
+        const projectile = new Projectile(
+            this.x,
+            this.y,
+            target,
+            this.damage,
+            rng.id('projectile'),
+            'bullet',
+            this.slowEffect,
+            this.id,
+        )
+        this.projectiles.push(projectile)
+    }
+}
+export class LaserTower extends Tower {
+    currentTarget: Enemy | null = null
+    piercing = false
+
+    constructor(x: number, y: number, id: string) {
+        super('laser', x, y, id)
+        this.damage = 2
+        this.range = 130
+        this.fireRate = 1
+
+        this.baseStats = {
+            damage: 2,
+            range: 130,
+            fireRate: 1,
+        }
+    }
+
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.damage = this.baseStats.damage
+        this.range = this.baseStats.range
+        this.fireRate = this.baseStats.fireRate
+        this.piercing = false
+        this.currentTarget = null
+    }
+
+    applyUpgrade(): void {
+        if (this.level === 1) {
+            this.range = 180
+        } else if (this.level === 2) {
+            this.damage = 3
+        } else if (this.level === 3) {
+            this.piercing = true
+            this.range = 1000
+            this.fireRate = 180
+        }
+        this.unlockAbilityByLevel()
+    }
+
+    findTargetAndFire(enemies: Enemy[], deltaTime: number): void {
+        if (this.piercing && this.level >= 3) {
+            const target = this.findStrongestTarget(enemies)
+            if (target && this.fireTimer <= 0) {
+                this.currentTarget = target
+                target.takeDamage(this.damage * 60, this.id)
+                this.fireTimer = this.fireRate
+            } else if (this.fireTimer > 0) {
+                this.currentTarget = null
+            }
+        } else {
+            const target = this.findTarget(enemies)
+            this.currentTarget = target
+            if (target) {
+                this.targetAngle = Math.atan2(target.y - this.y, target.x - this.x)
+                target.takeDamage(this.damage * deltaTime, this.id)
+            }
+        }
+    }
+}
+export class ShockTower extends Tower {
+    stunEffect = false
+
+    constructor(x: number, y: number, id: string) {
+        super('shock', x, y, id)
+        this.damage = 3
+        this.range = 9999
+        this.fireRate = 90
+
+        this.baseStats = {
+            damage: 3,
+            range: 9999,
+            fireRate: 90,
+        }
+    }
+
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.damage = this.baseStats.damage
+        this.range = this.baseStats.range
+        this.fireRate = this.baseStats.fireRate
+        this.stunEffect = false
+    }
+
+    applyUpgrade(): void {
+        if (this.level === 1) {
+            this.damage = 5
+        } else if (this.level === 2) {
+            this.damage = 8
+        } else if (this.level === 3) {
+            this.stunEffect = true
+        }
+        this.unlockAbilityByLevel()
+    }
+
+    findTargetAndFire(enemies: Enemy[], deltaTime: number, rng: Random): void {
+        if (this.fireTimer > 0) return
+
+        let hitAny = false
+        enemies.forEach((enemy) => {
+            if (enemy.alive) {
+                enemy.takeDamage(this.damage, this.id)
+
+                if (this.stunEffect && rng.next() < 0.3) {
+                    enemy.stunTimer = 60
+                }
+                hitAny = true
+            }
+        })
+
+        if (hitAny) {
+            this.fireTimer = this.fireRate
+            this.showShockEffect = 30
+        }
+    }
+
+    update(deltaTime: number, enemies: Enemy[], rng: Random): void {
+        super.update(deltaTime, enemies, rng)
+        if (this.showShockEffect > 0) {
+            this.showShockEffect = Math.max(0, this.showShockEffect - deltaTime)
+        }
+    }
+}
+export function createTower(type: TowerType, x: number, y: number, id: string): Tower {
+    const constructors = {
+        cannon: CannonTower,
+        rocket: RocketTower,
+        machinegun: MachineGunTower,
+        laser: LaserTower,
+        shock: ShockTower,
+    }
+    return new constructors[type](x, y, id)
+}
+// Slots create a fresh subclass when construction finishes, including after demolition.
+export class TowerSlot {
+    tower: Tower | null = null
+    construction: { type: TowerType; progress: number; time: number } | null = null
+    constructor(
+        public id: string,
+        public x: number,
+        public y: number,
+        public defaultType: TowerType,
+    ) {}
+    startConstruction(type: TowerType): boolean {
+        if (this.tower || this.construction) return false
+        this.construction = { type, progress: 0, time: 180 }
+        return true
+    }
+    updateConstruction(militaryCount: number, deltaTime: number = 1): boolean {
+        const construction = this.construction
+        if (!construction) return false
+        construction.progress += Math.max(1, militaryCount * 0.5) * deltaTime
+        if (construction.progress < construction.time) return false
+        this.tower = createTower(construction.type, this.x, this.y, this.id)
+        this.construction = null
+        return true
+    }
+    demolish(): void {
+        this.tower = null
+        this.construction = null
+    }
+}
+
+export type TowerSnapshot = Pick<
+    Tower,
+    | 'id'
+    | 'type'
+    | 'level'
+    | 'x'
+    | 'y'
+    | 'active'
+    | 'broken'
+    | 'repairing'
+    | 'repairProgress'
+    | 'repairTime'
+    | 'upgrading'
+    | 'upgradeProgress'
+    | 'upgradeTime'
+    | 'disabled'
+    | 'disableTimer'
+    | 'fireTimer'
+    | 'fireRate'
+    | 'damage'
+    | 'range'
+    | 'abilities'
+    | 'showShockEffect'
+>
