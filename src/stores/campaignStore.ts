@@ -1,17 +1,45 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { CampaignService, type MissionReport, type LevelSummary } from '@/application'
+import {
+    CampaignService,
+    CheckpointService,
+    type GameSession,
+    type LevelSummary,
+    type MissionReport,
+} from '@/application'
+import { LEVEL_IDS } from '@/domain'
 import type { Level } from '@/domain'
 import { useServices } from './services'
 
 export const useCampaignStore = defineStore('campaign', () => {
-    const service = new CampaignService(useServices().storage)
+    const { storage } = useServices()
+    const service = new CampaignService(storage)
+    const checkpoints = new CheckpointService(storage)
     const levels = ref<LevelSummary[]>(service.listLevels())
     const hasProgress = ref(service.hasProgress)
+    // Wave each level can be resumed after (between-wave checkpoint), or null.
+    const savedWaves = ref<Record<string, number | null>>({})
 
     function refresh() {
         levels.value = service.listLevels()
         hasProgress.value = service.hasProgress
+        savedWaves.value = Object.fromEntries(
+            LEVEL_IDS.map((id) => [id, checkpoints.savedWave(id)]),
+        )
+    }
+    refresh()
+
+    function saveCheckpoint(session: GameSession) {
+        if (checkpoints.save(session)) refresh()
+    }
+
+    function restoreCheckpoint(session: GameSession) {
+        return checkpoints.restore(session)
+    }
+
+    function clearCheckpoint(levelId: string) {
+        checkpoints.clear(levelId)
+        refresh()
     }
 
     function isUnlocked(levelId: string) {
@@ -35,8 +63,21 @@ export const useCampaignStore = defineStore('campaign', () => {
 
     function reset() {
         service.reset()
+        for (const id of LEVEL_IDS) checkpoints.clear(id)
         refresh()
     }
 
-    return { levels, hasProgress, isUnlocked, completeLevel, prepareLevel, recordResult, reset }
+    return {
+        levels,
+        hasProgress,
+        savedWaves,
+        isUnlocked,
+        completeLevel,
+        prepareLevel,
+        recordResult,
+        reset,
+        saveCheckpoint,
+        restoreCheckpoint,
+        clearCheckpoint,
+    }
 })

@@ -344,18 +344,24 @@ export class GameSession implements Scene {
         const cost = BARRICADE_CATALOG[type].cost
         if (this.resources < cost) return fail('Недостаточно ресурсов!')
         this.resources -= cost
+        this.buildBarricadeAt(placement, type)
+        return ok
+    }
+
+    // Starts construction of a barricade on an already validated area (also used by checkpoints).
+    buildBarricadeAt(area: Rect, type: BarricadeType): Barricade {
         const barricade = new Barricade(
             type,
-            placement.x,
-            placement.y,
-            placement.width,
-            placement.height,
+            area.x,
+            area.y,
+            area.width,
+            area.height,
             this.rng.id('barricade'),
         )
         barricade.setHealthMultiplier(this.barricadeMultiplier)
         barricade.startBuild()
         this.barricades.push(barricade)
-        return ok
+        return barricade
     }
 
     upgrade(id: string | null = this.selectedId): CommandResult {

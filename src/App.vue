@@ -3,6 +3,7 @@
     import { watchEffect } from 'vue'
     import { RouterView } from 'vue-router'
     import { useSettingsStore } from '@/stores/settingsStore'
+    import AchievementsModal from '@/ui/layouts/AchievementsModal.vue'
     import ConfirmModal from '@/ui/layouts/ConfirmModal.vue'
     import HelpModal from '@/ui/layouts/HelpModal.vue'
     import SettingsModal from '@/ui/layouts/SettingsModal.vue'
@@ -19,6 +20,7 @@
     <RouterView />
     <SettingsModal />
     <HelpModal />
+    <AchievementsModal />
     <ConfirmModal />
     <ToastStack />
 </template>

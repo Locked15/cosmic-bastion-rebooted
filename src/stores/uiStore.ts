@@ -19,6 +19,7 @@ export const useUiStore = defineStore('ui', () => {
     const confirmRequest = ref<ConfirmRequest | null>(null)
     const settingsOpen = ref(false)
     const helpOpen = ref(false)
+    const achievementsOpen = ref(false)
     let nextToastId = 1
 
     function notify(text: string) {
@@ -54,6 +55,7 @@ export const useUiStore = defineStore('ui', () => {
         confirmRequest,
         settingsOpen,
         helpOpen,
+        achievementsOpen,
         notify,
         confirm,
         resolveConfirm,

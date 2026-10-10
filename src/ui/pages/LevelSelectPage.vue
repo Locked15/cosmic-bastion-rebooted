@@ -8,16 +8,20 @@
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
     const router = useRouter()
-    const { levels } = storeToRefs(useCampaignStore())
+    const { levels, savedWaves } = storeToRefs(useCampaignStore())
 
     const selectedId = ref<string | null>(null)
     const selected = computed(
         () => levels.value.find((level) => level.id === selectedId.value) ?? null,
     )
 
-    function start() {
+    function start(resume: boolean) {
         if (selected.value) {
-            router.push({ name: 'game', params: { levelId: selected.value.id } })
+            router.push({
+                name: 'game',
+                params: { levelId: selected.value.id },
+                query: resume ? { resume: '1' } : {},
+            })
         }
     }
 </script>
@@ -43,7 +47,12 @@
                 @select="selectedId = level.id"
             />
         </div>
-        <MissionInfo :level="selected" @start="start" @back="router.push({ name: 'menu' })" />
+        <MissionInfo
+            :level="selected"
+            :saved-wave="selected ? (savedWaves[selected.id] ?? null) : null"
+            @start="start"
+            @back="router.push({ name: 'menu' })"
+        />
     </main>
 </template>
 

@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { shallowRef, watch } from 'vue'
 import {
     GameSession,
-    canUpgradeTechnology,
     fitViewport,
     presentSession,
     screenToWorld,
@@ -17,6 +16,7 @@ import {
     type Viewport,
 } from '@/application'
 import { createLevel } from '@/domain'
+import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
 import { useServices } from './services'
 import { useSettingsStore } from './settingsStore'
@@ -29,6 +29,8 @@ export const useGameStore = defineStore('game', () => {
     const ui = useUiStore()
     const campaign = useCampaignStore()
     const settings = useSettingsStore()
+    const achievements = useAchievementsStore()
+    const { sound } = services
 
     const snapshot = shallowRef<GameSnapshot | null>(null)
     const selectedBuild = shallowRef<{ category: BuildCategory; type: string } | null>(null)
@@ -38,6 +40,9 @@ export const useGameStore = defineStore('game', () => {
     let viewport: Viewport | null = null
     let reported = false
     let resolution: CampaignResolution | null = null
+    // Previous values used to turn state changes into sounds and saves.
+    let seen = { wave: 0, inProgress: false, dialog: false, reached: 0 }
+    let ticksSinceAchievementCheck = 0
 
     watch(
         () => settings.settings.enemySpeed,
@@ -46,11 +51,19 @@ export const useGameStore = defineStore('game', () => {
         },
     )
 
-    function start(levelId: string): boolean {
+    // `resume` continues from the level's between-wave checkpoint if there is one.
+    function start(levelId: string, resume = false): boolean {
         stop()
         const level = createLevel(levelId)
         if (!level || !campaign.isUnlocked(levelId)) return false
         session = new GameSession(level, services.createRandom(), campaign.prepareLevel(level))
+        if (!resume || !campaign.restoreCheckpoint(session)) campaign.clearCheckpoint(levelId)
+        seen = {
+            wave: session.currentWave,
+            inProgress: false,
+            dialog: !!session.activeDialog,
+            reached: session.stats.reached,
+        }
         session.enemySpeed = settings.settings.enemySpeed
         reported = false
         resolution = null
@@ -72,6 +85,27 @@ export const useGameStore = defineStore('game', () => {
         if (session) start(session.level.id)
     }
 
+    // Sounds, checkpoints and achievements driven by changes in the session.
+    function react(current: GameSession) {
+        if (current.currentWave > seen.wave) sound.play('waveStart')
+        if (seen.inProgress && !current.waveInProgress && !current.ended) {
+            sound.play('waveClear')
+            campaign.saveCheckpoint(current)
+        }
+        if (!seen.dialog && current.activeDialog) sound.play('dialog')
+        if (current.stats.reached > seen.reached) sound.play('breach')
+        seen = {
+            wave: current.currentWave,
+            inProgress: current.waveInProgress,
+            dialog: !!current.activeDialog,
+            reached: current.stats.reached,
+        }
+        if (++ticksSinceAchievementCheck >= 60) {
+            ticksSinceAchievementCheck = 0
+            achievements.check(current)
+        }
+    }
+
     function tick(frames: number) {
         if (!session) return
         session.advance(frames)
@@ -82,8 +116,12 @@ export const useGameStore = defineStore('game', () => {
     function sync() {
         if (!session) return
         for (const message of session.drainMessages()) ui.notify(message)
+        react(session)
         if (session.result && !reported) {
             reported = true
+            sound.play(session.result.outcome)
+            achievements.check(session)
+            campaign.clearCheckpoint(session.level.id)
             session.objectives.update(session)
             resolution = campaign.recordResult(session.level.id, {
                 outcome: session.result.outcome,
@@ -99,32 +137,19 @@ export const useGameStore = defineStore('game', () => {
             next.result.unlocks = resolution.unlocks
             next.result.campaignAdvanced = resolution.advanced
         }
-        if (next.selection && !canUpgradeTechnology(session, next.selection.id)) {
-            next.selection.canUpgrade = false
-            if (next.selection.nextAbility) {
-                next.selection.nextAbility = {
-                    ...next.selection.nextAbility,
-                    description: 'Технология откроется после сюжетной миссии.',
-                }
-            }
-        }
         snapshot.value = next
     }
 
-    function run(command: (current: GameSession) => CommandResult | void) {
+    function run(command: (current: GameSession) => CommandResult | void): CommandResult | void {
         if (!session) return
         const result = command(session)
         if (result && !result.ok) ui.notify(result.error)
         sync()
+        return result
     }
 
     function upgradeSelection() {
-        run((current) => {
-            const id = current.selectedId ?? current.pointer.hoverId
-            return canUpgradeTechnology(current, id)
-                ? current.upgrade(id)
-                : { ok: false, error: 'Улучшение ещё не открыто в кампании' }
-        })
+        run((current) => current.upgrade(current.selectedId ?? current.pointer.hoverId))
     }
 
     function selectBuild(category: BuildCategory, type: string) {
@@ -143,7 +168,10 @@ export const useGameStore = defineStore('game', () => {
 
     function pointerDown(x: number, y: number) {
         const world = toWorld(x, y)
-        if (world) run((current) => current.pointerDown(world))
+        if (!world || !session) return
+        const building = !!session.pointer.build
+        const result = run((current) => current.pointerDown(world))
+        if (building && result?.ok) sound.play('build')
     }
 
     function draw(ctx: CanvasRenderingContext2D, width: number, height: number) {

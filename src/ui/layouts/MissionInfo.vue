@@ -4,9 +4,13 @@
     import ObjectiveItem from '@/ui/components/ObjectiveItem.vue'
     import StatItem from '@/ui/components/StatItem.vue'
 
-    const { level } = defineProps<{ level: LevelSummary | null }>()
+    const { level, savedWave = null } = defineProps<{
+        level: LevelSummary | null
+        // Wave the level can be resumed after, if a checkpoint exists.
+        savedWave?: number | null
+    }>()
 
-    defineEmits<{ start: []; back: [] }>()
+    defineEmits<{ start: [resume: boolean]; back: [] }>()
 </script>
 
 <template>
@@ -36,7 +40,12 @@
                     <StatItem label="🌊 Волн" :value="level.totalWaves" />
                 </div>
             </div>
-            <AppButton :disabled="level.locked" @click="$emit('start')">НАЧАТЬ ЗАЩИТУ</AppButton>
+            <AppButton v-if="savedWave !== null && !level.locked" @click="$emit('start', true)">
+                ПРОДОЛЖИТЬ (ПОСЛЕ ВОЛНЫ {{ savedWave }})
+            </AppButton>
+            <AppButton :disabled="level.locked" @click="$emit('start', false)">
+                {{ savedWave !== null ? 'НАЧАТЬ ЗАНОВО' : 'НАЧАТЬ ЗАЩИТУ' }}
+            </AppButton>
         </template>
         <AppButton variant="secondary" @click="$emit('back')">ОТМЕНА</AppButton>
     </aside>

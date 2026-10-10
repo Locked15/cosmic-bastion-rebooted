@@ -1,9 +1,10 @@
-import type { FrameScheduler, KeyValueStore, Scene } from '@/application'
+import type { FrameScheduler, KeyValueStore, Scene, SoundPlayer } from '@/application'
 import type { Random } from '@/domain'
 
 // Concrete adapters the stores need. Wired once by the composition root (main.ts) or by tests.
 export interface AppServices {
     storage: KeyValueStore
+    sound: SoundPlayer
     createScheduler: () => FrameScheduler
     createRandom: () => Random
     renderScene: (

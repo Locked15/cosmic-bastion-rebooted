@@ -14,9 +14,29 @@ export function presentSelection(session: GameSession): SelectionView | null {
     const id = session.selectedId ?? session.pointer.hoverId
     if (!id) return null
     const slot = session.slots.find((candidate) => candidate.id === id)
-    if (slot) return presentSlot(slot, session.resources)
+    const view = slot ? presentSlot(slot, session.resources) : null
+    if (slot) return view && limitByTier(view, slot.tower?.level ?? 0, session.upgradeTier)
     const barricade = session.barricades.find((candidate) => candidate.id === id)
-    return barricade ? presentBarricade(barricade, session.resources) : null
+    return barricade
+        ? limitByTier(
+              presentBarricade(barricade, session.resources),
+              barricade.level,
+              session.upgradeTier,
+          )
+        : null
+}
+
+// Upgrades above the campaign tech tier are shown but locked.
+function limitByTier(view: SelectionView, level: number, tier: number): SelectionView {
+    if (level < tier || !view.nextAbility) return view
+    return {
+        ...view,
+        canUpgrade: false,
+        nextAbility: {
+            ...view.nextAbility,
+            description: 'Технология откроется после сюжетной миссии.',
+        },
+    }
 }
 
 function presentSlot(slot: TowerSlot, resources: number): SelectionView | null {

@@ -18,6 +18,12 @@ export interface EffectTarget {
     applyEffect(effect: EventEffect | null): void
 }
 
+export interface StoryState {
+    wave: number
+    scheduled: number
+    flags: StoryFlags
+}
+
 export class StoryDirector {
     active: ActiveDialog | null = null
     readonly flags: StoryFlags
@@ -45,6 +51,21 @@ export class StoryDirector {
             // The redirected group is guaranteed at the next sector's arrival.
             this.pending.unshift({ ...refugees, wave: 0, trigger: 'start', delay: 0 })
         }
+    }
+
+    // Between-wave state for level checkpoints.
+    toState(): StoryState {
+        return { wave: this.wave, scheduled: this.scheduled, flags: { ...this.flags } }
+    }
+
+    // Continue after `state.wave`: earlier events are done, no dialog is open.
+    restore(state: StoryState): void {
+        this.active = null
+        this.queue = []
+        this.pending = this.pending.filter((event) => event.wave > state.wave)
+        this.wave = state.wave
+        this.scheduled = state.scheduled
+        Object.assign(this.flags, state.flags)
     }
 
     onWaveStart(wave: number): void {

@@ -60,6 +60,21 @@ test('plays the first wave of level 1 from the main menu', async ({ page }) => {
     await page.getByRole('button', { name: 'ПРОДОЛЖИТЬ' }).first().click()
     await expect(page.locator('.game-menu')).toBeHidden()
 
+    // Leaving between waves keeps a checkpoint the level can resume from.
+    await page.locator('.side-panel').getByRole('button', { name: 'ВЫХОД', exact: true }).click()
+    await page.getByRole('button', { name: 'ДА', exact: true }).click()
+    await expect(page).toHaveURL(/\/levels$/)
+    await page.getByRole('button', { name: /ПЕРВЫЙ КОНТАКТ/ }).click()
+    await page.getByRole('button', { name: 'ПРОДОЛЖИТЬ (ПОСЛЕ ВОЛНЫ 1)' }).click()
+    await expect(page).toHaveURL(/\/game\/level_1\?resume=1$/)
+    await expect(page.locator('.top-panel')).toContainText('1/4')
+    await expect(page.locator('.side-panel')).toContainText('Пушка')
+
+    // The first kill unlocked an achievement.
+    await page.goto('/')
+    await page.getByRole('button', { name: 'ДОСТИЖЕНИЯ' }).click()
+    await expect(page.locator('.achievement-item--unlocked')).toContainText(['Первая кровь'])
+
     expect(errors).toEqual([])
 })
 

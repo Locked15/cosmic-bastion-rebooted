@@ -9,6 +9,7 @@ import { useCampaignStore } from '@/stores/campaignStore'
 import { useGameStore } from '@/stores/gameStore'
 import { CampaignService } from '../CampaignService'
 import type { FrameScheduler } from '../ports/FrameScheduler'
+import { silentSoundPlayer } from '../ports/SoundPlayer'
 import StoryDialog from '@/ui/layouts/StoryDialog.vue'
 import GameMenu from '@/ui/layouts/GameMenu.vue'
 import LevelSelectPage from '@/ui/pages/LevelSelectPage.vue'
@@ -34,6 +35,7 @@ beforeEach(() => {
     setActivePinia(createPinia())
     provideServices({
         storage,
+        sound: silentSoundPlayer,
         createRandom: () => createSeededRandom(1),
         renderScene: () => {},
         createScheduler: (): FrameScheduler => ({
@@ -177,6 +179,7 @@ describe('story and campaign UI', () => {
         const captured: { current?: import('../session/GameSession').GameSession } = {}
         provideServices({
             storage,
+            sound: silentSoundPlayer,
             createRandom: () => createSeededRandom(1),
             createScheduler: () => ({
                 start: (callback) => {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
     import { useRouter } from 'vue-router'
+    import { useAchievementsStore } from '@/stores/achievementsStore'
     import { useCampaignStore } from '@/stores/campaignStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
@@ -8,10 +9,12 @@
     const router = useRouter()
     const campaign = useCampaignStore()
     const ui = useUiStore()
+    const achievements = useAchievementsStore()
 
     async function resetProgress() {
         if (await ui.confirm('Вы уверены? Это удалит весь ваш прогресс навсегда.')) {
             campaign.reset()
+            achievements.reset()
             ui.notify('Прогресс сброшен. Начинаем игру заново!')
         }
     }
@@ -28,6 +31,7 @@
                     {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
                 </AppButton>
                 <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
+                <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
                 <AppButton @click="ui.openSettings()">НАСТРОЙКИ</AppButton>
                 <AppButton variant="secondary" @click="resetProgress">НАЧАТЬ ЗАНОВО</AppButton>
             </nav>
