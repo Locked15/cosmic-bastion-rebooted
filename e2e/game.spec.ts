@@ -87,3 +87,16 @@ test('redirects locked levels and supports deep links and back navigation', asyn
     await page.goBack()
     await expect(page).toHaveURL(/\/levels$/)
 })
+
+test.describe('on a 1280x720 laptop screen', () => {
+    test.use({ viewport: { width: 1280, height: 720 } })
+
+    test('shows the start button without scrolling and starts the level', async ({ page }) => {
+        await page.goto('/levels')
+        await page.getByRole('button', { name: /ПЕРВЫЙ КОНТАКТ/ }).click()
+        const start = page.getByRole('button', { name: 'НАЧАТЬ ЗАЩИТУ' })
+        await expect(start).toBeInViewport()
+        await start.click({ noWaitAfter: true })
+        await expect(page).toHaveURL(/\/game\/level_1$/)
+    })
+})

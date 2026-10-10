@@ -16,7 +16,7 @@
 <template>
     <aside class="mission-info">
         <h3 class="mission-info__title">{{ level?.name ?? 'ВЫБЕРИТЕ СЕКТОР' }}</h3>
-        <template v-if="level">
+        <div v-if="level" class="mission-info__details">
             <p class="mission-info__sector">{{ level.sector }}</p>
             <p v-if="level.prerequisites.length" class="mission-info__requirements">
                 Доступ после: {{ level.prerequisites.join(' и ') }}
@@ -40,14 +40,20 @@
                     <StatItem label="🌊 Волн" :value="level.totalWaves" />
                 </div>
             </div>
-            <AppButton v-if="savedWave !== null && !level.locked" @click="$emit('start', true)">
+        </div>
+        <!-- Actions stay visible however long the details are. -->
+        <div class="mission-info__actions">
+            <AppButton
+                v-if="level && savedWave !== null && !level.locked"
+                @click="$emit('start', true)"
+            >
                 ПРОДОЛЖИТЬ (ПОСЛЕ ВОЛНЫ {{ savedWave }})
             </AppButton>
-            <AppButton :disabled="level.locked" @click="$emit('start', false)">
+            <AppButton v-if="level" :disabled="level.locked" @click="$emit('start', false)">
                 {{ savedWave !== null ? 'НАЧАТЬ ЗАНОВО' : 'НАЧАТЬ ЗАЩИТУ' }}
             </AppButton>
-        </template>
-        <AppButton variant="secondary" @click="$emit('back')">ОТМЕНА</AppButton>
+            <AppButton variant="secondary" @click="$emit('back')">ОТМЕНА</AppButton>
+        </div>
     </aside>
 </template>
 
@@ -55,8 +61,21 @@
     .mission-info {
         display: flex;
         flex-direction: column;
+        min-height: 0;
         padding: $spacing-lg;
         border: 2px solid $color-primary;
+
+        &__details {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+        }
+
+        &__actions {
+            flex: none;
+            padding-top: $spacing-sm;
+            border-top: 1px solid $color-border;
+        }
 
         &__title {
             margin-bottom: $spacing-md;

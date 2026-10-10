@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
-    import { computed, ref } from 'vue'
+    import { computed, nextTick, ref, useTemplateRef } from 'vue'
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
     import ShipMapFrame from '@/ui/components/ShipMapFrame.vue'
@@ -14,6 +14,16 @@
     const selected = computed(
         () => levels.value.find((level) => level.id === selectedId.value) ?? null,
     )
+
+    const info = useTemplateRef<InstanceType<typeof MissionInfo>>('info')
+
+    // In the single-column layout the mission panel is below the map: bring it into view.
+    async function select(levelId: string) {
+        selectedId.value = levelId
+        if (!window.matchMedia?.('(max-width: 1200px)').matches) return
+        await nextTick()
+        ;(info.value?.$el as HTMLElement | undefined)?.scrollIntoView?.({ behavior: 'smooth' })
+    }
 
     function start(resume: boolean) {
         if (selected.value) {
@@ -44,10 +54,12 @@
                 :stars="level.stars"
                 :story="level.story"
                 :active="level.id === selectedId"
-                @select="selectedId = level.id"
+                @select="select(level.id)"
             />
         </div>
         <MissionInfo
+            ref="info"
+            class="level-select__info"
             :level="selected"
             :saved-wave="selected ? (savedWaves[selected.id] ?? null) : null"
             @start="start"
@@ -62,8 +74,10 @@
         grid-template-rows: auto minmax(680px, 1fr);
         grid-template-columns: 2fr 1fr;
         gap: $spacing-lg;
-        min-height: 100vh;
+        // The page scrolls itself: body has overflow hidden for the game screen.
+        height: 100vh;
         padding: $spacing-lg;
+        overflow-y: auto;
 
         &__title {
             grid-column: 1 / -1;
@@ -82,6 +96,14 @@
             border: 2px solid $color-primary;
         }
 
+        // Mission details always fit the viewport, so the start button is reachable.
+        &__info {
+            position: sticky;
+            top: 0;
+            align-self: start;
+            max-height: calc(100vh - #{$spacing-lg * 2});
+        }
+
         &__node {
             position: absolute;
             width: 42%;
@@ -90,7 +112,11 @@
 
         @media (max-width: 1200px) {
             grid-template-columns: 1fr;
-            overflow-y: auto;
+
+            &__info {
+                position: static;
+                max-height: none;
+            }
         }
     }
 </style>
