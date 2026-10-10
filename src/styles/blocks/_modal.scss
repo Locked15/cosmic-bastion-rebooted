@@ -1,0 +1,54 @@
+@use '../tokens' as *;
+@use '../mixins' as *;
+
+// .modal — dimmed overlay with a centered framed box.
+.modal {
+    @include fullscreen-fixed;
+
+    z-index: $z-modal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.8);
+
+    &__box {
+        @include pop-in(modal-pop);
+
+        min-width: 400px;
+        max-width: 600px;
+        max-height: 85vh;
+        padding: $spacing-lg;
+        overflow-y: auto;
+        border: 3px solid $color-primary;
+        background-color: $color-bg;
+        box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+    }
+
+    &__title {
+        margin-bottom: $spacing-md;
+        padding-bottom: $spacing-sm;
+        border-bottom: 2px solid $color-primary;
+        font-size: 18px;
+        letter-spacing: 2px;
+        text-align: center;
+    }
+
+    &__text {
+        margin-bottom: $spacing-lg;
+        color: $color-accent;
+        line-height: 1.8;
+    }
+
+    &__footer {
+        margin-top: $spacing-md;
+        padding-top: $spacing-md;
+        border-top: 1px solid $color-border;
+    }
+
+    @media (max-width: 768px) {
+        &__box {
+            min-width: 90vw;
+            max-width: 90vw;
+        }
+    }
+}

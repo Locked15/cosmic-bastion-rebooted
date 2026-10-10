@@ -1,19 +1,24 @@
 <script setup lang="ts">
+    import { storeToRefs } from 'pinia'
+    import { watchEffect } from 'vue'
     import { RouterView } from 'vue-router'
-    const a = { b: 1 }
+    import { useSettingsStore } from '@/stores/settingsStore'
+    import ConfirmModal from '@/ui/layouts/ConfirmModal.vue'
+    import HelpModal from '@/ui/layouts/HelpModal.vue'
+    import SettingsModal from '@/ui/layouts/SettingsModal.vue'
+    import ToastStack from '@/ui/layouts/ToastStack.vue'
+
+    const { settings } = storeToRefs(useSettingsStore())
+
+    watchEffect(() => {
+        document.body.style.setProperty('--brightness', String(settings.value.brightness / 100))
+    })
 </script>
 
 <template>
-    <div class="app">
-        <RouterView /><span>{{ a.b }}</span>
-    </div>
+    <RouterView />
+    <SettingsModal />
+    <HelpModal />
+    <ConfirmModal />
+    <ToastStack />
 </template>
-
-<style scoped lang="scss">
-    .app {
-        color: red;
-        &__x {
-            color: blue;
-        }
-    }
-</style>

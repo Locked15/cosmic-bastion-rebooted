@@ -1,0 +1,25 @@
+@use '../tokens' as *;
+
+// .panel-block — titled section of the side panel.
+.panel-block {
+    margin-bottom: $spacing-lg;
+    padding-bottom: $spacing-lg;
+    border-bottom: 1px solid $color-border;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &__title {
+        margin-bottom: $spacing-md;
+        color: $color-accent;
+        font-size: 14px;
+        letter-spacing: 2px;
+    }
+
+    &__list {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-sm;
+    }
+}

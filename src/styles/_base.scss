@@ -1,0 +1,27 @@
+@use 'tokens' as *;
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --brightness: 1;
+}
+
+body {
+    overflow: hidden;
+    background-color: $color-bg;
+    color: $color-primary;
+    font-family: $font-main;
+    line-height: 1.6;
+    filter: brightness(var(--brightness));
+}
+
+button,
+input {
+    font-family: inherit;
+}

@@ -1,0 +1,25 @@
+// Design tokens: blueprint palette, spacing, typography.
+$color-bg: #0a0a0a;
+$color-surface: #1a1a1a;
+$color-primary: #ffffff;
+$color-secondary: #888888;
+$color-accent: #cccccc;
+$color-border: #444444;
+$color-danger: #ff0000;
+$color-success: #00ff00;
+$color-warning: #ffff00;
+
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+
+$font-main: 'Courier New', monospace;
+
+$top-panel-height: 60px;
+$side-panel-width: 320px;
+
+$z-controls: 200;
+$z-menu: 500;
+$z-modal: 1000;
+$z-toast: 1100;

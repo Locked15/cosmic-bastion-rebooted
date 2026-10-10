@@ -1,0 +1,59 @@
+@use 'tokens' as *;
+
+// Blueprint grid background.
+@mixin blueprint-grid($size: 50px, $color: $color-border) {
+    background-color: $color-bg;
+    background-image:
+        linear-gradient(90deg, $color 1px, transparent 1px),
+        linear-gradient(0deg, $color 1px, transparent 1px);
+    background-size: $size $size;
+}
+
+// Corner brackets drawn on two opposite corners.
+@mixin corner-frame($size: 20px, $color: $color-primary) {
+    position: relative;
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        width: $size;
+        height: $size;
+        border: 2px solid $color;
+    }
+
+    &::before {
+        top: -2px;
+        left: -2px;
+        border-right: none;
+        border-bottom: none;
+    }
+
+    &::after {
+        right: -2px;
+        bottom: -2px;
+        border-top: none;
+        border-left: none;
+    }
+}
+
+@mixin fullscreen-fixed {
+    position: fixed;
+    inset: 0;
+}
+
+@mixin pop-in($name: pop-in, $from-scale: 0.8) {
+    animation: $name 0.3s ease-out;
+
+    @keyframes #{$name} {
+        from {
+            opacity: 0;
+            transform: scale($from-scale);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+}
