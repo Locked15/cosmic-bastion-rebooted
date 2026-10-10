@@ -1,16 +1,16 @@
-import { BARRICADE_CATALOG, TOWER_CATALOG, type BarricadeType, type TowerType } from '@/domain'
+import { BARRICADE_CATALOG, TOWER_CATALOG } from '@/domain'
 import type { BuildOption } from '../../dto/views'
+import type { GameSession } from '../GameSession'
 
-const UNLOCKED_TOWERS: TowerType[] = ['cannon', 'machinegun', 'rocket']
-const UNLOCKED_BARRICADES: BarricadeType[] = ['wall', 'filter']
-
-export function presentBuildOptions(resources: number): BuildOption[] {
-    const towers = UNLOCKED_TOWERS.map((type) => ({
+// Only what is unlocked for this level is offered.
+export function presentBuildOptions(session: GameSession): BuildOption[] {
+    const resources = session.resources
+    const towers = session.unlockedTowers.map((type) => ({
         category: 'tower' as const,
         type,
         ...TOWER_CATALOG[type],
     }))
-    const barricades = UNLOCKED_BARRICADES.map((type) => ({
+    const barricades = session.unlockedBarricades.map((type) => ({
         category: 'barricade' as const,
         type,
         ...BARRICADE_CATALOG[type],

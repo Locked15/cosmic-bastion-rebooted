@@ -33,7 +33,7 @@ export function presentSession(session: GameSession): GameSnapshot {
             enemies: session.enemiesInQuarters.length,
             inTransit: session.personnel.inTransit,
         },
-        buildOptions: presentBuildOptions(session.resources),
+        buildOptions: presentBuildOptions(session),
         selection: presentSelection(session),
         dialog: presentDialog(session),
         result: presentResult(session),

@@ -56,8 +56,10 @@ export function applyEffect(session: GameSession, effect: EventEffect | null): v
             break
         }
         case 'buffDamage':
+            session.applyDamageBuff(effect.value)
+            break
         case 'buffBarricades':
-            // Not implemented yet, see TODO.md.
+            session.applyBarricadeBuff(effect.value)
             break
     }
 }

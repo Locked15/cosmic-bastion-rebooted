@@ -24,6 +24,7 @@ import {
 import type { BuildCategory, GameStatus, GameView } from '../dto/views'
 import { applyEffect, canAfford } from './effects'
 import { LivingQuarters } from './livingQuarters'
+import { ObjectiveTracker } from './objectives'
 import { Personnel } from './personnel'
 import type { Scene, ScenePointer } from './scene'
 import { StoryDirector, type ActiveDialog } from './story'
@@ -41,6 +42,17 @@ const SLOT_SNAP_RADIUS = 50
 const REFUND_RATE = 0.5
 // Filter barricades slow the enemies they let through for 5 seconds.
 const FILTER_SLOW_FRAMES = 5 * FPS
+
+// Campaign context a level starts with.
+export interface SessionOptions {
+    unlockedTowers?: readonly TowerType[]
+    unlockedBarricades?: readonly BarricadeType[]
+    // Story flags carried over from earlier levels (choices, redirected refugees, …).
+    campaignFlags?: Readonly<Record<string, number>>
+}
+
+export const DEFAULT_TOWERS: readonly TowerType[] = ['cannon', 'machinegun', 'rocket']
+export const DEFAULT_BARRICADES: readonly BarricadeType[] = ['wall', 'filter']
 
 export interface SessionResult {
     outcome: 'victory' | 'defeat'
@@ -74,6 +86,9 @@ export class GameSession implements Scene {
     readonly personnel: Personnel
     readonly quarters: LivingQuarters
     readonly story: StoryDirector
+    readonly objectives: ObjectiveTracker
+    readonly unlockedTowers: readonly TowerType[]
+    readonly unlockedBarricades: readonly BarricadeType[]
 
     resources: number
     resourceRate = 0
@@ -88,6 +103,9 @@ export class GameSession implements Scene {
     result: SessionResult | null = null
     speedIndex = 1
     enemySpeed = 1
+    // Story buffs: multiply tower damage and barricade durability.
+    damageMultiplier = 1
+    barricadeMultiplier = 1
     stats: SessionStats = { killed: 0, reached: 0, lost: 0, gathered: 0 }
 
     pointer: ScenePointer = {
@@ -103,16 +121,23 @@ export class GameSession implements Scene {
     private victoryCountdown: number | null = null
     private messages: string[] = []
 
-    constructor(level: Level, rng: Random) {
+    constructor(level: Level, rng: Random, options: SessionOptions = {}) {
         this.level = level
         this.rng = rng
+        this.unlockedTowers = options.unlockedTowers ?? DEFAULT_TOWERS
+        this.unlockedBarricades = options.unlockedBarricades ?? DEFAULT_BARRICADES
+        this.objectives = new ObjectiveTracker(level)
         this.resources = level.startingResources
         this.personnel = new Personnel(level, rng, level.startingMiners, level.startingMilitary)
         this.quarters = new LivingQuarters(level, this.personnel, rng)
-        this.story = new StoryDirector(level.events, {
-            canAfford: (effect) => this.canAfford(effect),
-            applyEffect: (effect) => applyEffect(this, effect),
-        })
+        this.story = new StoryDirector(
+            level.events,
+            {
+                canAfford: (effect) => this.canAfford(effect),
+                applyEffect: (effect) => applyEffect(this, effect),
+            },
+            options.campaignFlags ?? {},
+        )
         this.slots = level.towerSlots.map(
             (slot) => new TowerSlot(rng.id('slot'), slot.x, slot.y, slot.type),
         )
@@ -168,6 +193,14 @@ export class GameSession implements Scene {
         return canAfford(this, effect)
     }
 
+    applyDamageBuff(multiplier: number): void {
+        this.damageMultiplier *= multiplier
+    }
+
+    applyBarricadeBuff(multiplier: number): void {
+        this.barricadeMultiplier *= multiplier
+    }
+
     // ----- Time -----
 
     // Advance by real elapsed frames, applying speed, pause and dialog slow-down.
@@ -200,6 +233,8 @@ export class GameSession implements Scene {
         this.updateBarricades(dt)
         this.updateEnemies(dt)
         this.updateQuarters(dt)
+        for (const text of this.objectives.update(this))
+            this.messages.push(`Задача выполнена: ${text}`)
         this.checkDefeat()
     }
 
@@ -586,11 +621,8 @@ export class GameSession implements Scene {
     }
 
     private completeObjective(id: string): void {
-        const objective = this.level.objectives.find((candidate) => candidate.id === id)
-        if (objective && !objective.completed) {
-            objective.completed = true
-            this.messages.push(`Задача выполнена: ${objective.text}`)
-        }
+        const text = this.objectives.complete(id)
+        if (text) this.messages.push(`Задача выполнена: ${text}`)
     }
 }
 

@@ -23,6 +23,8 @@ export class StoryDirector {
     constructor(
         events: readonly LevelEvent[],
         private readonly target: EffectTarget,
+        // Flags carried over from earlier levels; also collects flags set during this level.
+        readonly flags: Record<string, number> = {},
     ) {
         this.pending = [...events]
     }
