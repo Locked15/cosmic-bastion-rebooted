@@ -12,6 +12,8 @@ export interface Scene {
     readonly people: readonly Person[]
     readonly miners: number
     readonly military: number
+    // People being retrained between roles (inactive).
+    readonly inTransit: number
     readonly pointer: ScenePointer
     readonly selectedId: string | null
 }
@@ -25,6 +27,8 @@ export interface ScenePointer {
     slotId: string | null
     // Barricade footprint under the pointer in barricade build mode.
     footprint: Rect | null
+    // Whether a barricade can be built on the footprint.
+    footprintValid: boolean
     // Tower slot or barricade under the pointer outside build mode.
     hoverId: string | null
 }

@@ -104,6 +104,10 @@ export function drawLivingQuarters(ctx: CanvasRenderingContext2D, scene: Scene):
         20,
         scene.level.livingQuartersY + 130,
     )
+    if (scene.inTransit > 0) {
+        ctx.fillStyle = '#888888'
+        ctx.fillText(`⇄ В переходе: ${scene.inTransit}`, 20, scene.level.livingQuartersY + 150)
+    }
 }
 
 function drawPerson(ctx: CanvasRenderingContext2D, person: Person): void {

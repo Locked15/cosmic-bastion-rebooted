@@ -82,7 +82,7 @@ export interface GameSnapshot {
     resourceRate: number
     personnel: { miners: number; military: number; lost: number }
     conversions: ConversionView[]
-    livingQuarters: { underAttack: boolean; enemies: number }
+    livingQuarters: { underAttack: boolean; enemies: number; inTransit: number }
     buildOptions: BuildOption[]
     selection: SelectionView | null
     dialog: DialogView | null

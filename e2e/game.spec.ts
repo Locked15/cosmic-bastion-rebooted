@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test'
 
 // Level 1 world size and first tower slot, see src/domain/levels/level1.ts.
 const LEVEL = { width: 1200, height: 700 }
-const FIRST_SLOT = { x: 150, y: 180 }
+const FIRST_SLOT = { x: 205, y: 175 }
 
 async function clickWorld(page: Page, point: { x: number; y: number }) {
     const box = (await page.getByTestId('game-canvas').boundingBox())!

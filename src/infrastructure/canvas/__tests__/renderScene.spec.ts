@@ -62,7 +62,15 @@ function createScene(): Scene {
         ],
         miners: 1,
         military: 1,
-        pointer: { world: null, build: null, slotId: null, footprint: null, hoverId: slot.id },
+        inTransit: 2,
+        pointer: {
+            world: null,
+            build: null,
+            slotId: null,
+            footprint: null,
+            footprintValid: false,
+            hoverId: slot.id,
+        },
         selectedId: slot.id,
     }
 }

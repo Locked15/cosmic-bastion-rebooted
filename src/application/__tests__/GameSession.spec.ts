@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createLevel, createSeededRandom } from '@/domain'
+import { createLevel, createSeededRandom, projectOntoPath } from '@/domain'
 import { GameSession } from '../session/GameSession'
 import { presentSession } from '../session/presenter'
 
@@ -132,5 +132,67 @@ describe('GameSession', () => {
         expect(snapshot.selection?.kind).toBe('tower')
         expect(snapshot.selection?.progress[0]?.label).toBe('Строительство')
         expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot)
+    })
+
+    it('builds barricades only on the track or a floor breach', () => {
+        const session = newSession()
+        answerDialogs(session)
+        const slot = session.slots[0]!
+        expect(session.buildBarricade(slot, 'wall').ok).toBe(false)
+
+        const vertex = session.level.basePath[2]!
+        expect(session.buildBarricade({ x: vertex.x + 12, y: vertex.y }, 'wall').ok).toBe(true)
+        const wall = session.barricades[0]!
+        // Snapped onto the track centerline.
+        const center = { x: wall.x + wall.width / 2, y: wall.y + wall.height / 2 }
+        expect(projectOntoPath(center, session.level.basePath)!.distance).toBeLessThan(0.01)
+        expect(session.buildBarricade(vertex, 'wall').ok).toBe(false)
+
+        const breach = session.level.floorBreaches[0]!
+        const breachCenter = { x: breach.x + breach.width / 2, y: breach.y + breach.height / 2 }
+        expect(session.buildBarricade(breachCenter, 'wall').ok).toBe(true)
+        expect(session.barricades[1]).toMatchObject({ x: breach.x, width: breach.width })
+    })
+
+    it('stops enemies at a wall until it is destroyed', () => {
+        const session = newSession()
+        answerDialogs(session)
+        session.resources = 10_000
+        const vertex = session.level.basePath[2]!
+        session.buildBarricade(vertex, 'wall')
+        const wall = session.barricades[0]!
+        runUntil(session, () => wall.active)
+
+        session.startWave()
+        answerDialogs(session)
+        let blockedSeen = false
+        let furthestWhileStanding = 0
+        runUntil(session, () => {
+            if (wall.active) {
+                for (const enemy of session.enemies) {
+                    if (enemy.spawned)
+                        furthestWhileStanding = Math.max(furthestWhileStanding, enemy.pathIndex)
+                }
+                blockedSeen ||= wall.currentHealth < wall.maxHealth
+            }
+            return !wall.active || !session.waveInProgress
+        })
+        // Nobody gets past the wall (on segment 1 -> 2) while it stands.
+        expect(furthestWhileStanding).toBeLessThan(2)
+        expect(blockedSeen).toBe(true)
+        expect(wall.active).toBe(false)
+    })
+
+    it('seals a breach only while its barricade stands', () => {
+        const session = newSession()
+        answerDialogs(session)
+        const breach = session.level.floorBreaches[0]!
+        session.buildBarricade({ x: breach.x + 5, y: breach.y + 5 }, 'wall')
+        runUntil(session, () => session.barricades[0]!.active)
+        session.update(1)
+        expect(breach.closed).toBe(true)
+        session.barricades[0]!.destroy()
+        session.update(1)
+        expect(breach.closed).toBe(false)
     })
 })
