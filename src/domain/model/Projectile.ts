@@ -1,3 +1,4 @@
+import type { Point } from '../geometry'
 import type { Enemy } from './Enemy'
 export type ProjectileType = 'bullet' | 'cannon' | 'rocket'
 export class Projectile {
@@ -9,6 +10,8 @@ export class Projectile {
     target: Enemy
     type: ProjectileType
     active: boolean = false
+    fixedTarget: Point | null = null
+    impactEnemies: Enemy[] = []
 
     constructor(
         x: number,
@@ -31,17 +34,20 @@ export class Projectile {
     }
 
     update(deltaTime: number): void {
-        if (!this.target || !this.target.alive) {
+        if (!this.fixedTarget && (!this.target || !this.target.alive)) {
             this.active = false
             return
         }
 
-        const dx = this.target.x - this.x
-        const dy = this.target.y - this.y
+        const point = this.fixedTarget ?? this.target
+        const dx = point.x - this.x
+        const dy = point.y - this.y
         const dist = Math.sqrt(dx * dx + dy * dy)
 
         const moveDistance = this.speed * deltaTime
         if (dist <= moveDistance || dist === 0) {
+            this.x = point.x
+            this.y = point.y
             this.hit()
         } else {
             this.x += (dx / dist) * moveDistance
@@ -50,13 +56,23 @@ export class Projectile {
     }
 
     hit(): void {
-        if (this.target && this.target.takeDamage) {
-            this.target.takeDamage(this.damage, this.sourceId)
-        }
-
-        if (this.slowEffect && this.target && this.target.alive) {
-            this.target.slowMultiplier = 0.5
-            this.target.slowTimer = 120
+        const targets = this.fixedTarget
+            ? this.impactEnemies
+                  .filter(
+                      (enemy) =>
+                          enemy.alive &&
+                          enemy.spawned &&
+                          Math.hypot(enemy.x - this.x, enemy.y - this.y) <= 10,
+                  )
+                  .slice(0, 1)
+            : [this.target]
+        for (const target of targets) {
+            if (target.dodgeProjectile()) continue
+            target.takeDamage(this.damage, this.sourceId)
+            if (this.slowEffect && target.alive) {
+                target.slowMultiplier = 0.5
+                target.slowTimer = 120
+            }
         }
 
         this.active = false
@@ -88,23 +104,19 @@ export class ExplosiveProjectile extends Projectile {
     hit(): void {
         if (this.allEnemies) {
             this.allEnemies.forEach((enemy) => {
-                if (!enemy.alive) return
+                if (!enemy.alive || !enemy.spawned) return
 
                 const dx = enemy.x - this.x
                 const dy = enemy.y - this.y
                 const dist = Math.sqrt(dx * dx + dy * dy)
 
-                if (dist <= this.explosionRadius) {
+                if (dist <= this.explosionRadius && !enemy.dodgeProjectile()) {
                     const damageMult = 1 - (dist / this.explosionRadius) * 0.5
                     if (enemy.takeDamage) {
                         enemy.takeDamage(this.damage * damageMult, this.sourceId)
                     }
 
-                    if (this.knockback && dist > 0) {
-                        const knockbackDist = 20
-                        enemy.x += (dx / dist) * knockbackDist
-                        enemy.y += (dy / dist) * knockbackDist
-                    }
+                    if (this.knockback && enemy.alive) enemy.knockBack(20)
                 }
             })
         }

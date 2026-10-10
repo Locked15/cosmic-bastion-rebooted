@@ -23,7 +23,7 @@ describe('enemies', () => {
         expect(wave).toHaveLength(21)
         const boss = wave[wave.length - 1]!
         expect(boss.type).toBe('boss')
-        expect(boss.abilities).toHaveLength(4)
+        expect(boss.abilities).toHaveLength(1)
         expect(boss.spawnDelay).toBe(250)
         expect(wave.every((enemy) => !enemy.spawned)).toBe(true)
     })
@@ -66,8 +66,10 @@ describe('enemies', () => {
         }
         expect(split()).toEqual(split())
     })
-    it('restricts adaptation damage to the first attacking tower ID', () => {
+    it('restricts adaptation damage to its selected in-range tower ID', () => {
         const enemy = new Enemy('ability', 'large', 'enemy', ['adaptation'])
+        enemy.abilityStates.adaptationActive = true
+        enemy.abilityStates.adaptedTower = 'tower_1'
         enemy.takeDamage(10, 'tower_1')
         const health = enemy.currentHealth
         enemy.takeDamage(10, 'tower_2')
@@ -102,26 +104,26 @@ describe('enemies', () => {
     })
     it('accelerates, teleports, sabotages and absorbs according to the original rules', () => {
         const accelerating = new Enemy('ability', 'small', 'fast', ['accelerate'])
-        accelerating.update(120, context())
-        expect(accelerating.accelerateMultiplier).toBeCloseTo(1.03)
+        accelerating.update(300, context())
+        expect(accelerating.accelerateMultiplier).toBeCloseTo(1.05)
         const tower = new CannonTower(0, 0, 'tower')
         const ctx = context()
         ctx.towers.push(tower)
         const teleporter = new Enemy('ability', 'small', 'teleport', ['teleport'])
         teleporter.setPath(Array.from({ length: 10 }, (_, x) => ({ x: x * 100, y: 0 })))
         teleporter.update(1, ctx)
-        expect(teleporter.pathIndex).toBeGreaterThanOrEqual(4)
+        expect(teleporter.pathProgress).toBeCloseTo(122)
         const saboteur = new Enemy('ability', 'small', 'sabotage', ['sabotage'])
         saboteur.update(1, ctx)
         expect(tower.disabled).toBe(true)
-        expect(tower.disableTimer).toBe(240)
+        expect(tower.disableTimer).toBe(600)
         const boss = new Enemy('boss', 'large', 'boss', ['absorb'])
         const victim = new Enemy('simple', 'small', 'victim')
         boss.currentHealth -= 100
         ctx.enemies.push(boss, victim)
-        boss.update(240, ctx)
+        boss.update(480, ctx)
         expect(victim.alive).toBe(false)
-        expect(boss.currentHealth).toBe(boss.maxHealth - 91)
+        expect(boss.currentHealth).toBe(boss.maxHealth - 70)
     })
     it('returns detached snapshot ability collections', () => {
         const enemy = new Enemy('ability', 'small', 'enemy', ['accelerate'])

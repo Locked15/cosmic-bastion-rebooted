@@ -53,7 +53,10 @@ function presentSlot(slot: TowerSlot, resources: number): SelectionView | null {
         stats: tower
             ? [
                   row('Урон', Math.floor(tower.damage)),
-                  row('Дальность', Math.floor(tower.range)),
+                  row(
+                      'Дальность',
+                      Number.isFinite(tower.range) ? Math.floor(tower.range) : 'Вся карта',
+                  ),
                   row('Скорострельность', `${(60 / tower.fireRate).toFixed(1)}/с`),
               ]
             : [],
@@ -70,7 +73,9 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
     const entry = BARRICADE_CATALOG[barricade.type]
     const level = barricade.level
     const upgradeCost =
-        barricade.active && level < BARRICADE_MAX_LEVEL ? (entry.upgradeCosts[level] ?? null) : null
+        barricade.active && !barricade.upgrading && level < BARRICADE_MAX_LEVEL
+            ? (entry.upgradeCosts[level] ?? null)
+            : null
     const progress = barricade.building
         ? [
               {
@@ -81,12 +86,23 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
         : barricade.active
           ? [{ label: 'Прочность', percent: percent(barricade.currentHealth, barricade.maxHealth) }]
           : []
+    if (barricade.upgrading)
+        progress.push({
+            label: 'Улучшение',
+            percent: percent(barricade.upgradeProgress, barricade.upgradeTime),
+        })
     const next = level < BARRICADE_MAX_LEVEL ? entry.benefits[(level + 1) as 1 | 2 | 3] : null
     return {
         kind: 'barricade',
         id: barricade.id,
         title: `${entry.name} (Ур. ${level + 1})`,
-        status: barricade.active ? 'Активна' : barricade.building ? 'Строительство' : 'Разрушена',
+        status: barricade.upgrading
+            ? 'Улучшение'
+            : barricade.active
+              ? 'Активна'
+              : barricade.building
+                ? 'Строительство'
+                : 'Разрушена',
         disabled: false,
         stats: barricade.active
             ? [row('Прочность', `${Math.floor(barricade.currentHealth)}/${barricade.maxHealth}`)]

@@ -13,6 +13,12 @@ export class Barricade {
     building = false
     buildProgress = 0
     buildTime = 120
+    upgrading = false
+    upgradeProgress = 0
+    upgradeTime = 240
+    healthMultiplier = 1
+    repairTimer = 0
+    pushTimer = 0
     maxHealth = 100
     currentHealth = 100
     selfRepair = false
@@ -63,6 +69,9 @@ export class Barricade {
             building: this.building,
             buildProgress: this.buildProgress,
             buildTime: this.buildTime,
+            upgrading: this.upgrading,
+            upgradeProgress: this.upgradeProgress,
+            upgradeTime: this.upgradeTime,
             abilities: this.abilities.map((ability) => ({ ...ability })),
         }
     }
@@ -96,7 +105,7 @@ export class Barricade {
             this.maxHealth = 550
             this.buildTime = 200
             this.damageMitigation = 0.25
-            this.maxAttackers = 4
+            this.damageToEnemies = 10
         }
 
         this.currentHealth = this.maxHealth
@@ -122,10 +131,35 @@ export class Barricade {
         }
     }
 
-    resetAttackers(): void {
-        if (this.currentAttackers) {
-            this.currentAttackers.clear()
+    resetAttackers(stoppedIds: readonly string[] = []): void {
+        for (const id of this.currentAttackers) {
+            if (!stoppedIds.includes(id)) this.currentAttackers.delete(id)
         }
+    }
+
+    setHealthMultiplier(multiplier: number): void {
+        const ratio = multiplier / this.healthMultiplier
+        this.maxHealth *= ratio
+        this.currentHealth *= ratio
+        this.healthMultiplier = multiplier
+    }
+
+    startUpgrade(): boolean {
+        if (!this.active || this.upgrading || this.level >= 3) return false
+        this.upgrading = true
+        this.upgradeProgress = 0
+        return true
+    }
+
+    updateUpgrade(militaryCount: number, deltaTime: number): boolean {
+        if (!this.upgrading) return false
+        this.upgradeProgress += Math.max(1, militaryCount * 0.3) * deltaTime
+        if (this.upgradeProgress < this.upgradeTime) return false
+        this.level++
+        this.upgrading = false
+        this.upgradeProgress = 0
+        this.applyUpgrade()
+        return true
     }
 
     canAcceptAttacker(enemyId: string): boolean {
@@ -182,74 +216,53 @@ export class Barricade {
         this.active = false
         this.broken = true
         this.currentHealth = 0
+        this.upgrading = false
+        this.upgradeProgress = 0
     }
 
     update(deltaTime: number): void {
         if (!this.active) return
 
-        if (this.selfRepair && this.currentHealth < this.maxHealth) {
-            this.currentHealth = Math.min(
-                this.maxHealth,
-                this.currentHealth + this.repairRate * deltaTime,
-            )
+        if (this.selfRepair) {
+            this.repairTimer += deltaTime
+            while (this.repairTimer >= 300) {
+                this.repairTimer -= 300
+                this.currentHealth = Math.min(
+                    this.maxHealth,
+                    this.currentHealth + this.maxHealth * 0.05,
+                )
+            }
         }
+        if (this.knockbackEnemies) this.pushTimer += deltaTime
     }
 
     applyUpgrade(): void {
         if (this.type === 'wall') {
             if (this.level === 1) {
-                this.maxHealth = 520
+                this.maxHealth = 520 * this.healthMultiplier
                 this.currentHealth = this.maxHealth
-                this.damageMitigation = 0.3
-                this.pushBackStrength = 4
-            } else if (this.level === 2) {
-                this.selfRepair = true
-                this.repairRate = 0.8
-                this.damageMitigation = 0.26
-            } else if (this.level === 3) {
+            }
+            if (this.level === 2) this.selfRepair = true
+            if (this.level === 3) {
                 this.knockbackEnemies = true
-                this.counterDamage = 6
-                this.damageMitigation = 0.22
-                this.pushBackStrength = 6
+                this.pushBackStrength = 30
             }
         } else if (this.type === 'filter') {
             if (this.level === 1) {
-                this.maxHealth = 280
+                this.maxHealth = 280 * this.healthMultiplier
                 this.currentHealth = this.maxHealth
                 this.damageToEnemies = 8
-                this.filterSlowMultiplier = 0.35
-            } else if (this.level === 2) {
-                this.selfRepair = true
-                this.repairRate = 0.6
-                this.filterSlowMultiplier = 0.28
-                this.damageMitigation = 0.4
-            } else if (this.level === 3) {
-                this.filterMode = true
-                this.filterSlowMultiplier = 0.2
-                this.damageToEnemies = 12
-                this.damageMitigation = 0.35
             }
+            if (this.level === 2) this.selfRepair = true
+            if (this.level === 3) this.filterMode = true
         } else if (this.type === 'shield') {
-            if (this.level === 1) {
-                this.selfRepair = true
-                this.repairRate = 1.2
-                this.damageMitigation = 0.18
-                this.maxAttackers = 3
-            } else if (this.level === 2) {
-                this.maxHealth = 720
-                this.currentHealth = this.maxHealth
-                this.repairRate = 2.5
-                this.damageMitigation = 0.14
-                this.maxAttackers = 2
-            } else if (this.level === 3) {
+            if (this.level === 1 || this.level === 2) this.currentHealth = this.maxHealth
+            if (this.level === 2) this.damageToEnemies = 16
+            if (this.level === 3) {
                 this.forceField = true
-                this.damageMitigation = 0.1
-                this.maxAttackers = 2
-                this.pushBackStrength = 4
+                this.maxAttackers = 5
             }
         }
-
-        this.currentHealth = Math.min(this.maxHealth, this.currentHealth + this.maxHealth * 0.25)
         this.unlockAbilityByLevel()
     }
 }
@@ -270,5 +283,8 @@ export type BarricadeSnapshot = Pick<
     | 'building'
     | 'buildProgress'
     | 'buildTime'
+    | 'upgrading'
+    | 'upgradeProgress'
+    | 'upgradeTime'
     | 'abilities'
 >

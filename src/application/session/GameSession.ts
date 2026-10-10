@@ -195,10 +195,15 @@ export class GameSession implements Scene {
 
     applyDamageBuff(multiplier: number): void {
         this.damageMultiplier *= multiplier
+        for (const slot of this.slots) {
+            for (const projectile of slot.tower?.projectiles ?? []) projectile.damage *= multiplier
+        }
     }
 
     applyBarricadeBuff(multiplier: number): void {
         this.barricadeMultiplier *= multiplier
+        for (const barricade of this.barricades)
+            barricade.setHealthMultiplier(this.barricadeMultiplier)
     }
 
     // ----- Time -----
@@ -322,6 +327,7 @@ export class GameSession implements Scene {
         const slot = this.slots.find((candidate) => candidate.id === slotId)
         if (!slot) return fail('Выберите свободный слот')
         if (slot.tower || slot.construction) return fail('Слот занят')
+        if (slot.cooldown > 0) return fail('Слот восстанавливается после уничтожения')
         const cost = TOWER_CATALOG[type].cost
         if (this.resources < cost) return fail('Недостаточно ресурсов!')
         this.resources -= cost
@@ -345,6 +351,7 @@ export class GameSession implements Scene {
             placement.height,
             this.rng.id('barricade'),
         )
+        barricade.setHealthMultiplier(this.barricadeMultiplier)
         barricade.startBuild()
         this.barricades.push(barricade)
         return ok
@@ -418,7 +425,7 @@ export class GameSession implements Scene {
         let best: TowerSlot | null = null
         let bestDistance = SLOT_SNAP_RADIUS
         for (const slot of this.slots) {
-            if (slot.tower || slot.construction) continue
+            if (slot.tower || slot.construction || slot.cooldown > 0) continue
             const d = distance(slot, world)
             if (d < bestDistance) {
                 best = slot
@@ -439,6 +446,7 @@ export class GameSession implements Scene {
     private upgradeTower(slot: TowerSlot): CommandResult {
         const tower = slot.tower
         if (!tower) return fail('Башня ещё не построена')
+        if (!tower.active) return fail('Башня неактивна')
         if (tower.upgrading) return fail('Улучшение уже идёт')
         if (tower.level >= TOWER_MAX_LEVEL) return fail('Максимальный уровень')
         const cost = TOWER_CATALOG[tower.type].upgradeCosts[tower.level] ?? Infinity
@@ -450,12 +458,12 @@ export class GameSession implements Scene {
 
     private upgradeBarricade(barricade: Barricade): CommandResult {
         if (!barricade.active) return fail('Баррикада не готова')
+        if (barricade.upgrading) return fail('Улучшение уже идёт')
         if (barricade.level >= BARRICADE_MAX_LEVEL) return fail('Максимальный уровень')
         const cost = BARRICADE_CATALOG[barricade.type].upgradeCosts[barricade.level] ?? Infinity
         if (this.resources < cost) return fail('Недостаточно ресурсов для усиления!')
         this.resources -= cost
-        barricade.level++
-        barricade.applyUpgrade()
+        barricade.startUpgrade()
         return ok
     }
 
@@ -474,13 +482,19 @@ export class GameSession implements Scene {
 
     private updateTowers(dt: number, quartersUnderAttack: boolean): void {
         const military = this.personnel.military
+        const towers = this.slots.flatMap((slot) => (slot.tower ? [slot.tower] : []))
+        for (const enemy of this.enemies) {
+            if (enemy.alive && enemy.spawned) enemy.prepareCombat(towers, this.rng)
+        }
         for (const slot of this.slots) {
             if (slot.updateConstruction(military, dt)) this.completeObjective('repair_tower')
             const tower = slot.tower
             if (!tower) continue
             if (tower.updateUpgrade(military, dt)) this.completeObjective('upgrade_tower')
+            tower.damageMultiplier = this.damageMultiplier
             // Towers hold fire while the living quarters are under attack.
             if (!quartersUnderAttack) tower.update(dt, this.enemies, this.rng)
+            else tower.holdFire(dt)
         }
     }
 
@@ -491,8 +505,26 @@ export class GameSession implements Scene {
                     this.completeObjective('close_breach')
                 }
             }
+            barricade.setHealthMultiplier(this.barricadeMultiplier)
+            barricade.updateUpgrade(this.personnel.military, dt)
             barricade.update(dt)
-            barricade.resetAttackers()
+            barricade.resetAttackers(
+                this.enemies
+                    .filter(
+                        (enemy) =>
+                            enemy.alive && enemy.spawned && enemy._barricadeId === barricade.id,
+                    )
+                    .map((enemy) => enemy.id),
+            )
+            if (barricade.pushTimer >= 300) {
+                barricade.pushTimer %= 300
+                for (const enemy of this.enemies) {
+                    if (enemy.alive && enemy._barricadeId === barricade.id) {
+                        enemy.knockBack(barricade.pushBackStrength)
+                        enemy._barricadeId = null
+                    }
+                }
+            }
         }
         // A breach stays sealed only while an intact barricade covers it.
         for (const breach of this.level.floorBreaches) {
@@ -519,9 +551,22 @@ export class GameSession implements Scene {
 
             if (enemy.alive) {
                 enemy.speed = enemy.baseSpeed * this.enemySpeed
+                enemy._barricadeId = null
                 const before = saveMove(enemy)
-                enemy.update(dt, { towers, enemies: this.enemies, rng: this.rng })
-                if (enemy.alive) this.resolveBarricades(enemy, before, dt)
+                const teleported = enemy.abilityStates.hasTeleported
+                const ambushed = enemy.abilityStates.ambushed
+                enemy.update(dt, {
+                    towers,
+                    enemies: this.enemies,
+                    rng: this.rng,
+                    slots: this.slots,
+                })
+                if (
+                    enemy.alive &&
+                    teleported === enemy.abilityStates.hasTeleported &&
+                    ambushed === enemy.abilityStates.ambushed
+                )
+                    this.resolveBarricades(enemy, before, dt)
                 if (enemy.alive && (enemy.reached || this.level.checkBreachFall(enemy))) {
                     this.breakThrough(enemy)
                     continue
@@ -530,6 +575,8 @@ export class GameSession implements Scene {
 
             if (enemy.alive) {
                 survivors.push(enemy)
+                spawned.push(...enemy.spawnedEnemies)
+                enemy.spawnedEnemies = []
             } else {
                 this.stats.killed++
                 if (enemy.splitPending) enemy.onSplit(this.rng)
@@ -563,13 +610,16 @@ export class GameSession implements Scene {
             }
 
             restoreMove(enemy, before)
+            enemy.reached = false
+            enemy._barricadeId = barricade.id
             // Shields limit how many enemies can damage them at once.
             if (barricade.canAcceptAttacker(enemy.id)) {
                 barricade.registerAttacker(enemy.id)
-                barricade.takeDamage(enemy.damage * dt * 0.1)
+                barricade.takeDamage(enemy.mass * dt * 0.1)
             }
             if (barricade.damageToEnemies > 0) {
-                enemy.takeDamage(barricade.damageToEnemies * dt * 0.1)
+                enemy.takeDamage((barricade.damageToEnemies * dt) / FPS)
+                if (!enemy.alive) barricade.currentAttackers.delete(enemy.id)
             }
             return
         }

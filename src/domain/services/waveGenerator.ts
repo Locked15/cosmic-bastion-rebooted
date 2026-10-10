@@ -10,7 +10,7 @@ const regularAbilities: EnemyAbility[] = [
 ]
 const bossAbilities: EnemyAbility[] = [
     'absorb',
-    'weakImmunity',
+    'ambush',
     'dodge',
     'confuse',
     'blind',
@@ -25,11 +25,17 @@ function randomSize(wave: number, rng: Random): EnemySize {
     return 'small'
 }
 function randomAbilities(count: number, rng: Random, boss = false): EnemyAbility[] {
-    const pool = boss ? [...regularAbilities, ...bossAbilities] : [...regularAbilities]
+    const pool = boss ? [...bossAbilities] : [...regularAbilities]
     const selected: EnemyAbility[] = []
     while (selected.length < count && pool.length > 0) {
         const index = Math.floor(rng.next() * pool.length)
-        selected.push(pool.splice(index, 1)[0]!)
+        const ability = pool.splice(index, 1)[0]!
+        if (ability === 'adaptation' || ability === 'sabotage') return [ability]
+        selected.push(ability)
+        for (const exclusive of ['adaptation', 'sabotage']) {
+            const exclusiveIndex = pool.indexOf(exclusive as EnemyAbility)
+            if (exclusiveIndex >= 0) pool.splice(exclusiveIndex, 1)
+        }
     }
     return selected
 }
@@ -42,7 +48,7 @@ export function generateWave(waveNumber: number, difficulty: number, rng: Random
         const miniBossChance = Math.min(0.08 + waveNumber * 0.03, 0.3)
         let enemy: Enemy
         if (value < miniBossChance && waveNumber >= 2) {
-            const abilities = randomAbilities(2, rng)
+            const abilities = randomAbilities(rng.next() < 0.5 ? 1 : 2, rng)
             const size = rng.next() > 0.3 ? 'large' : 'medium'
             enemy = new Enemy('miniboss', size, rng.id('enemy'), abilities)
         } else if (value < abilityChance && waveNumber >= 1) {
@@ -56,7 +62,7 @@ export function generateWave(waveNumber: number, difficulty: number, rng: Random
         enemies.push(enemy)
     }
     if (waveNumber % 4 === 0 && waveNumber > 0) {
-        const abilities = randomAbilities(4, rng, true)
+        const abilities = randomAbilities(1, rng, true)
         const boss = new Enemy('boss', 'large', rng.id('enemy'), abilities)
         boss.spawnDelay = count * 10 + 50
         boss.spawned = false

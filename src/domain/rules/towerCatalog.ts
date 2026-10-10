@@ -15,7 +15,10 @@ export const TOWER_CATALOG: Record<TowerType, TowerCatalogEntry> = {
         upgradeCosts: [75, 100, 150],
         benefits: {
             1: { name: 'Усиленные снаряды', description: 'Урон увеличен до 25 ед.' },
-            2: { name: 'Противоброневые ядра', description: 'Урон увеличен до 35 ед.' },
+            2: {
+                name: 'Быстрая перезарядка',
+                description: 'Интервал между залпами снижен до 40 кадров',
+            },
             3: { name: 'Залповый режим', description: 'Одновременно поражает до 3 целей' },
         },
     },
@@ -46,15 +49,15 @@ export const TOWER_CATALOG: Record<TowerType, TowerCatalogEntry> = {
     },
     laser: {
         name: 'Лазер',
-        description: 'Непрерывный урон',
+        description: 'Луч на 1 с, перезарядка 5 с',
         cost: 100,
         upgradeCosts: [120, 180, 250],
         benefits: {
             1: { name: 'Фокусировка луча', description: 'Дальность увеличена до 180 ед.' },
-            2: { name: 'Перегрев ядра', description: 'Урон увеличен до 3 ед. в тик' },
+            2: { name: 'Охлаждение ядра', description: 'Перезарядка снижена до 4 с' },
             3: {
                 name: 'Пробивной импульс',
-                description: 'Луч пробивает весь коридор и наносит мощный урон',
+                description: 'Луч на всю карту по сильнейшему врагу, перезарядка 8 с',
             },
         },
     },
@@ -65,8 +68,11 @@ export const TOWER_CATALOG: Record<TowerType, TowerCatalogEntry> = {
         upgradeCosts: [150, 200, 300],
         benefits: {
             1: { name: 'Усиленный разряд', description: 'Урон увеличен до 5 ед.' },
-            2: { name: 'Грозовой конденсатор', description: 'Урон увеличен до 8 ед.' },
-            3: { name: 'Импульсное оглушение', description: '30% шанс оглушить поражённых врагов' },
+            2: { name: 'Грозовой конденсатор', description: 'Интервал разрядов снижен до 1 с' },
+            3: {
+                name: 'Импульсное оглушение',
+                description: 'Каждые 10 с оглушает группы от 3 врагов на 7 с',
+            },
         },
     },
 }

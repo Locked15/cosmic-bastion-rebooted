@@ -15,6 +15,9 @@ function drawTowerUpgradeHint(ctx: CanvasRenderingContext2D, tower: Tower): void
     } else if (tower.repairing) {
         text = 'Ремонт в процессе'
         borderColor = '#ffaa00'
+    } else if (tower.upgrading) {
+        text = 'Улучшение...'
+        borderColor = '#ffaa00'
     } else if (tower.level >= TOWER_MAX_LEVEL) {
         text = 'Максимальный уровень'
         borderColor = '#888888'
@@ -57,6 +60,9 @@ function drawBarricadeUpgradeHint(ctx: CanvasRenderingContext2D, barricade: Barr
 
     if (!barricade.active) {
         text = barricade.building ? 'Строительство...' : 'Баррикада повреждена'
+        borderColor = '#ffaa00'
+    } else if (barricade.upgrading) {
+        text = 'Улучшение...'
         borderColor = '#ffaa00'
     } else if (barricade.level >= maxLevel) {
         text = 'Максимальный уровень'

@@ -1,6 +1,7 @@
 export type EnemySize = 'small' | 'medium' | 'large'
 export type EnemyKind = 'simple' | 'ability' | 'miniboss' | 'boss'
 export type EnemyAbility =
+    | 'ambush'
     | 'split'
     | 'accelerate'
     | 'teleport'
@@ -53,6 +54,7 @@ export const ENEMY_KIND_MODIFIERS: Record<
     boss: { health: 12, reward: 10, mass: 5 },
 }
 export const ABILITY_DESCRIPTIONS: Record<EnemyAbility, string> = {
+    ambush: 'ЗАСАДА: Появляется в первой половине пути',
     split: 'РАССЕИВАНИЕ: При смерти создаёт малых врагов',
     accelerate: 'УСКОРЕНИЕ: Постоянно увеличивает скорость',
     teleport: 'ТЕЛЕПОРТАЦИЯ: Перелетает через башню',

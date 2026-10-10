@@ -1,3 +1,4 @@
+import type { Point } from '../geometry'
 import type { Random } from '../random'
 import { TOWER_CATALOG } from '../rules/towerCatalog'
 import type { TowerType } from '../rules/towerCatalog'
@@ -29,6 +30,43 @@ export abstract class Tower {
     baseStats: { damage: number; range: number; fireRate: number; explosionRadius?: number }
     abilities: { name: string; description: string }[]
     showShockEffect = 0
+    damageMultiplier = 1
+    blindTimer = 0
+    blindTarget: Point | null = null
+    blindEnemy: Enemy | null = null
+
+    blind(point: Point, duration: number, enemy: Enemy | null = null): void {
+        this.blindTarget = { ...point }
+        this.blindTimer = duration
+        this.blindEnemy = enemy
+    }
+
+    eligibleTargets(enemies: Enemy[]): Enemy[] {
+        const visible = enemies.filter((enemy) => enemy.alive && enemy.spawned)
+        return visible.filter(
+            (enemy) =>
+                !enemy.hasAbility('confuse') ||
+                !enemy.abilityStates.confuseTimer ||
+                !visible.some(
+                    (other) => other !== enemy && this.distanceTo(other.x, other.y) <= this.range,
+                ),
+        )
+    }
+
+    tickStatus(deltaTime: number): boolean {
+        this.blindTimer = Math.max(0, this.blindTimer - deltaTime)
+        if (!this.blindTimer) {
+            this.blindTarget = null
+            this.blindEnemy = null
+        }
+        if (!this.active) return false
+        if (this.disabled) {
+            this.disableTimer = Math.max(0, this.disableTimer - deltaTime)
+            this.disabled = this.disableTimer > 0
+            return false
+        }
+        return true
+    }
 
     constructor(type: TowerType, x: number, y: number, id: string) {
         this.id = id
@@ -144,24 +182,15 @@ export abstract class Tower {
     }
 
     update(deltaTime: number, enemies: Enemy[], rng: Random): void {
-        if (!this.active) return
-
-        if (this.disabled) {
-            this.disableTimer = Math.max(0, this.disableTimer - deltaTime)
-            if (this.disableTimer <= 0) {
-                this.disabled = false
-            }
-            return
-        }
+        this.projectiles = this.projectiles.filter((projectile) => {
+            projectile.update(deltaTime)
+            return projectile.active
+        })
+        if (!this.tickStatus(deltaTime)) return
 
         if (this.fireTimer > 0) {
             this.fireTimer = Math.max(0, this.fireTimer - deltaTime)
         }
-
-        this.projectiles = this.projectiles.filter((proj) => {
-            proj.update(deltaTime)
-            return proj.active
-        })
 
         if (this.fireTimer <= 0) {
             this.findTargetAndFire(enemies, deltaTime, rng)
@@ -169,20 +198,37 @@ export abstract class Tower {
         this.updateRotation()
     }
 
+    holdFire(deltaTime: number): void {
+        this.tickStatus(deltaTime)
+        this.fireTimer = Math.max(0, this.fireTimer - deltaTime)
+        this.showShockEffect = Math.max(0, this.showShockEffect - deltaTime)
+    }
+
     findTargetAndFire(enemies: Enemy[], deltaTime: number, rng: Random): void {
-        const target = this.findTarget(enemies)
+        const target = this.blindEnemy ?? this.findTarget(enemies)
         if (target) {
             this.targetAngle = Math.atan2(target.y - this.y, target.x - this.x)
+            const before = this.projectiles.length
             this.fire(target, enemies, rng)
+            if (this.blindTarget) {
+                this.targetAngle = Math.atan2(
+                    this.blindTarget.y - this.y,
+                    this.blindTarget.x - this.x,
+                )
+                for (const projectile of this.projectiles.slice(before)) {
+                    projectile.fixedTarget = { ...this.blindTarget }
+                    projectile.impactEnemies = enemies
+                }
+            }
             this.fireTimer = this.fireRate
         }
     }
 
     findTarget(enemies: Enemy[]): Enemy | null {
         let closest: Enemy | null = null
-        let closestDist = this.range
+        let closestDist = Infinity
 
-        for (const enemy of enemies) {
+        for (const enemy of this.eligibleTargets(enemies)) {
             if (!enemy.alive) continue
 
             const dist = this.distanceTo(enemy.x, enemy.y)
@@ -199,7 +245,7 @@ export abstract class Tower {
         let strongest: Enemy | null = null
         let maxHealth = 0
 
-        for (const enemy of enemies) {
+        for (const enemy of this.eligibleTargets(enemies)) {
             if (!enemy.alive) continue
 
             const dist = this.distanceTo(enemy.x, enemy.y)
@@ -217,7 +263,7 @@ export abstract class Tower {
             this.x,
             this.y,
             target,
-            this.damage,
+            this.damage * this.damageMultiplier,
             rng.id('projectile'),
             'bullet',
             false,
@@ -266,7 +312,7 @@ export class CannonTower extends Tower {
         if (this.level === 1) {
             this.damage = 25
         } else if (this.level === 2) {
-            this.damage = 35
+            this.fireRate = 40
         } else if (this.level === 3) {
             this.multiTarget = true
         }
@@ -274,8 +320,8 @@ export class CannonTower extends Tower {
     }
 
     fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
-        if (this.multiTarget && this.level >= 3) {
-            const targets = allEnemies
+        if (this.multiTarget && this.level >= 3 && !this.blindTarget) {
+            const targets = this.eligibleTargets(allEnemies)
                 .filter((e) => e.alive && this.distanceTo(e.x, e.y) <= this.range)
                 .sort((a, b) => this.distanceTo(a.x, a.y) - this.distanceTo(b.x, b.y))
                 .slice(0, 3)
@@ -285,7 +331,7 @@ export class CannonTower extends Tower {
                     this.x,
                     this.y,
                     t,
-                    this.damage,
+                    this.damage * this.damageMultiplier,
                     rng.id('projectile'),
                     'cannon',
                     false,
@@ -298,7 +344,7 @@ export class CannonTower extends Tower {
                 this.x,
                 this.y,
                 target,
-                this.damage,
+                this.damage * this.damageMultiplier,
                 rng.id('projectile'),
                 'cannon',
                 false,
@@ -352,7 +398,7 @@ export class RocketTower extends Tower {
             this.x,
             this.y,
             target,
-            this.damage,
+            this.damage * this.damageMultiplier,
             this.explosionRadius,
             this.knockback,
             allEnemies,
@@ -402,7 +448,7 @@ export class MachineGunTower extends Tower {
             this.x,
             this.y,
             target,
-            this.damage,
+            this.damage * this.damageMultiplier,
             rng.id('projectile'),
             'bullet',
             this.slowEffect,
@@ -414,64 +460,121 @@ export class MachineGunTower extends Tower {
 export class LaserTower extends Tower {
     currentTarget: Enemy | null = null
     piercing = false
+    beamEnd: Point | null = null
+    beamHits: Point[] = []
+    beamTimer = 0
+    beamDuration = 60
 
     constructor(x: number, y: number, id: string) {
         super('laser', x, y, id)
-        this.damage = 2
-        this.range = 130
-        this.fireRate = 1
-
-        this.baseStats = {
-            damage: 2,
-            range: 130,
-            fireRate: 1,
-        }
+        this.baseStats = { damage: 2, range: 130, fireRate: 300 }
+        this.setBaseStats()
     }
 
     setBaseStats(): void {
         this.resetAbilities()
-        this.damage = this.baseStats.damage
-        this.range = this.baseStats.range
-        this.fireRate = this.baseStats.fireRate
+        Object.assign(this, this.baseStats)
         this.piercing = false
         this.currentTarget = null
+        this.beamEnd = null
+        this.beamTimer = 0
     }
 
     applyUpgrade(): void {
-        if (this.level === 1) {
-            this.range = 180
-        } else if (this.level === 2) {
-            this.damage = 3
-        } else if (this.level === 3) {
+        if (this.level === 1) this.range = 180
+        if (this.level === 2) this.fireRate = 240
+        if (this.level === 3) {
             this.piercing = true
-            this.range = 1000
-            this.fireRate = 180
+            this.range = Infinity
+            this.fireRate = 480
         }
         this.unlockAbilityByLevel()
     }
 
-    findTargetAndFire(enemies: Enemy[], deltaTime: number): void {
-        if (this.piercing && this.level >= 3) {
-            const target = this.findStrongestTarget(enemies)
-            if (target && this.fireTimer <= 0) {
-                this.currentTarget = target
-                target.takeDamage(this.damage * 60, this.id)
+    holdFire(deltaTime: number): void {
+        super.holdFire(deltaTime)
+        if (this.beamTimer > 0) this.fireTimer = this.fireRate
+        this.beamTimer = 0
+        this.currentTarget = null
+        this.beamEnd = null
+        this.beamHits = []
+    }
+
+    update(deltaTime: number, enemies: Enemy[], _rng?: Random): void {
+        void _rng
+        this.beamEnd = null
+        this.beamHits = []
+        if (!this.tickStatus(deltaTime)) return
+        this.fireTimer = Math.max(0, this.fireTimer - deltaTime)
+        if (!this.beamTimer && !this.fireTimer) {
+            this.currentTarget =
+                this.blindEnemy ??
+                (this.piercing ? this.findStrongestTarget(enemies) : this.findTarget(enemies))
+            if (this.currentTarget) this.beamTimer = this.beamDuration
+        }
+        if (this.beamTimer > 0) {
+            const target = this.currentTarget
+            if (
+                !this.blindTarget &&
+                (!target?.alive ||
+                    !target.spawned ||
+                    this.distanceTo(target.x, target.y) > this.range ||
+                    !this.eligibleTargets(enemies).includes(target))
+            ) {
+                this.beamTimer = 0
                 this.fireTimer = this.fireRate
-            } else if (this.fireTimer > 0) {
+                this.currentTarget = null
+                return
+            }
+            const point = this.blindTarget ?? target
+            if (point) {
+                const dx = point.x - this.x
+                const dy = point.y - this.y
+                const length = Math.hypot(dx, dy)
+                this.targetAngle = Math.atan2(dy, dx)
+                // A piercing ray extends well beyond the map, through its chosen target.
+                const scale = this.piercing && length ? 10000 / length : 1
+                this.beamEnd = { x: this.x + dx * scale, y: this.y + dy * scale }
+                const duration = Math.min(deltaTime, this.beamTimer)
+                for (const enemy of enemies.filter(
+                    (candidate) => candidate.alive && candidate.spawned,
+                )) {
+                    const bx = this.beamEnd.x - this.x
+                    const by = this.beamEnd.y - this.y
+                    const squared = bx ** 2 + by ** 2
+                    const t = squared
+                        ? Math.max(
+                              0,
+                              Math.min(
+                                  1,
+                                  ((enemy.x - this.x) * bx + (enemy.y - this.y) * by) / squared,
+                              ),
+                          )
+                        : 0
+                    if (Math.hypot(enemy.x - this.x - t * bx, enemy.y - this.y - t * by) <= 10) {
+                        enemy.takeDamage(
+                            this.damage *
+                                this.damageMultiplier *
+                                duration *
+                                (enemy === target ? 1 : 0.5),
+                            this.id,
+                        )
+                        this.beamHits.push({ x: enemy.x, y: enemy.y })
+                    }
+                }
+            }
+            this.beamTimer = Math.max(0, this.beamTimer - deltaTime)
+            if (!this.beamTimer) {
+                this.fireTimer = this.fireRate
                 this.currentTarget = null
             }
-        } else {
-            const target = this.findTarget(enemies)
-            this.currentTarget = target
-            if (target) {
-                this.targetAngle = Math.atan2(target.y - this.y, target.x - this.x)
-                target.takeDamage(this.damage * deltaTime, this.id)
-            }
         }
+        this.updateRotation()
     }
 }
 export class ShockTower extends Tower {
     stunEffect = false
+    stunCooldown = 600
 
     constructor(x: number, y: number, id: string) {
         super('shock', x, y, id)
@@ -498,24 +601,25 @@ export class ShockTower extends Tower {
         if (this.level === 1) {
             this.damage = 5
         } else if (this.level === 2) {
-            this.damage = 8
+            this.fireRate = 60
         } else if (this.level === 3) {
             this.stunEffect = true
         }
         this.unlockAbilityByLevel()
     }
 
-    findTargetAndFire(enemies: Enemy[], deltaTime: number, rng: Random): void {
+    findTargetAndFire(enemies: Enemy[]): void {
         if (this.fireTimer > 0) return
 
         let hitAny = false
-        enemies.forEach((enemy) => {
-            if (enemy.alive) {
-                enemy.takeDamage(this.damage, this.id)
+        this.eligibleTargets(enemies).forEach((enemy) => {
+            if (
+                enemy.alive &&
+                (!this.blindTarget ||
+                    enemy.distanceTo(this.blindTarget.x, this.blindTarget.y) <= 10)
+            ) {
+                enemy.takeDamage(this.damage * this.damageMultiplier, this.id)
 
-                if (this.stunEffect && rng.next() < 0.3) {
-                    enemy.stunTimer = 60
-                }
                 hitAny = true
             }
         })
@@ -528,6 +632,26 @@ export class ShockTower extends Tower {
 
     update(deltaTime: number, enemies: Enemy[], rng: Random): void {
         super.update(deltaTime, enemies, rng)
+        if (this.active && !this.disabled && this.stunEffect) {
+            this.stunCooldown = Math.max(0, this.stunCooldown - deltaTime)
+            if (!this.stunCooldown) {
+                const targets = this.eligibleTargets(enemies).filter(
+                    (enemy) =>
+                        !this.blindTarget ||
+                        enemy.distanceTo(this.blindTarget.x, this.blindTarget.y) <= 10,
+                )
+                for (const enemy of targets) {
+                    const group = targets.filter(
+                        (other) => enemy.distanceTo(other.x, other.y) <= 50,
+                    )
+                    if (group.length >= 3)
+                        group.forEach((other) => {
+                            other.stunTimer = Math.max(other.stunTimer, 420)
+                        })
+                }
+                this.stunCooldown = 600
+            }
+        }
         if (this.showShockEffect > 0) {
             this.showShockEffect = Math.max(0, this.showShockEffect - deltaTime)
         }
@@ -545,6 +669,7 @@ export function createTower(type: TowerType, x: number, y: number, id: string): 
 }
 // Slots create a fresh subclass when construction finishes, including after demolition.
 export class TowerSlot {
+    cooldown = 0
     tower: Tower | null = null
     construction: { type: TowerType; progress: number; time: number } | null = null
     constructor(
@@ -554,11 +679,12 @@ export class TowerSlot {
         public defaultType: TowerType,
     ) {}
     startConstruction(type: TowerType): boolean {
-        if (this.tower || this.construction) return false
+        if (this.tower || this.construction || this.cooldown > 0) return false
         this.construction = { type, progress: 0, time: 180 }
         return true
     }
     updateConstruction(militaryCount: number, deltaTime: number = 1): boolean {
+        this.cooldown = Math.max(0, this.cooldown - deltaTime)
         const construction = this.construction
         if (!construction) return false
         construction.progress += Math.max(1, militaryCount * 0.5) * deltaTime
@@ -566,6 +692,10 @@ export class TowerSlot {
         this.tower = createTower(construction.type, this.x, this.y, this.id)
         this.construction = null
         return true
+    }
+    destroy(): void {
+        this.demolish()
+        this.cooldown = 300
     }
     demolish(): void {
         this.tower = null

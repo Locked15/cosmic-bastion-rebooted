@@ -7,6 +7,17 @@ export function drawBarricade(ctx: CanvasRenderingContext2D, barricade: Barricad
         drawBuilding(ctx, barricade)
     } else {
         drawActive(ctx, barricade)
+        if (barricade.upgrading) {
+            ctx.fillStyle = '#ffff00'
+            ctx.fillRect(
+                barricade.x,
+                barricade.y + barricade.height + 5,
+                (barricade.width * barricade.upgradeProgress) / barricade.upgradeTime,
+                4,
+            )
+            ctx.strokeStyle = '#ffffff'
+            ctx.strokeRect(barricade.x, barricade.y + barricade.height + 5, barricade.width, 4)
+        }
     }
 }
 

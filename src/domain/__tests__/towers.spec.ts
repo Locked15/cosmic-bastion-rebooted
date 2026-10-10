@@ -66,7 +66,7 @@ describe('towers', () => {
             expect(tower.level).toBe(level)
             expect(tower.abilities).toHaveLength(level)
         }
-        expect(tower.damage).toBe(35)
+        expect(tower.damage).toBe(25)
         expect(tower.multiTarget).toBe(true)
         expect(tower.startUpgrade()).toBe(false)
         tower.setBaseStats()
@@ -98,6 +98,8 @@ describe('towers', () => {
     })
     it('passes tower IDs through projectiles for adaptation', () => {
         const enemy = new Enemy('ability', 'large', 'enemy', ['adaptation'])
+        enemy.abilityStates.adaptationActive = true
+        enemy.abilityStates.adaptedTower = 'tower_1'
         const first = new Projectile(0, 0, enemy, 10, 'p1', 'cannon', false, 'tower_1')
         first.update(1)
         const health = enemy.currentHealth
@@ -111,7 +113,11 @@ describe('towers', () => {
         expect(enemy.slowTimer).toBe(120)
         expect(enemy.slowMultiplier).toBe(0.5)
         const edgeEnemy = new Enemy('simple', 'large', 'edge')
-        edgeEnemy.x = 40
+        edgeEnemy.setPath([
+            { x: 0, y: 0 },
+            { x: 100, y: 0 },
+        ])
+        edgeEnemy.setProgress(40)
         const rocket = new ExplosiveProjectile(
             0,
             0,
@@ -125,7 +131,7 @@ describe('towers', () => {
         rocket.update(1)
         expect(enemy.currentHealth).toBe(125)
         expect(edgeEnemy.currentHealth).toBe(140)
-        expect(edgeEnemy.x).toBe(60)
+        expect(edgeEnemy.x).toBe(20)
         expect(rocket.active).toBe(false)
     })
 })
@@ -145,8 +151,8 @@ describe('barricades', () => {
         barricade.applyUpgrade()
         barricade.takeDamage(50)
         const health = barricade.currentHealth
-        barricade.update(10)
-        expect(barricade.currentHealth).toBeCloseTo(health + 8)
+        barricade.update(300)
+        expect(barricade.currentHealth).toBeCloseTo(health + 26)
         barricade.takeDamage(barricade.currentHealth)
         expect(barricade.active).toBe(false)
         expect(barricade.broken).toBe(true)
@@ -158,6 +164,9 @@ describe('barricades', () => {
         expect(barricade.forceField).toBe(true)
         barricade.registerAttacker('a')
         barricade.registerAttacker('b')
+        barricade.registerAttacker('d')
+        barricade.registerAttacker('e')
+        barricade.registerAttacker('f')
         expect(barricade.canAcceptAttacker('a')).toBe(true)
         expect(barricade.canAcceptAttacker('c')).toBe(false)
         barricade.resetAttackers()

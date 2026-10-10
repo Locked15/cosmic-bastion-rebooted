@@ -7,6 +7,13 @@ export function drawTowerSlot(ctx: CanvasRenderingContext2D, slot: TowerSlot): v
     const tower = slot.tower
     if (!tower) {
         drawBroken(ctx)
+        if (slot.cooldown > 0) {
+            drawProgress(ctx, 1 - slot.cooldown / 300, '#ff8800')
+            ctx.fillStyle = '#ff8800'
+            ctx.font = '10px monospace'
+            ctx.textAlign = 'center'
+            ctx.fillText(`${Math.ceil(slot.cooldown / 60)} с`, 0, -22)
+        }
         if (slot.construction) {
             drawProgress(ctx, slot.construction.progress / slot.construction.time, '#00ff00')
         }
@@ -22,6 +29,19 @@ export function drawTowerSlot(ctx: CanvasRenderingContext2D, slot: TowerSlot): v
         }
     }
     ctx.restore()
+    if (tower?.blindTarget) {
+        const { x, y } = tower.blindTarget
+        ctx.save()
+        ctx.strokeStyle = '#ff8800'
+        ctx.beginPath()
+        ctx.arc(x, y, 12, 0, Math.PI * 2)
+        ctx.moveTo(x - 18, y)
+        ctx.lineTo(x + 18, y)
+        ctx.moveTo(x, y - 18)
+        ctx.lineTo(x, y + 18)
+        ctx.stroke()
+        ctx.restore()
+    }
     for (const projectile of tower?.projectiles ?? []) {
         if (projectile.active) drawProjectile(ctx, projectile)
     }
@@ -124,7 +144,7 @@ function drawActive(ctx: CanvasRenderingContext2D, tower: Tower): void {
 
             ctx.restore()
 
-            if (tower.currentTarget && !tower.disabled) {
+            if (tower.beamEnd && !tower.disabled) {
                 ctx.save()
                 ctx.strokeStyle = tower.piercing ? '#ff0000' : '#00ffff'
                 ctx.lineWidth = tower.piercing ? 4 : 2
@@ -132,9 +152,14 @@ function drawActive(ctx: CanvasRenderingContext2D, tower: Tower): void {
 
                 ctx.beginPath()
                 ctx.moveTo(0, 0)
-                ctx.lineTo(tower.currentTarget.x - tower.x, tower.currentTarget.y - tower.y)
+                ctx.lineTo(tower.beamEnd.x - tower.x, tower.beamEnd.y - tower.y)
                 ctx.stroke()
 
+                for (const hit of tower.beamHits) {
+                    ctx.beginPath()
+                    ctx.arc(hit.x - tower.x, hit.y - tower.y, 8, 0, Math.PI * 2)
+                    ctx.stroke()
+                }
                 ctx.strokeStyle = '#ffffff'
                 ctx.lineWidth = 1
                 ctx.globalAlpha = 0.3

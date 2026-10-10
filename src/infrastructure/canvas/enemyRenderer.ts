@@ -36,6 +36,17 @@ export function drawEnemy(ctx: CanvasRenderingContext2D, enemy: Enemy): void {
     drawParticles(ctx, enemy, size)
 
     drawAbilityIndicators(ctx, enemy, size)
+    if (enemy.stunTimer > 0 || enemy.ambushFlashTimer > 0) {
+        ctx.strokeStyle = enemy.stunTimer > 0 ? '#ffff00' : '#cc00ff'
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(enemy.x, enemy.y, size + 14, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.fillStyle = ctx.strokeStyle
+        ctx.font = '12px monospace'
+        ctx.textAlign = 'center'
+        ctx.fillText(enemy.stunTimer > 0 ? 'ОГЛУШЁН' : 'ЗАСАДА', enemy.x, enemy.y + size + 24)
+    }
 
     if (enemy.currentHealth < enemy.maxHealth) {
         drawHealthBar(ctx, enemy, size)
