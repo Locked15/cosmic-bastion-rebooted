@@ -92,7 +92,7 @@
             box-shadow: 0 0 18px rgba(0, 255, 255, 0.35);
         }
 
-        @media (max-width: 768px) {
+        @include below($breakpoint-compact) {
             min-width: 150px;
             padding: 10px 15px;
             font-size: 14px;

@@ -10,6 +10,15 @@
 
 :root {
     --brightness: 1;
+    --side-panel-width: 320px;
+
+    @media (max-width: $breakpoint-wide) {
+        --side-panel-width: 280px;
+    }
+
+    @media (max-width: $breakpoint-compact) {
+        --side-panel-width: 230px;
+    }
 }
 
 body {

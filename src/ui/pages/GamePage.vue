@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { onBeforeUnmount, watch } from 'vue'
-    import { useRouter } from 'vue-router'
+    import { useRoute, useRouter } from 'vue-router'
     import { onKeyStroke } from '@/ui/keyboard'
     import { useGameStore } from '@/stores/gameStore'
     import GameCanvas from '@/ui/components/GameCanvas.vue'
@@ -14,12 +14,13 @@
 
     const game = useGameStore()
     const router = useRouter()
+    const route = useRoute()
 
     // Unknown or locked levels go back to the level map.
     watch(
         () => levelId,
         (id) => {
-            if (!game.start(id)) router.replace({ name: 'levels' })
+            if (!game.start(id, route.query.resume === '1')) router.replace({ name: 'levels' })
         },
         { immediate: true },
     )
@@ -56,10 +57,6 @@
             min-height: 0;
             margin-right: $side-panel-width;
             border-right: 2px solid $color-primary;
-
-            @media (max-width: 1400px) {
-                margin-right: 280px;
-            }
         }
     }
 </style>

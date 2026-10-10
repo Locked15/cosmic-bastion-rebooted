@@ -45,7 +45,7 @@
         border-top: 1px solid $color-border;
     }
 
-    @media (max-width: 768px) {
+    @include below($breakpoint-compact) {
         &__box {
             min-width: 90vw;
             max-width: 90vw;

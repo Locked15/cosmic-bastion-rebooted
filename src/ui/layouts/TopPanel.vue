@@ -36,5 +36,10 @@
         padding: 0 $spacing-lg;
         border-bottom: 2px solid $color-primary;
         background-color: rgba(0, 0, 0, 0.9);
+
+        @include below($breakpoint-compact) {
+            gap: $spacing-sm;
+            padding: 0 $spacing-sm;
+        }
     }
 </style>

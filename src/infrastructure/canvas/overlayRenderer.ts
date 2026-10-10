@@ -148,7 +148,8 @@ export function drawOverlays(ctx: CanvasRenderingContext2D, scene: Scene): void 
         ctx.fillRect(rect.x, rect.y, rect.width, rect.height)
         ctx.globalAlpha = 1
     }
-    if (pointer.build && pointer.world) {
+    // The barricade footprint already shows where the build goes.
+    if (pointer.build && pointer.world && !pointer.footprint) {
         const { x, y } = pointer.world
         ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)'
         ctx.fillStyle = 'rgba(0, 255, 0, 0.1)'

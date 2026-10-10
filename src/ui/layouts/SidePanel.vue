@@ -237,8 +237,9 @@
             font-size: 11px;
         }
 
-        @media (max-width: 1400px) {
-            width: 280px;
+        @include below($breakpoint-compact) {
+            padding: $spacing-sm;
+            font-size: 12px;
         }
     }
 </style>

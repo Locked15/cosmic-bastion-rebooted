@@ -37,6 +37,13 @@
     }
 }
 
+// Styles for viewports narrower than `$width`.
+@mixin below($width) {
+    @media (max-width: $width) {
+        @content;
+    }
+}
+
 @mixin fullscreen-fixed {
     position: fixed;
     inset: 0;

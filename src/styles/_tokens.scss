@@ -17,7 +17,12 @@ $spacing-lg: 24px;
 $font-main: 'Courier New', monospace;
 
 $top-panel-height: 60px;
-$side-panel-width: 320px;
+// Side panel width follows the viewport, see _base.scss.
+$side-panel-width: var(--side-panel-width);
+
+$breakpoint-wide: 1400px;
+$breakpoint-compact: 1024px;
+$breakpoint-mobile: 768px;
 
 $z-controls: 200;
 $z-menu: 500;

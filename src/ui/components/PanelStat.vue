@@ -39,6 +39,10 @@
         &__value {
             font-size: 18px;
             font-weight: bold;
+
+            @include below($breakpoint-compact) {
+                font-size: 13px;
+            }
         }
 
         &__rate {

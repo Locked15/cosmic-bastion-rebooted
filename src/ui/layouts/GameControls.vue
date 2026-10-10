@@ -60,7 +60,7 @@
         flex-direction: column;
         gap: 10px;
 
-        @media (max-width: 768px) {
+        @include below($breakpoint-compact) {
             bottom: 15px;
             left: 15px;
         }
