@@ -24,21 +24,27 @@ src/
     model/         Enemy, Tower (+5 kinds), TowerSlot, Barricade, Projectile, Person, Conversion, Level, Campaign
     rules/         balance catalogs (towers, barricades, enemy stats, abilities)
     levels/        level1..5 + registry (LEVEL_IDS, createLevel)
+    story/         event templates (refugees), technology tree / unlocks
+    achievements/  achievement definitions
     services/      waveGenerator
     random.ts      Random port + seeded (mulberry32) and Math.random implementations
   application/     use cases. Depends on domain only
-    session/       GameSession (one running level), presenter (session → GameSnapshot), Scene, viewport math
-    ports/         KeyValueStore, FrameScheduler (interfaces implemented in infrastructure)
-    dto/views.ts   plain view models for the UI
-    CampaignService.ts
-  infrastructure/  adapters: localStorage/memory stores, requestAnimationFrame scheduler, canvas renderers
+    session/       GameSession (combat, building, waves, pointer) composed of:
+                   personnel.ts, livingQuarters.ts, story.ts (StoryDirector), effects.ts,
+                   objectives.ts (ObjectiveTracker), checkpoint.ts; presenter.ts + presenters/
+                   turn the session into GameSnapshot; scene.ts is the read model for renderers
+    ports/         KeyValueStore, FrameScheduler, SoundPlayer (implemented in infrastructure)
+    dto/           plain view models for the UI
+    CampaignService, CheckpointService, AchievementService
+  infrastructure/  adapters: localStorage/memory stores, requestAnimationFrame scheduler,
+                   canvas renderers, Web Audio synth sounds
   stores/          Pinia: interface adapters between the UI and the application
     services.ts    injected adapters (provideServices / useServices)
   ui/
     components/    atomic, props in / events out, no custom child components, no stores
     layouts/       compose components, may use stores
     pages/         route targets (MainMenuPage, LevelSelectPage, GamePage)
-  router/          / (menu), /levels, /game/:levelId
+  router/          / (menu), /levels, /game/:levelId (?resume=1 continues a checkpoint)
   styles/          SCSS tokens, mixins, base and shared BEM blocks
   main.ts          composition root: the only place that names concrete adapters
 ```
@@ -49,6 +55,8 @@ Key rules:
 - **Randomness is injected.** Gameplay uses `Random` (`rng.next()`, `rng.id(prefix)`). Pass `createSeededRandom(seed)` in tests for reproducible runs. Renderers may use `Math.random` for cosmetics only.
 - **Entities are never reactive.** `gameStore` keeps the `GameSession` in a plain variable and publishes `snapshot` (a `GameSnapshot` DTO) via `shallowRef` after each tick. Canvas renderers read the session through the read-only `Scene` interface.
 - **Commands return `CommandResult`** (`{ok}` or `{ok:false, error}`). The store turns errors into toasts. Domain and application code never show UI.
+- **Level layout rules** (tested in `domain/__tests__/layout.spec.ts`): tower foundations stay ≥45 px from every enemy route and ≥50 px from each other; floor breaches lie on the base route. Barricades can only be placed via `Level.barricadePlacement` (snapped onto a route or covering a breach); an intact barricade stops enemies until destroyed and seals a breach it covers.
+- **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
 - **New level:** add `src/domain/levels/levelN.ts` and register it in `levels/registry.ts`.
 - **New story effect:** extend `EventEffect` (`domain/model/Level.ts`), then handle it in `GameSession.applyEffect` and `canAfford`.
 - **Persistence** goes through the `KeyValueStore` port (keys are prefixed `cosmicBastion:` in localStorage).
