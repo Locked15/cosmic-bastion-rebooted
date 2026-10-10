@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
     Enemy,
+    createLevel,
     CannonTower,
     TowerSlot,
     Projectile,
@@ -217,5 +218,14 @@ describe('combat enemy abilities', () => {
         )
         expect(otherBoss.alive).toBe(true)
         expect(hidden.alive).toBe(true)
+    })
+})
+
+describe('path following', () => {
+    it('reaches the end of a long multi-segment track', () => {
+        const enemy = new Enemy('simple', 'small', 'runner')
+        enemy.setPath(createLevel('level_1')!.basePath)
+        for (let frame = 0; frame < 5000 && !enemy.reached; frame++) enemy.move(1)
+        expect(enemy.reached).toBe(true)
     })
 })

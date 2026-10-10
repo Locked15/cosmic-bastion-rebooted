@@ -24,6 +24,8 @@ export interface EnemyUpdateContext {
     rng: Random
     slots?: TowerSlot[]
 }
+const PATH_EPSILON = 1e-6
+
 export class Enemy {
     baseSpeed = 0
     speed = 0
@@ -240,7 +242,9 @@ export class Enemy {
             const a = this.path[this.pathIndex]!
             const b = this.path[this.pathIndex + 1]!
             const length = Math.hypot(b.x - a.x, b.y - a.y)
-            if (remaining < length) {
+            // The epsilon absorbs rounding from summing segment lengths; without it an enemy
+            // could stop a hair before the end of the track and never reach the quarters.
+            if (remaining < length - PATH_EPSILON) {
                 this.distanceOnSegment = remaining
                 this.x = a.x + ((b.x - a.x) * remaining) / length
                 this.y = a.y + ((b.y - a.y) * remaining) / length
