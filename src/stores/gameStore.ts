@@ -56,7 +56,10 @@ export const useGameStore = defineStore('game', () => {
         stop()
         const level = createLevel(levelId)
         if (!level || !campaign.isUnlocked(levelId)) return false
-        session = new GameSession(level, services.createRandom(), campaign.prepareLevel(level))
+        session = new GameSession(level, services.createRandom(), {
+            ...campaign.prepareLevel(level),
+            difficulty: settings.settings.difficulty,
+        })
         if (!resume || !campaign.restoreCheckpoint(session)) campaign.clearCheckpoint(levelId)
         seen = {
             wave: session.currentWave,

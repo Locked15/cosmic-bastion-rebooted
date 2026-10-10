@@ -18,6 +18,10 @@
         <PanelStat label="УРОВЕНЬ:" :value="snapshot.levelName" />
         <PanelStat label="ВОЛНА:" :value="`${snapshot.wave.current}/${snapshot.wave.total}`" />
         <PanelStat
+            label="ПРОРЫВЫ:"
+            :value="`${snapshot.breakthroughs.count}/${snapshot.breakthroughs.limit}`"
+        />
+        <PanelStat
             label="РЕСУРСЫ:"
             :value="Math.floor(snapshot.resources)"
             :rate="`+${snapshot.resourceRate.toFixed(1)}/с`"

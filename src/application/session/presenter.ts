@@ -33,6 +33,7 @@ export function presentSession(session: GameSession): GameSnapshot {
             enemies: session.enemiesInQuarters.length,
             inTransit: session.personnel.inTransit,
         },
+        breakthroughs: { count: session.stats.reached, limit: session.maxBreakthroughs },
         buildOptions: presentBuildOptions(session),
         selection: presentSelection(session),
         dialog: presentDialog(session),

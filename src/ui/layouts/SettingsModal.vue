@@ -24,6 +24,15 @@
             <SettingsSlider v-model="settings.brightness" label="ЯРКОСТЬ:" :min="50" :max="150" />
             <SettingsSlider v-model="settings.volume" label="ГРОМКОСТЬ:" :min="0" :max="100" />
             <OptionGroup
+                v-model="settings.difficulty"
+                label="СЛОЖНОСТЬ:"
+                :options="settingsStore.difficultyOptions"
+            />
+            <p class="settings-modal__hint">
+                Здоровье и скорость врагов, допустимые прорывы в жилой отсек. Применяется при
+                запуске уровня.
+            </p>
+            <OptionGroup
                 v-model="settings.enemySpeed"
                 label="СКОРОСТЬ ВРАГОВ:"
                 :options="speedOptions"
@@ -40,6 +49,12 @@
 
 <style scoped lang="scss">
     .settings-modal {
-        width: 500px;
+        width: 560px;
+
+        &__hint {
+            margin: -$spacing-md 0 $spacing-lg;
+            color: $color-secondary;
+            font-size: 11px;
+        }
     }
 </style>

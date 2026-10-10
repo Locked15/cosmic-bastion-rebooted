@@ -1,4 +1,4 @@
-import { type BarricadeType, type TowerType } from '@/domain'
+import { type BarricadeType, type DifficultyId, type TowerType } from '@/domain'
 import type { GameSession, SessionStats } from './GameSession'
 import type { StoryState } from './story'
 
@@ -10,6 +10,7 @@ export interface LevelCheckpoint {
     version: 1
     levelId: string
     wave: number
+    difficulty?: DifficultyId
     resources: number
     miners: number
     military: number
@@ -50,6 +51,7 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
         version: 1,
         levelId: session.level.id,
         wave: session.currentWave,
+        difficulty: session.difficulty,
         resources: session.resources,
         miners: session.miners + transit.miner,
         military: session.military + transit.military,
@@ -83,6 +85,8 @@ export function restoreCheckpoint(session: GameSession, checkpoint: LevelCheckpo
     if (checkpoint.levelId !== session.level.id) throw new Error('Checkpoint is for another level')
     session.story.restore(checkpoint.story)
     session.currentWave = checkpoint.wave
+    // Resume at the difficulty the run started with, whatever the settings say now.
+    if (checkpoint.difficulty) session.difficulty = checkpoint.difficulty
     session.resources = checkpoint.resources
     session.stats = { ...checkpoint.stats }
     session.damageMultiplier = checkpoint.damageMultiplier

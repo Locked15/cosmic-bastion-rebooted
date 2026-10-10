@@ -1,3 +1,5 @@
+import { DEFAULT_DIFFICULTY, type DifficultyId } from '@/domain'
+
 // Plain view models handed from the application layer to the UI.
 // They hold no references to domain objects.
 
@@ -103,6 +105,8 @@ export interface GameSnapshot {
     personnel: { miners: number; military: number; lost: number }
     conversions: ConversionView[]
     livingQuarters: { underAttack: boolean; enemies: number; inTransit: number }
+    // Enemies that broke into the quarters and how many lose the level.
+    breakthroughs: { count: number; limit: number }
     buildOptions: BuildOption[]
     selection: SelectionView | null
     dialog: DialogView | null
@@ -132,10 +136,13 @@ export interface Settings {
     brightness: number
     volume: number
     enemySpeed: number
+    // Applied when a level starts.
+    difficulty: DifficultyId
 }
 
 export const DEFAULT_SETTINGS: Settings = {
     brightness: 100,
     volume: 50,
     enemySpeed: 1,
+    difficulty: DEFAULT_DIFFICULTY,
 }

@@ -3,6 +3,8 @@ import {
     BARRICADE_MAX_LEVEL,
     BARRICADE_SIZE,
     Barricade,
+    DEFAULT_DIFFICULTY,
+    DIFFICULTIES,
     TOWER_CATALOG,
     barricadeRepairCost,
     TOWER_MAX_LEVEL,
@@ -13,6 +15,7 @@ import {
     pointInRect,
     rectsOverlap,
     type BarricadeType,
+    type DifficultyId,
     type Enemy,
     type EventEffect,
     type Level,
@@ -37,7 +40,6 @@ export const SPEED_STEPS = [0.5, 1, 2, 4, 8] as const
 const DIALOG_SPEED = 0.5
 const FPS = 60
 const VICTORY_DELAY = 60
-const MAX_BREAKTHROUGHS = 10
 const PICK_RADIUS = 30
 const SLOT_SNAP_RADIUS = 50
 export const REFUND_RATE = 0.5
@@ -51,6 +53,7 @@ export interface SessionOptions {
     unlockedBarricades?: readonly BarricadeType[]
     // Story flags carried over from earlier levels (choices, redirected refugees, …).
     campaignFlags?: Readonly<Record<string, number>>
+    difficulty?: DifficultyId
 }
 
 export const DEFAULT_TOWERS: readonly TowerType[] = ['cannon', 'machinegun', 'rocket']
@@ -105,6 +108,8 @@ export class GameSession implements Scene {
     result: SessionResult | null = null
     speedIndex = 1
     enemySpeed = 1
+    // Fixed for the level run; checkpoints restore it.
+    difficulty: DifficultyId
     // Story buffs: multiply tower damage and barricade durability.
     damageMultiplier = 1
     barricadeMultiplier = 1
@@ -120,12 +125,15 @@ export class GameSession implements Scene {
     }
     selectedId: string | null = null
 
+    // Enemies whose health has already been scaled for the difficulty.
+    private readonly toughened = new WeakSet<Enemy>()
     private victoryCountdown: number | null = null
     private messages: string[] = []
 
     constructor(level: Level, rng: Random, options: SessionOptions = {}) {
         this.level = level
         this.rng = rng
+        this.difficulty = options.difficulty ?? DEFAULT_DIFFICULTY
         this.unlockedTowers = options.unlockedTowers ?? DEFAULT_TOWERS
         this.unlockedBarricades = options.unlockedBarricades ?? DEFAULT_BARRICADES
         this.objectives = new ObjectiveTracker(level)
@@ -174,6 +182,11 @@ export class GameSession implements Scene {
 
     get activeDialog(): ActiveDialog | null {
         return this.story.active
+    }
+
+    // Breakthroughs into the living quarters the player can afford before losing.
+    get maxBreakthroughs(): number {
+        return DIFFICULTIES[this.difficulty].maxBreakthroughs
     }
 
     get speed(): number {
@@ -572,7 +585,9 @@ export class GameSession implements Scene {
             }
 
             if (enemy.alive) {
-                enemy.speed = enemy.baseSpeed * this.enemySpeed
+                this.toughen(enemy)
+                enemy.speed =
+                    enemy.baseSpeed * this.enemySpeed * DIFFICULTIES[this.difficulty].speed
                 enemy._barricadeId = null
                 const before = saveMove(enemy)
                 const teleported = enemy.abilityStates.hasTeleported
@@ -653,6 +668,15 @@ export class GameSession implements Scene {
         return barricade.type === 'filter' && barricade.filterMode && enemy.size === 'small'
     }
 
+    // Scale health once per enemy, including split and spawned offspring.
+    private toughen(enemy: Enemy): void {
+        if (this.toughened.has(enemy)) return
+        this.toughened.add(enemy)
+        const multiplier = DIFFICULTIES[this.difficulty].health
+        enemy.maxHealth = Math.round(enemy.maxHealth * multiplier)
+        enemy.currentHealth = Math.round(enemy.currentHealth * multiplier)
+    }
+
     private breakThrough(enemy: Enemy): void {
         this.stats.reached++
         this.quarters.admit(enemy)
@@ -680,7 +704,7 @@ export class GameSession implements Scene {
     private checkDefeat(): void {
         if (this.personnel.total <= 0 && this.personnel.inTransit <= 0) {
             this.finish('defeat', 'Весь персонал погиб')
-        } else if (this.stats.reached >= MAX_BREAKTHROUGHS) {
+        } else if (this.stats.reached >= this.maxBreakthroughs) {
             this.finish('defeat', 'Слишком много врагов прорвалось в жилой отсек')
         }
     }

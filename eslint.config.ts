@@ -13,6 +13,12 @@ import skipFormatting from 'eslint-config-prettier/flat'
 
 type RestrictedPattern = { group: string[]; message: string }
 
+// The UI talks to stores and application DTOs, never to inner layers directly.
+const uiLayering: RestrictedPattern = {
+    group: ['@/domain*', '@/infrastructure*'],
+    message: 'UI talks to stores and application DTOs only.',
+}
+
 function restrictImports(
     name: string,
     files: string[],
@@ -102,13 +108,15 @@ export default defineConfigWithVueTs(
                 group: ['@/stores*'],
                 message: 'Components get data via props; layouts and pages talk to stores.',
             },
+            uiLayering,
         ],
     ),
     restrictImports(
         'app/ui-layouts',
         ['src/ui/layouts/**/*.vue'],
-        [{ group: ['@/ui/pages*'], message: 'Layouts cannot contain pages.' }],
+        [{ group: ['@/ui/pages*'], message: 'Layouts cannot contain pages.' }, uiLayering],
     ),
+    restrictImports('app/ui-pages', ['src/ui/pages/**/*.vue', 'src/ui/*.ts'], [uiLayering]),
 
     skipFormatting,
 )

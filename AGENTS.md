@@ -56,6 +56,7 @@ Key rules:
 - **Entities are never reactive.** `gameStore` keeps the `GameSession` in a plain variable and publishes `snapshot` (a `GameSnapshot` DTO) via `shallowRef` after each tick. Canvas renderers read the session through the read-only `Scene` interface.
 - **Commands return `CommandResult`** (`{ok}` or `{ok:false, error}`). The store turns errors into toasts. Domain and application code never show UI.
 - **Level layout rules** (tested in `domain/__tests__/layout.spec.ts`): tower foundations stay ≥45 px from every enemy route and ≥50 px from each other. Barricades can only be placed via `Level.barricadePlacement` (snapped onto a route); an intact barricade stops enemies until destroyed. Enemies enter the living quarters only at the end of their route.
+- **Difficulty** (`domain/rules/difficulty.ts`) scales enemy health and speed and sets how many breakthroughs lose the level. It is read from settings when a level starts and stored in checkpoints.
 - **Campaign progression:** a level is completed — and the sectors that require it unlock — only on victory. Defeats keep story flags but never advance the map.
 - **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
 - **New level:** add `src/domain/levels/levelN.ts` and register it in `levels/registry.ts`.
@@ -65,6 +66,7 @@ Key rules:
 ## UI rules
 
 - **Component** (`ui/components`): atomic. It contains only native elements, gets data via props and reports via emits. It never imports another `.vue` file or a store.
+- The UI never imports `@/domain` or `@/infrastructure` (lint-enforced); it gets data from stores and DTOs.
 - **Layout** (`ui/layouts`): a reusable block built from components. It may read and act on stores.
 - **Page** (`ui/pages`): what the user sees on a route, composed from layouts and components.
 - Confirmations use `useUiStore().confirm(message)` (a promise). Never use `window.confirm`/`alert`.
