@@ -3,16 +3,31 @@ import type { GameSession } from '../GameSession'
 import { row } from './format'
 
 export function starsFor(session: GameSession): number {
+    session.objectives.update(session)
     return Math.min(3, session.level.objectives.filter((objective) => objective.completed).length)
 }
 
 export function presentResult(session: GameSession): ResultView | null {
     const result = session.result
     if (!result) return null
+    session.objectives.update(session)
     const { level, stats } = session
+    const objectives = session.objectives.all.map(({ id, text, completed }) => ({
+        id,
+        text,
+        completed,
+    }))
+    const campaignAdvanced =
+        result.outcome === 'victory' ||
+        (level.type === 'story' &&
+            objectives.some(
+                (objective) => objective.id === level.keyObjective && objective.completed,
+            ))
+    const detail = { objectives, unlocks: [], campaignAdvanced }
     if (result.outcome === 'victory') {
         const done = level.objectives.filter((objective) => objective.completed).length
         return {
+            ...detail,
             outcome: 'victory',
             reason: '',
             stars: starsFor(session),
@@ -26,6 +41,7 @@ export function presentResult(session: GameSession): ResultView | null {
         }
     }
     return {
+        ...detail,
         outcome: 'defeat',
         reason: result.reason,
         stars: 0,

@@ -1,0 +1,211 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mount, type VueWrapper } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
+import { createSeededRandom } from '@/domain'
+import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
+import { provideServices } from '@/stores/services'
+import { useCampaignStore } from '@/stores/campaignStore'
+import { useGameStore } from '@/stores/gameStore'
+import { CampaignService } from '../CampaignService'
+import type { FrameScheduler } from '../ports/FrameScheduler'
+import StoryDialog from '@/ui/layouts/StoryDialog.vue'
+import GameMenu from '@/ui/layouts/GameMenu.vue'
+import LevelSelectPage from '@/ui/pages/LevelSelectPage.vue'
+import ChoiceButton from '@/ui/components/ChoiceButton.vue'
+
+let storage: MemoryStore
+let tick: (frames: number) => void
+let wrapper: VueWrapper | null = null
+
+function router() {
+    return createRouter({
+        history: createMemoryHistory(),
+        routes: [
+            { path: '/', name: 'menu', component: { template: '<main />' } },
+            { path: '/levels', name: 'levels', component: LevelSelectPage },
+            { path: '/game/:levelId', name: 'game', component: { template: '<main />' } },
+        ],
+    })
+}
+
+beforeEach(() => {
+    storage = new MemoryStore()
+    setActivePinia(createPinia())
+    provideServices({
+        storage,
+        createRandom: () => createSeededRandom(1),
+        renderScene: () => {},
+        createScheduler: (): FrameScheduler => ({
+            start: (callback) => {
+                tick = callback
+            },
+            stop: () => {},
+        }),
+    })
+})
+
+afterEach(() => {
+    wrapper?.unmount()
+    wrapper = null
+    useGameStore().stop()
+    vi.restoreAllMocks()
+})
+
+describe('story and campaign UI', () => {
+    it('keeps the choice-button flow, shows full hints, switches to consequences, and closes on OK', async () => {
+        const game = useGameStore()
+        game.start('level_1')
+        wrapper = mount(StoryDialog)
+        expect(wrapper.text()).toContain('КОМАНДИР МАРКУС')
+        expect(wrapper.find('.choice-button__hint').exists()).toBe(false) // Unknown intro.
+        await wrapper.find('.choice-button').trigger('click')
+        expect(wrapper.find('.story-dialog').exists()).toBe(false)
+        game.startWave()
+        await wrapper.vm.$nextTick()
+        expect(wrapper.text()).toContain('Без затрат')
+        expect(wrapper.text()).toContain('Получено 40 ресурсов')
+        await wrapper.find('.choice-button').trigger('click')
+        expect(wrapper.text()).toContain('ПОСЛЕДСТВИЯ')
+        expect(wrapper.find('.choice-button').exists()).toBe(false)
+        const button = wrapper.find('button')
+        expect(button.text()).toBe('ОК')
+        await button.trigger('click')
+        expect(wrapper.find('.story-dialog').exists()).toBe(false)
+        expect(game.snapshot?.speed).toBe(1)
+    })
+
+    it('hides cost and consequence hints for partial and unknown dialogs and blocks disabled choices', async () => {
+        const game = useGameStore()
+        game.start('level_1')
+        wrapper = mount(StoryDialog)
+        for (const kind of ['partial', 'unknown'] as const) {
+            game.snapshot = {
+                ...game.snapshot!,
+                dialog: {
+                    kind,
+                    phase: 'choice',
+                    title: 'Скрытое событие',
+                    text: 'Выберите',
+                    secondsLeft: 7,
+                    choices: [{ text: 'Принять', hint: '', disabled: true }],
+                },
+            }
+            await wrapper.vm.$nextTick()
+            expect(wrapper.find('.choice-button__hint').exists()).toBe(false)
+            expect(wrapper.find('button').attributes('disabled')).toBeDefined()
+            expect(wrapper.text()).not.toContain('Стоимость')
+            expect(wrapper.text()).toContain(
+                kind === 'partial' ? 'после решения' : 'останутся скрыты',
+            )
+        }
+        const choice = mount(ChoiceButton, { props: { text: 'Принять', disabled: true } })
+        await choice.find('button').trigger('click')
+        expect(choice.emitted('choose')).toBeUndefined()
+        choice.unmount()
+    })
+
+    it('renders ship-sector coordinates with both branch missions available and navigates the existing start flow', async () => {
+        const campaign = useCampaignStore()
+        campaign.completeLevel('level_1', 2)
+        const navigation = router()
+        await navigation.push('/levels')
+        wrapper = mount(LevelSelectPage, { global: { plugins: [navigation] } })
+        const nodes = wrapper.findAll('.level-node')
+        expect(nodes).toHaveLength(5)
+        expect(wrapper.find('svg.ship-map-frame').exists()).toBe(true)
+        expect(nodes[1]?.attributes('disabled')).toBeUndefined()
+        expect(nodes[2]?.attributes('disabled')).toBeUndefined()
+        expect(nodes[3]?.attributes('disabled')).toBeDefined()
+        expect(nodes[1]?.attributes('style')).toContain('left: 26%')
+        expect(nodes[2]?.attributes('style')).toContain('left: 74%')
+        await nodes[0]!.trigger('click')
+        expect(wrapper.find('.mission-info').text()).toContain('Ключевая задача')
+        const start = wrapper.findAll('button').find((button) => button.text() === 'НАЧАТЬ ЗАЩИТУ')!
+        await start.trigger('click')
+        await vi.waitFor(() => expect(navigation.currentRoute.value.fullPath).toBe('/game/level_1'))
+    })
+
+    it('shows objective completion marks, unlocked tech and story advancement after defeat', async () => {
+        const game = useGameStore()
+        game.start('level_1')
+        game.snapshot = {
+            ...game.snapshot!,
+            status: 'defeat',
+            dialog: null,
+            result: {
+                outcome: 'defeat',
+                reason: 'Отсек потерян',
+                stars: 0,
+                stats: [],
+                campaignAdvanced: true,
+                unlocks: ['Ракетница', 'Улучшения II'],
+                objectives: [
+                    { id: 'save_engineer', text: 'Чен спасён', completed: true },
+                    { id: 'survive', text: 'Отразить волны', completed: false },
+                ],
+            },
+        }
+        wrapper = mount(GameMenu, { global: { plugins: [router()] } })
+        expect(wrapper.text()).toContain('✓ Чен спасён')
+        expect(wrapper.text()).toContain('○ Отразить волны')
+        expect(wrapper.text()).toContain('НОВЫЕ ТЕХНОЛОГИИ')
+        expect(wrapper.text()).toContain('Ракетница')
+        expect(wrapper.text()).toContain('История продолжается')
+        expect(wrapper.text()).toContain('К СХЕМЕ КОРАБЛЯ')
+    })
+
+    it('passes campaign options and starting resources through gameStore.start', () => {
+        const service = new CampaignService(storage)
+        service.recordResult('level_1', {
+            outcome: 'victory',
+            stars: 2,
+            flags: { tech_laser: 1, supply_cache: 100 },
+            objectives: [],
+            survivors: 18,
+        })
+        const game = useGameStore()
+        expect(game.start('level_2')).toBe(true)
+        expect(game.snapshot?.resources).toBe(400)
+        expect(game.snapshot?.buildOptions.map((option) => option.type)).toEqual(
+            expect.arrayContaining(['laser', 'rocket', 'filter']),
+        )
+        expect(game.snapshot?.buildOptions.map((option) => option.type)).not.toContain('shield')
+    })
+
+    it('reports results once, carries flags into a new store session and attaches newly unlocked tech', () => {
+        const captured: { current?: import('../session/GameSession').GameSession } = {}
+        provideServices({
+            storage,
+            createRandom: () => createSeededRandom(1),
+            createScheduler: () => ({
+                start: (callback) => {
+                    tick = callback
+                },
+                stop: () => {},
+            }),
+            renderScene: (_ctx, scene) => {
+                captured.current = scene as import('../session/GameSession').GameSession
+            },
+        })
+        const current = useGameStore()
+        current.start('level_1')
+        current.draw({} as CanvasRenderingContext2D, 1200, 700)
+        const session = captured.current!
+        session.story.flags.engineer_saved = 1
+        session.story.flags.tech_laser = 1
+        session.stats.reached = 10
+        tick(1)
+        expect(current.snapshot?.result).toMatchObject({
+            outcome: 'defeat',
+            campaignAdvanced: true,
+        })
+        expect(current.snapshot?.result?.unlocks).toContain('Лазерная установка')
+        const first = current.snapshot?.result?.unlocks
+        tick(1)
+        expect(current.snapshot?.result?.unlocks).toEqual(first)
+        current.start('level_3')
+        expect(current.snapshot?.buildOptions.map((option) => option.type)).toContain('laser')
+        expect(new CampaignService(storage).isUnlocked('level_3')).toBe(true)
+    })
+})

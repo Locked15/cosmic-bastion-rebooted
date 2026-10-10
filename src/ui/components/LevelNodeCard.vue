@@ -3,6 +3,7 @@
 
     const {
         name,
+        sector = '',
         description,
         locked,
         completed,
@@ -11,6 +12,7 @@
         active = false,
     } = defineProps<{
         name: string
+        sector?: string
         description: string
         locked: boolean
         completed: boolean
@@ -44,6 +46,7 @@
         <span class="level-node__status" :class="`level-node__status--${status.modifier}`">
             {{ status.text }}
         </span>
+        <span class="level-node__sector">{{ sector }}</span>
         <span class="level-node__name">{{ name }}</span>
         <span class="level-node__description">{{ description }}</span>
     </button>
@@ -54,10 +57,10 @@
         position: relative;
         display: block;
         width: 100%;
-        margin: $spacing-md 0;
+        margin: 0;
         padding: $spacing-md;
         border: 2px solid $color-secondary;
-        background-color: rgba(10, 10, 10, 0.8);
+        background-color: rgba($color-bg, 0.94);
         color: $color-primary;
         text-align: left;
         cursor: pointer;
@@ -65,7 +68,7 @@
 
         &:hover:not(:disabled) {
             border-color: $color-primary;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba($color-primary, 0.1);
         }
 
         &--completed {
@@ -84,14 +87,14 @@
 
         &--active {
             border-color: $color-primary;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 20px rgba($color-primary, 0.3);
             opacity: 1;
         }
 
         &__status {
             position: absolute;
-            top: $spacing-sm;
-            right: $spacing-sm;
+            top: $spacing-xs;
+            right: $spacing-xs;
             padding: $spacing-xs $spacing-sm;
             border: 1px solid;
             font-size: 10px;
@@ -107,6 +110,16 @@
             &--available {
                 color: $color-primary;
             }
+        }
+
+        &__sector {
+            display: block;
+            margin-bottom: $spacing-sm;
+            padding-top: $spacing-md;
+            color: $color-accent;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         &__name {

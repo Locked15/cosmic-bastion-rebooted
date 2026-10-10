@@ -82,9 +82,29 @@ export function createLevel5(): Level {
     level.waveDifficulty = 1.5
 
     level.objectives = [
-        { id: 'survive', text: 'Победить главное существо', completed: false },
-        { id: 'save_reactor', text: 'Защитить реактор', completed: false },
-        { id: 'no_personnel_loss', text: 'Потерять не более 5 человек', completed: false },
+        {
+            id: 'survive',
+            text: 'Победить главное существо',
+            completed: false,
+        },
+        {
+            id: 'save_reactor',
+            text: 'Не допустить ни одного прорыва в жилой отсек',
+            completed: false,
+            target: 0,
+        },
+        {
+            id: 'no_personnel_loss',
+            text: 'Потерять не более 5 человек',
+            completed: false,
+            target: 5,
+        },
+        {
+            id: 'save_archive',
+            text: 'Передать архив корабля спасательному судну',
+            completed: false,
+            keyObjective: true,
+        },
     ]
 
     level.events = [
@@ -92,9 +112,16 @@ export function createLevel5(): Level {
             wave: 0,
             trigger: 'start',
             dialog: {
+                kind: 'unknown',
                 title: 'КАПИТАН НА МОСТИКЕ',
-                text: 'Это оно. Главное существо у реактора. Если потеряем его - потеряем всё. Готовы?',
-                choices: [{ text: 'Мы готовы к бою!', effect: null }],
+                text: 'Главное существо у реактора. Судьба корабля решится здесь.',
+                choices: [
+                    {
+                        text: 'Мы готовы к бою!',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
                 timed: false,
             },
         },
@@ -102,16 +129,25 @@ export function createLevel5(): Level {
             wave: 1,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'УСИЛЕНИЕ',
                 text: 'Все системы корабля в вашем распоряжении!',
                 choices: [
                     {
-                        text: 'Энергия в оружие! (+250 ресурсов)',
-                        effect: { type: 'resources', value: 250 },
+                        text: 'Энергия в оружие',
+                        effect: {
+                            type: 'resources',
+                            value: 250,
+                        },
+                        consequence: 'Получено 250 ресурсов.',
                     },
                     {
-                        text: 'Энергия в щиты! (+60% прочность баррикад)',
-                        effect: { type: 'buffBarricades', value: 1.6 },
+                        text: 'Энергия в щиты',
+                        effect: {
+                            type: 'buffBarricades',
+                            value: 1.6,
+                        },
+                        consequence: 'Прочность всех баррикад увеличена на 60%.',
                     },
                 ],
                 timed: true,
@@ -120,55 +156,117 @@ export function createLevel5(): Level {
         },
         {
             wave: 2,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 120,
             dialog: {
+                kind: 'partial',
                 title: 'КРИТИЧЕСКИЙ МОМЕНТ',
-                text: 'Существа адаптируются быстрее! Нужно действовать!',
+                text: 'Существа адаптируются быстрее. Нужно действовать.',
                 choices: [
                     {
-                        text: 'Активировать резервы (+200 ресурсов, +6 военных)',
-                        effect: { type: 'emergency', resources: 200, military: 6 },
+                        text: 'Активировать резервы',
+                        effect: {
+                            type: 'emergency',
+                            resources: 200,
+                            military: 6,
+                        },
+                        consequence: 'Получено 200 ресурсов и 6 военных.',
                     },
                     {
-                        text: 'Перегрузить башни (+70% урон)',
-                        effect: { type: 'buffDamage', value: 1.7 },
+                        text: 'Перегрузить башни',
+                        effect: {
+                            type: 'buffDamage',
+                            value: 1.7,
+                        },
+                        consequence: 'Урон башен увеличен на 70%.',
                     },
                 ],
                 timed: true,
-                timeLimit: 12,
+                timeLimit: 7,
+            },
+        },
+        {
+            wave: 3,
+            trigger: 'delay',
+            delay: 60,
+            dialog: {
+                kind: 'full',
+                title: 'СПАСЕНИЕ АРХИВА',
+                text: 'Спасательное судно готово принять архив и координаты выживших.',
+                choices: [
+                    {
+                        text: 'Передать архив',
+                        effect: {
+                            type: 'flag',
+                            name: 'archive_saved',
+                            value: 1,
+                        },
+                        consequence: 'Архив сохранён. Сюжет завершится даже при потере реактора.',
+                        cost: {
+                            resources: 100,
+                        },
+                    },
+                    {
+                        text: 'Оставить архив на корабле',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
+                timed: true,
+                timeLimit: 10,
             },
         },
         {
             wave: 3,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ПОСЛЕДНИЙ ШАНС',
-                text: 'Босс идёт! Можем активировать экспериментальное оружие реактора. Уничтожит 60% врагов, но потребует 7 военных.',
+                text: 'Экспериментальное оружие реактора требует военный расчёт.',
                 choices: [
                     {
-                        text: 'Активировать! (-7 военных, убить 60% врагов)',
-                        effect: { type: 'superWeapon', military: -7, killPercent: 0.6 },
+                        text: 'Активировать оружие',
+                        effect: {
+                            type: 'superWeapon',
+                            military: -7,
+                            killPercent: 0.6,
+                        },
+                        consequence: '7 военных отданы расчёту. Уничтожено 60% активных врагов.',
                     },
-                    { text: 'Нет, сражаться обычными силами', effect: null },
+                    {
+                        text: 'Сражаться обычными силами',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
                 timed: true,
-                timeLimit: 20,
+                timeLimit: 7,
             },
         },
         {
             wave: 4,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ФИНАЛЬНАЯ АТАКА',
-                text: 'Это последний момент! Всё или ничего!',
+                text: 'Всё или ничего. Последний резерв доступен.',
                 choices: [
                     {
-                        text: 'ВСЁ НА МАКСИМУМ! (+300 ресурсов)',
-                        effect: { type: 'resources', value: 300 },
+                        text: 'Задействовать резерв',
+                        effect: {
+                            type: 'resources',
+                            value: 300,
+                        },
+                        consequence: 'Получено 300 ресурсов.',
                     },
-                    { text: 'Сохранить силы для защиты', effect: null },
+                    {
+                        text: 'Сохранить силы',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
-                timed: false,
+                timed: true,
+                timeLimit: 15,
             },
         },
     ]

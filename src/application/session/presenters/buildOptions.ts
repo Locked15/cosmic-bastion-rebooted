@@ -24,3 +24,11 @@ export function presentBuildOptions(session: GameSession): BuildOption[] {
         affordable: resources >= cost,
     }))
 }
+
+// Campaign upgrade tiers also gate commands, including the keyboard shortcut.
+export function canUpgradeTechnology(session: GameSession, id: string | null): boolean {
+    const entity =
+        session.slots.find((slot) => slot.id === id)?.tower ??
+        session.barricades.find((barricade) => barricade.id === id)
+    return !!entity && entity.level < (session.story.flags.tech_upgrade_tier ?? 3)
+}

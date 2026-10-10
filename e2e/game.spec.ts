@@ -16,6 +16,8 @@ async function clickWorld(page: Page, point: { x: number; y: number }) {
 
 async function answerDialog(page: Page) {
     await page.locator('.story-dialog .choice-button').first().click()
+    const ok = page.locator('.story-dialog').getByRole('button', { name: 'ОК', exact: true })
+    if (await ok.isVisible()) await ok.click()
 }
 
 test('plays the first wave of level 1 from the main menu', async ({ page }) => {

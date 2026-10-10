@@ -1,9 +1,22 @@
 import { lineIntersectsRect, pointInRect, projectOntoPath } from '../geometry'
 import type { Point, Rect } from '../geometry'
 import type { TowerType } from '../rules/towerCatalog'
+import type { BarricadeType } from '../rules/barricadeCatalog'
 import type { Barricade } from './Barricade'
 
+export interface EventCost {
+    resources?: number
+    miners?: number
+    military?: number
+}
+
+export type StoryFlags = Record<string, number>
+
 export type EventEffect =
+    | { type: 'transaction'; cost: EventCost; effects: EventEffect[] }
+    | { type: 'flag'; name: string; value: number }
+    | { type: 'unlockTower'; tower: TowerType }
+    | { type: 'unlockBarricade'; barricade: BarricadeType }
     | { type: 'resources'; value: number; military?: number }
     | { type: 'convert'; count: number }
     | { type: 'addMilitary'; count: number }
@@ -14,22 +27,36 @@ export type EventEffect =
     | { type: 'buffDamage'; value: number }
     | { type: 'buffBarricades'; value: number }
     | { type: 'superWeapon'; military: number; killPercent: number }
+export interface StoryChoice {
+    text: string
+    cost?: EventCost
+    consequence?: string
+    effect: EventEffect | null
+}
 export interface StoryDialog {
+    kind: 'full' | 'partial' | 'unknown'
     title: string
     text: string
-    choices: { text: string; effect: EventEffect | null }[]
+    choices: StoryChoice[]
     timed: boolean
+    // Seconds of real time; clamped to 7–15 by the story director.
     timeLimit?: number
 }
 export interface LevelEvent {
+    id?: string
     wave: number
-    trigger: 'start'
+    trigger: 'start' | 'delay'
+    // Real-time frames since this wave began (60 fps); pause stops the clock.
+    delay?: number
+    condition?: { flag: string; atLeast: number }
     dialog: StoryDialog
 }
 export interface Objective {
     id: string
     text: string
     completed: boolean
+    target?: number
+    keyObjective?: boolean
 }
 export interface FloorBreach extends Rect {
     closed: boolean
@@ -63,6 +90,9 @@ export class Level {
     objectives: Objective[] = []
     objectivesCompleted: Record<string, boolean> = {}
     events: LevelEvent[] = []
+    get keyObjective(): string | undefined {
+        return this.objectives.find((objective) => objective.keyObjective)?.id
+    }
     completed = false
     locked = false
     stars = 0

@@ -55,19 +55,20 @@ describe('levels', () => {
 })
 
 describe('campaign', () => {
-    it('unlocks each successor after completing a level and preserves the best stars', () => {
+    it('opens both branches, requires both for the core, and preserves best stars', () => {
         const campaign = new Campaign()
         expect(campaign.selectLevel('level_2')).toBeNull()
         expect(campaign.isUnlocked('unknown')).toBe(false)
-        for (let i = 0; i < campaign.levels.length - 1; i++) {
-            const level = campaign.levels[i]!
-            const next = campaign.levels[i + 1]!
-            expect(next.locked).toBe(true)
-            campaign.completeLevel(level.id, 3)
-            expect(level.completed).toBe(true)
-            expect(next.locked).toBe(false)
-            expect(campaign.isUnlocked(next.id)).toBe(true)
-        }
+        campaign.completeLevel('level_1', 3)
+        expect(campaign.isUnlocked('level_2')).toBe(true)
+        expect(campaign.isUnlocked('level_3')).toBe(true)
+        expect(campaign.isUnlocked('level_4')).toBe(false)
+        campaign.completeLevel('level_3', 3)
+        expect(campaign.isUnlocked('level_4')).toBe(false)
+        campaign.completeLevel('level_2', 3)
+        expect(campaign.isUnlocked('level_4')).toBe(true)
+        campaign.completeLevel('level_4', 3)
+        expect(campaign.isUnlocked('level_5')).toBe(true)
         campaign.completeLevel('level_1', 1)
         expect(campaign.levels[0]!.stars).toBe(3)
         expect(campaign.totalStars).toBe(12)

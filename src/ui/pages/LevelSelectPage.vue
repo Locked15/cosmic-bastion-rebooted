@@ -3,6 +3,7 @@
     import { computed, ref } from 'vue'
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
+    import ShipMapFrame from '@/ui/components/ShipMapFrame.vue'
     import LevelNodeCard from '@/ui/components/LevelNodeCard.vue'
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
@@ -24,10 +25,14 @@
 <template>
     <main class="level-select">
         <h2 class="level-select__title">СХЕМА КОРАБЛЯ - ВЫБОР СЕКТОРА</h2>
-        <div class="level-select__map">
+        <div class="level-select__map" aria-label="Схема секторов корабля">
+            <ShipMapFrame />
             <LevelNodeCard
                 v-for="level in levels"
                 :key="level.id"
+                class="level-select__node"
+                :style="{ left: `${level.mapX}%`, top: `${level.mapY}%` }"
+                :sector="level.sector"
                 :name="level.name"
                 :description="level.description"
                 :locked="level.locked"
@@ -45,10 +50,10 @@
 <style scoped lang="scss">
     .level-select {
         display: grid;
-        grid-template-rows: auto 1fr;
+        grid-template-rows: auto minmax(680px, 1fr);
         grid-template-columns: 2fr 1fr;
         gap: $spacing-lg;
-        height: 100vh;
+        min-height: 100vh;
         padding: $spacing-lg;
 
         &__title {
@@ -62,9 +67,16 @@
         &__map {
             @include blueprint-grid(30px);
 
+            position: relative;
+            min-height: 680px;
             padding: $spacing-md;
-            overflow-y: auto;
             border: 2px solid $color-primary;
+        }
+
+        &__node {
+            position: absolute;
+            width: 42%;
+            transform: translate(-50%, -50%);
         }
 
         @media (max-width: 1200px) {

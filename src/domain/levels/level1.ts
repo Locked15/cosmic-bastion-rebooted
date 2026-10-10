@@ -62,9 +62,27 @@ export function createLevel1(): Level {
     level.waveDifficulty = 0.7
 
     level.objectives = [
-        { id: 'survive', text: 'Пережить все волны', completed: false },
-        { id: 'repair_tower', text: 'Починить хотя бы одну башню', completed: false },
-        { id: 'close_breach', text: 'Закрыть хотя бы один пролом', completed: false },
+        {
+            id: 'survive',
+            text: 'Пережить все волны',
+            completed: false,
+        },
+        {
+            id: 'repair_tower',
+            text: 'Починить хотя бы одну башню',
+            completed: false,
+        },
+        {
+            id: 'close_breach',
+            text: 'Закрыть хотя бы один пролом',
+            completed: false,
+        },
+        {
+            id: 'save_engineer',
+            text: 'Эвакуировать инженера Чена',
+            completed: false,
+            keyObjective: true,
+        },
     ]
 
     level.events = [
@@ -72,9 +90,16 @@ export function createLevel1(): Level {
             wave: 0,
             trigger: 'start',
             dialog: {
+                kind: 'unknown',
                 title: 'КОМАНДИР МАРКУС',
                 text: 'Капитан, неизвестные существа приближаются к сектору A-7. Системы повреждены. Активируйте орудия!',
-                choices: [{ text: 'Начать ремонт систем', effect: null }],
+                choices: [
+                    {
+                        text: 'Начать ремонт систем',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
                 timed: false,
             },
         },
@@ -82,14 +107,23 @@ export function createLevel1(): Level {
             wave: 1,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ИНЖЕНЕР CHEN',
                 text: 'Обнаружены проломы в полу. Существа могут провалиться прямо к нашим людям. Закрыть баррикадами?',
                 choices: [
                     {
-                        text: 'Да, выделить ресурсы (+40 ресурсов)',
-                        effect: { type: 'resources', value: 40 },
+                        text: 'Выделить резервы',
+                        effect: {
+                            type: 'resources',
+                            value: 40,
+                        },
+                        consequence: 'Получено 40 ресурсов для защиты проломов.',
                     },
-                    { text: 'Нет, справимся сами', effect: null },
+                    {
+                        text: 'Справимся своими силами',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
                 timed: true,
                 timeLimit: 15,
@@ -97,18 +131,29 @@ export function createLevel1(): Level {
         },
         {
             wave: 2,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 120,
             dialog: {
-                title: 'СКАНЕР УГРОЗ',
-                text: 'Следующая волна будет усилена. Нужна дополнительная огневая мощь или больше людей для защиты?',
+                kind: 'full',
+                title: 'ЭКСПЕРИМЕНТАЛЬНЫЙ ЛАЗЕР',
+                text: 'Инженеры могут восстановить прототип раньше срока.',
                 choices: [
                     {
-                        text: 'Переобучить 3 шахтёров в военные',
-                        effect: { type: 'convert', count: 3 },
+                        text: 'Восстановить прототип',
+                        effect: {
+                            type: 'unlockTower',
+                            tower: 'laser',
+                        },
+                        consequence:
+                            'Лазер открыт для следующих миссий раньше срока. Потрачено 100 ресурсов.',
+                        cost: {
+                            resources: 100,
+                        },
                     },
                     {
-                        text: 'Получить 60 дополнительных ресурсов',
-                        effect: { type: 'resources', value: 60 },
+                        text: 'Сохранить ресурсы',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
                     },
                 ],
                 timed: true,
@@ -116,22 +161,139 @@ export function createLevel1(): Level {
             },
         },
         {
+            wave: 2,
+            trigger: 'delay',
+            delay: 180,
+            dialog: {
+                kind: 'full',
+                title: 'БЕЖЕНЦЫ ИЗ СОСЕДНЕГО ОТСЕКА',
+                text: 'У шлюза ждут 6 шахтёров и 3 военных. Поможем им?',
+                choices: [
+                    {
+                        text: 'Принять',
+                        effect: {
+                            type: 'addPersonnel',
+                            miners: 6,
+                            military: 3,
+                        },
+                        consequence: 'Приняты 6 шахтёров и 3 военных. Потрачено 80 ресурсов.',
+                        cost: {
+                            resources: 80,
+                        },
+                    },
+                    {
+                        text: 'Перенаправить',
+                        effect: {
+                            type: 'transaction',
+                            cost: {},
+                            effects: [
+                                {
+                                    type: 'flag',
+                                    name: 'refugees_pending',
+                                    value: 1,
+                                },
+                                {
+                                    type: 'flag',
+                                    name: 'refugees_miners',
+                                    value: 4,
+                                },
+                                {
+                                    type: 'flag',
+                                    name: 'refugees_military',
+                                    value: 2,
+                                },
+                                {
+                                    type: 'flag',
+                                    name: 'refugees_from',
+                                    value: 1,
+                                },
+                            ],
+                        },
+                        consequence:
+                            'В следующем выбранном секторе встретятся 4 шахтёра и 2 военных. Потрачено 30 ресурсов.',
+                        cost: {
+                            resources: 30,
+                        },
+                    },
+                    {
+                        text: 'Отказать',
+                        effect: null,
+                        consequence: 'Группа покинула шлюз. Ресурсы и персонал не изменились.',
+                    },
+                ],
+                timed: true,
+                timeLimit: 12,
+            },
+            id: 'refugees',
+        },
+        {
             wave: 3,
             trigger: 'start',
             dialog: {
-                title: 'ТАКТИЧЕСКИЙ ОФИЦЕР',
-                text: 'Последняя волна! У нас есть шанс, но нужно принять решение!',
+                kind: 'full',
+                title: 'ЭВАКУАЦИЯ ИНЖЕНЕРА',
+                text: 'Чен застрял в ремонтном шлюзе. Его знания нужны кораблю.',
                 choices: [
                     {
-                        text: 'Усилить оборону (+100 ресурсов)',
-                        effect: { type: 'resources', value: 100 },
+                        text: 'Отправить транспорт',
+                        effect: {
+                            type: 'transaction',
+                            cost: {},
+                            effects: [
+                                {
+                                    type: 'flag',
+                                    name: 'engineer_saved',
+                                    value: 1,
+                                },
+                                {
+                                    type: 'flag',
+                                    name: 'supply_cache',
+                                    value: 100,
+                                },
+                            ],
+                        },
+                        consequence:
+                            'Чен спасён. В следующих секторах доступен запас 100 ресурсов. Сюжет продолжится даже при потере отсека.',
+                        cost: {
+                            resources: 60,
+                        },
                     },
                     {
-                        text: 'Подготовить людей (+3 военных)',
-                        effect: { type: 'addMilitary', count: 3 },
+                        text: 'Удерживать позиции',
+                        effect: null,
+                        consequence: 'Чен остался в шлюзе. Сюжетная задача не выполнена.',
                     },
                 ],
-                timed: false,
+                timed: true,
+                timeLimit: 7,
+            },
+        },
+        {
+            wave: 3,
+            trigger: 'delay',
+            delay: 240,
+            dialog: {
+                kind: 'unknown',
+                title: 'НЕИЗВЕСТНЫЙ СИГНАЛ',
+                text: 'Поступает зашифрованный запрос на доступ к архиву.',
+                choices: [
+                    {
+                        text: 'Открыть канал',
+                        effect: {
+                            type: 'flag',
+                            name: 'archive_signal',
+                            value: 1,
+                        },
+                        consequence: 'Архив ответил на сигнал.',
+                    },
+                    {
+                        text: 'Отклонить',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
+                timed: true,
+                timeLimit: 10,
             },
         },
     ]

@@ -73,9 +73,29 @@ export function createLevel3(): Level {
     level.waveDifficulty = 1.0
 
     level.objectives = [
-        { id: 'survive', text: 'Пережить все волны', completed: false },
-        { id: 'upgrade_tower', text: 'Улучшить башню до 3 уровня', completed: false },
-        { id: 'max_towers', text: 'Иметь минимум 6 активных башен', completed: false },
+        {
+            id: 'survive',
+            text: 'Пережить все волны',
+            completed: false,
+        },
+        {
+            id: 'upgrade_tower',
+            text: 'Улучшить башню до 3 уровня',
+            completed: false,
+            target: 2,
+        },
+        {
+            id: 'max_towers',
+            text: 'Иметь минимум 6 активных башен',
+            completed: false,
+            target: 6,
+        },
+        {
+            id: 'save_scientist',
+            text: 'Эвакуировать доктора Сильву',
+            completed: false,
+            keyObjective: true,
+        },
     ]
 
     level.events = [
@@ -83,9 +103,16 @@ export function createLevel3(): Level {
             wave: 0,
             trigger: 'start',
             dialog: {
-                title: 'DR. SILVA',
-                text: 'Капитан, сканеры показывают странную активность. Существа... меняются. Учатся.',
-                choices: [{ text: 'Понял. Будем готовы.', effect: null }],
+                kind: 'unknown',
+                title: 'ДОКТОР СИЛЬВА',
+                text: 'Существа меняются и учатся. Лаборатория должна передать данные ядру.',
+                choices: [
+                    {
+                        text: 'Подготовить лабораторию',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
                 timed: false,
             },
         },
@@ -93,16 +120,29 @@ export function createLevel3(): Level {
             wave: 1,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ВЫБОР: ТЕХНОЛОГИЯ',
                 text: 'Инженеры разработали два прототипа. Что выбрать?',
                 choices: [
                     {
-                        text: 'Улучшенные снаряды (+урон башням)',
-                        effect: { type: 'buffDamage', value: 1.3 },
+                        text: 'Испытать лазерный щит',
+                        effect: {
+                            type: 'unlockBarricade',
+                            barricade: 'shield',
+                        },
+                        consequence:
+                            'Лазерный щит открыт для следующих миссий раньше срока. Потрачено 100 ресурсов.',
+                        cost: {
+                            resources: 100,
+                        },
                     },
                     {
-                        text: 'Укрепленные баррикады (+прочность)',
-                        effect: { type: 'buffBarricades', value: 1.6 },
+                        text: 'Усилить снаряды',
+                        effect: {
+                            type: 'buffDamage',
+                            value: 1.3,
+                        },
+                        consequence: 'Урон всех башен увеличен на 30%.',
                     },
                 ],
                 timed: true,
@@ -111,39 +151,66 @@ export function createLevel3(): Level {
         },
         {
             wave: 2,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 240,
             dialog: {
-                title: 'СОСЕДНИЙ СЕКТОР',
-                text: 'Сектор D-4 запрашивает подкрепление. Можем отправить людей или ресурсы.',
+                kind: 'full',
+                title: 'ЭВАКУАЦИЯ СИЛЬВЫ',
+                text: 'Доктор готова покинуть лабораторию вместе с данными.',
                 choices: [
                     {
-                        text: 'Отправить 3 военных (получить 100 ресурсов)',
-                        effect: { type: 'removeMilitary', count: 3, resources: 100 },
+                        text: 'Обеспечить эвакуацию',
+                        effect: {
+                            type: 'flag',
+                            name: 'scientist_saved',
+                            value: 1,
+                        },
+                        consequence:
+                            'Сильва спасена. Сюжет продолжится даже при потере лаборатории.',
+                        cost: {
+                            resources: 80,
+                        },
                     },
                     {
-                        text: 'Отправить 120 ресурсов (получить 4 военных)',
-                        effect: { type: 'resources', value: -120, military: 4 },
+                        text: 'Продолжить исследования',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
                     },
-                    { text: 'Отказать', effect: null },
                 ],
                 timed: true,
-                timeLimit: 20,
+                timeLimit: 10,
             },
         },
         {
             wave: 3,
             trigger: 'start',
             dialog: {
-                title: 'ПРЕДУПРЕЖДЕНИЕ',
-                text: 'Следующая волна содержит существ с особыми способностями!',
+                kind: 'partial',
+                title: 'СОСЕДНИЙ СЕКТОР',
+                text: 'Сектор D-4 предлагает обмен подкреплением.',
                 choices: [
                     {
-                        text: 'Усилить оборону (+120 ресурсов)',
-                        effect: { type: 'resources', value: 120 },
+                        text: 'Отправить военных',
+                        effect: {
+                            type: 'removeMilitary',
+                            count: 3,
+                            resources: 100,
+                        },
+                        consequence: '3 военных отправлены в D-4. Получено 100 ресурсов.',
                     },
                     {
-                        text: 'Подготовить людей (+4 военных)',
-                        effect: { type: 'addMilitary', count: 4 },
+                        text: 'Отправить ресурсы',
+                        effect: {
+                            type: 'resources',
+                            value: -120,
+                            military: 4,
+                        },
+                        consequence: 'Потрачено 120 ресурсов. Прибыли 4 военных.',
+                    },
+                    {
+                        text: 'Отказать',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
                     },
                 ],
                 timed: true,
@@ -154,36 +221,56 @@ export function createLevel3(): Level {
             wave: 4,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'КРИТИЧЕСКАЯ СИТУАЦИЯ',
-                text: 'Враги адаптируются быстрее! Нужны срочные меры!',
+                text: 'Нужны срочные меры для обороны.',
                 choices: [
                     {
-                        text: 'Активировать резервы (+150 ресурсов, +3 военных)',
-                        effect: { type: 'emergency', resources: 150, military: 3 },
+                        text: 'Активировать резервы',
+                        effect: {
+                            type: 'emergency',
+                            resources: 150,
+                            military: 3,
+                        },
+                        consequence: 'Получено 150 ресурсов и 3 военных.',
                     },
                     {
-                        text: 'Перегрузить башни (+60% урон)',
-                        effect: { type: 'buffDamage', value: 1.6 },
+                        text: 'Перегрузить башни',
+                        effect: {
+                            type: 'buffDamage',
+                            value: 1.6,
+                        },
+                        consequence: 'Урон башен увеличен на 60%.',
                     },
                 ],
                 timed: true,
-                timeLimit: 15,
+                timeLimit: 7,
             },
         },
         {
             wave: 5,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 120,
             dialog: {
-                title: 'ПОСЛЕДНЯЯ ВОЛНА',
-                text: 'Это решающий момент. Дать всё что есть?',
+                kind: 'full',
+                title: 'ОТВЕТ АРХИВА',
+                text: 'Расшифрован прежний сигнал. Архив выделяет аварийный резерв.',
                 choices: [
                     {
-                        text: 'Да! Максимальная мощь! (+200 ресурсов)',
-                        effect: { type: 'resources', value: 200 },
+                        text: 'Принять резерв',
+                        effect: {
+                            type: 'resources',
+                            value: 100,
+                        },
+                        consequence: 'Получено 100 ресурсов.',
                     },
-                    { text: 'Сохранить резервы', effect: null },
                 ],
-                timed: false,
+                timed: true,
+                timeLimit: 12,
+            },
+            condition: {
+                flag: 'archive_signal',
+                atLeast: 1,
             },
         },
     ]

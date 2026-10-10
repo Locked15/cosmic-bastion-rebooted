@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { shallowRef, watch } from 'vue'
 import {
     GameSession,
+    canUpgradeTechnology,
     fitViewport,
     presentSession,
     screenToWorld,
@@ -11,6 +12,7 @@ import {
     type CommandResult,
     type FrameScheduler,
     type GameSnapshot,
+    type CampaignResolution,
     type PersonType,
     type Viewport,
 } from '@/application'
@@ -35,6 +37,7 @@ export const useGameStore = defineStore('game', () => {
     let scheduler: FrameScheduler | null = null
     let viewport: Viewport | null = null
     let reported = false
+    let resolution: CampaignResolution | null = null
 
     watch(
         () => settings.settings.enemySpeed,
@@ -47,9 +50,10 @@ export const useGameStore = defineStore('game', () => {
         stop()
         const level = createLevel(levelId)
         if (!level || !campaign.isUnlocked(levelId)) return false
-        session = new GameSession(level, services.createRandom())
+        session = new GameSession(level, services.createRandom(), campaign.prepareLevel(level))
         session.enemySpeed = settings.settings.enemySpeed
         reported = false
+        resolution = null
         scheduler = services.createScheduler()
         scheduler.start((frames) => tick(frames))
         sync()
@@ -80,12 +84,31 @@ export const useGameStore = defineStore('game', () => {
         for (const message of session.drainMessages()) ui.notify(message)
         if (session.result && !reported) {
             reported = true
-            if (session.result.outcome === 'victory') {
-                campaign.completeLevel(session.level.id, starsFor(session))
-            }
+            session.objectives.update(session)
+            resolution = campaign.recordResult(session.level.id, {
+                outcome: session.result.outcome,
+                stars: starsFor(session),
+                flags: session.story.flags,
+                objectives: session.objectives.all,
+                survivors: session.personnel.total + session.personnel.inTransit,
+            })
         }
         if (!session.pointer.build) selectedBuild.value = null
-        snapshot.value = presentSession(session)
+        const next = presentSession(session)
+        if (next.result && resolution) {
+            next.result.unlocks = resolution.unlocks
+            next.result.campaignAdvanced = resolution.advanced
+        }
+        if (next.selection && !canUpgradeTechnology(session, next.selection.id)) {
+            next.selection.canUpgrade = false
+            if (next.selection.nextAbility) {
+                next.selection.nextAbility = {
+                    ...next.selection.nextAbility,
+                    description: 'Технология откроется после сюжетной миссии.',
+                }
+            }
+        }
+        snapshot.value = next
     }
 
     function run(command: (current: GameSession) => CommandResult | void) {
@@ -93,6 +116,15 @@ export const useGameStore = defineStore('game', () => {
         const result = command(session)
         if (result && !result.ok) ui.notify(result.error)
         sync()
+    }
+
+    function upgradeSelection() {
+        run((current) => {
+            const id = current.selectedId ?? current.pointer.hoverId
+            return canUpgradeTechnology(current, id)
+                ? current.upgrade(id)
+                : { ok: false, error: 'Улучшение ещё не открыто в кампании' }
+        })
     }
 
     function selectBuild(category: BuildCategory, type: string) {
@@ -123,6 +155,14 @@ export const useGameStore = defineStore('game', () => {
     // Keyboard shortcuts. Returns true when the key was handled.
     function handleKey(key: string): boolean {
         if (!session) return false
+        if (session.story.active) {
+            if (key === 'Enter' && session.story.active.phase === 'consequence') {
+                run((current) => {
+                    current.story.acknowledge()
+                })
+            }
+            return true
+        }
         switch (key) {
             case 'Escape':
                 if (session.pointer.build) run((current) => current.clearBuildMode())
@@ -142,7 +182,7 @@ export const useGameStore = defineStore('game', () => {
             case 'U':
             case 'г':
             case 'Г':
-                run((current) => current.upgrade(current.selectedId ?? current.pointer.hoverId))
+                upgradeSelection()
                 return true
             default:
                 return false
@@ -164,12 +204,16 @@ export const useGameStore = defineStore('game', () => {
         togglePause: () => run((current) => current.togglePause()),
         cycleSpeed: () => run((current) => current.cycleSpeed()),
         toggleView: () => run((current) => current.toggleView()),
-        upgradeSelection: () =>
-            run((current) => current.upgrade(current.selectedId ?? current.pointer.hoverId)),
+        upgradeSelection,
         demolishSelection: () =>
             run((current) => current.demolish(current.selectedId ?? current.pointer.hoverId)),
         convert: (from: PersonType, to: PersonType, count: number) =>
             run((current) => current.convert(from, to, count)),
+        acknowledgeDialog: () =>
+            run((current) => {
+                const error = current.story.acknowledge()
+                return error ? { ok: false, error } : { ok: true }
+            }),
         chooseDialog: (index: number) => run((current) => current.chooseDialog(index)),
     }
 })

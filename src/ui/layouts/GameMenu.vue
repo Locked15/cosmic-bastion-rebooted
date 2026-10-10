@@ -5,6 +5,7 @@
     import { useGameStore } from '@/stores/gameStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
+    import ObjectiveItem from '@/ui/components/ObjectiveItem.vue'
     import StatItem from '@/ui/components/StatItem.vue'
 
     const game = useGameStore()
@@ -45,12 +46,33 @@
                 :label="row.label"
                 :value="row.value"
             />
+            <div class="game-menu__objectives">
+                <h4>ЗАДАЧИ МИССИИ</h4>
+                <ObjectiveItem
+                    v-for="objective in result.objectives"
+                    :key="objective.id"
+                    :text="objective.text"
+                    :completed="objective.completed"
+                />
+            </div>
+            <p
+                v-if="result.outcome === 'defeat' && result.campaignAdvanced"
+                class="game-menu__advance"
+            >
+                Ключевая задача выполнена. История продолжается, новые секторы доступны.
+            </p>
+            <div v-if="result.unlocks.length" class="game-menu__unlocks">
+                <h4>НОВЫЕ ТЕХНОЛОГИИ</h4>
+                <ul>
+                    <li v-for="tech in result.unlocks" :key="tech">{{ tech }}</li>
+                </ul>
+            </div>
             <div v-if="result.outcome === 'victory'" class="game-menu__stars">
                 {{ '★'.repeat(result.stars) }}{{ '☆'.repeat(3 - result.stars) }}
             </div>
         </div>
         <AppButton v-if="!result" @click="game.togglePause()">ПРОДОЛЖИТЬ</AppButton>
-        <AppButton v-if="result?.outcome === 'victory'" @click="quit">СЛЕДУЮЩИЙ УРОВЕНЬ</AppButton>
+        <AppButton v-if="result?.campaignAdvanced" @click="quit">К СХЕМЕ КОРАБЛЯ</AppButton>
         <AppButton v-if="result?.outcome === 'defeat'" @click="restart">ПОВТОРИТЬ</AppButton>
         <AppButton v-if="!result" variant="secondary" @click="restart">ПЕРЕЗАПУСТИТЬ</AppButton>
         <AppButton variant="secondary" @click="quit">ВЫХОД В МЕНЮ</AppButton>
@@ -63,11 +85,13 @@
         top: 50%;
         left: 50%;
         z-index: $z-menu;
-        min-width: 400px;
+        width: min(500px, calc(100vw - 32px));
+        max-height: 90vh;
+        overflow-y: auto;
         max-width: 500px;
         padding: 30px;
         border: 3px solid $color-primary;
-        background-color: rgba(0, 0, 0, 0.98);
+        background-color: rgba($color-bg, 0.98);
         box-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
         transform: translate(-50%, -50%);
 
@@ -89,8 +113,25 @@
 
         &__reason {
             margin-bottom: 15px;
-            color: #ff6666;
+            color: $color-danger;
             text-align: center;
+        }
+
+        &__objectives,
+        &__unlocks {
+            margin-top: $spacing-md;
+            padding-top: $spacing-md;
+            border-top: 1px solid $color-border;
+        }
+
+        &__unlocks ul {
+            padding-left: $spacing-lg;
+            margin-top: $spacing-sm;
+        }
+
+        &__advance,
+        &__unlocks {
+            color: $color-success;
         }
 
         &__stars {

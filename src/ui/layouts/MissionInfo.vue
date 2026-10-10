@@ -13,6 +13,14 @@
     <aside class="mission-info">
         <h3 class="mission-info__title">{{ level?.name ?? 'ВЫБЕРИТЕ СЕКТОР' }}</h3>
         <template v-if="level">
+            <p class="mission-info__sector">{{ level.sector }}</p>
+            <p v-if="level.prerequisites.length" class="mission-info__requirements">
+                Доступ после: {{ level.prerequisites.join(' и ') }}
+            </p>
+            <p v-if="level.keyObjective" class="mission-info__story">
+                Ключевая задача: {{ level.keyObjective }}. Её выполнение продолжит историю даже при
+                потере сектора.
+            </p>
             <p class="mission-info__description">{{ level.description }}</p>
             <div class="mission-info__objectives">
                 <h4>ЗАДАЧИ:</h4>
@@ -28,7 +36,7 @@
                     <StatItem label="🌊 Волн" :value="level.totalWaves" />
                 </div>
             </div>
-            <AppButton @click="$emit('start')">НАЧАТЬ ЗАЩИТУ</AppButton>
+            <AppButton :disabled="level.locked" @click="$emit('start')">НАЧАТЬ ЗАЩИТУ</AppButton>
         </template>
         <AppButton variant="secondary" @click="$emit('back')">ОТМЕНА</AppButton>
     </aside>
@@ -45,6 +53,18 @@
             margin-bottom: $spacing-md;
             padding-bottom: $spacing-sm;
             border-bottom: 1px solid $color-border;
+        }
+
+        &__sector,
+        &__requirements,
+        &__story {
+            margin-bottom: $spacing-md;
+            font-size: 12px;
+        }
+
+        &__story {
+            padding: $spacing-sm;
+            border-left: 2px solid $color-success;
         }
 
         &__description {

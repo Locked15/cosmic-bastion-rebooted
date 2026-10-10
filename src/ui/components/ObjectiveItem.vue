@@ -7,7 +7,7 @@
 
 <template>
     <div class="objective-item" :class="{ 'objective-item--completed': completed }">
-        {{ completed ? '✓' : '▸' }} {{ text }}
+        {{ completed ? '✓' : '○' }} {{ text }}
         <slot />
     </div>
 </template>

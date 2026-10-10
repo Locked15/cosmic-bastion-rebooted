@@ -58,13 +58,29 @@ export interface DialogChoiceView {
 }
 
 export interface DialogView {
+    kind: 'full' | 'partial' | 'unknown'
+    phase: 'choice' | 'consequence'
     title: string
     text: string
     choices: DialogChoiceView[]
     secondsLeft: number | null
 }
 
+export interface ObjectiveView {
+    id: string
+    text: string
+    completed: boolean
+}
+
+export interface CampaignResolution {
+    advanced: boolean
+    unlocks: string[]
+}
+
 export interface ResultView {
+    objectives: ObjectiveView[]
+    unlocks: string[]
+    campaignAdvanced: boolean
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]
@@ -90,6 +106,11 @@ export interface GameSnapshot {
 }
 
 export interface LevelSummary {
+    sector: string
+    mapX: number
+    mapY: number
+    prerequisites: string[]
+    keyObjective: string | null
     id: string
     name: string
     description: string

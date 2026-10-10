@@ -95,9 +95,28 @@ export function createLevel2(): Level {
     level.waveDifficulty = 0.8
 
     level.objectives = [
-        { id: 'survive', text: 'Пережить все волны', completed: false },
-        { id: 'close_breach', text: 'Закрыть проломы', completed: false },
-        { id: 'upgrade_tower', text: 'Улучшить башню до 2 уровня', completed: false },
+        {
+            id: 'survive',
+            text: 'Пережить все волны',
+            completed: false,
+        },
+        {
+            id: 'close_breach',
+            text: 'Закрыть проломы',
+            completed: false,
+        },
+        {
+            id: 'upgrade_tower',
+            text: 'Улучшить башню до 2 уровня',
+            completed: false,
+            target: 1,
+        },
+        {
+            id: 'no_personnel_loss',
+            text: 'Потерять не более 3 человек',
+            completed: false,
+            target: 3,
+        },
     ]
 
     level.events = [
@@ -105,16 +124,25 @@ export function createLevel2(): Level {
             wave: 1,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ТАКТИЧЕСКИЙ ОФИЦЕР',
-                text: 'Вторая волна идёт по двум путям! Как распределим силы?',
+                text: 'Враги идут по двум путям. Как распределим силы?',
                 choices: [
                     {
-                        text: 'Построить больше башен на верхнем пути (+50 ресурсов)',
-                        effect: { type: 'resources', value: 50 },
+                        text: 'Усилить верхний путь',
+                        effect: {
+                            type: 'resources',
+                            value: 50,
+                        },
+                        consequence: 'Получено 50 ресурсов.',
                     },
                     {
-                        text: 'Усилить нижний путь (+3 военных)',
-                        effect: { type: 'addMilitary', count: 3 },
+                        text: 'Усилить нижний путь',
+                        effect: {
+                            type: 'addMilitary',
+                            count: 3,
+                        },
+                        consequence: 'Прибыли 3 военных.',
                     },
                 ],
                 timed: true,
@@ -123,35 +151,60 @@ export function createLevel2(): Level {
         },
         {
             wave: 2,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 180,
             dialog: {
+                kind: 'partial',
                 title: 'МЕДИЦИНСКИЙ ОТСЕК',
-                text: 'Группа раненых просит эвакуации через наш сектор. Это рискованно, но они могут помочь.',
+                text: 'За шлюзом группа раненых. Оценить их состояние не удаётся.',
                 choices: [
                     {
-                        text: 'Принять их (+4 шахтёра, +2 военных)',
-                        effect: { type: 'addPersonnel', miners: 4, military: 2 },
+                        text: 'Открыть шлюз',
+                        effect: {
+                            type: 'addPersonnel',
+                            miners: 4,
+                            military: 2,
+                        },
+                        consequence: 'Спасены 4 шахтёра и 2 военных. Потрачено 40 ресурсов.',
+                        cost: {
+                            resources: 40,
+                        },
                     },
-                    { text: 'Отказать (сохранить безопасность)', effect: null },
+                    {
+                        text: 'Оставить шлюз закрытым',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
                 timed: true,
-                timeLimit: 20,
+                timeLimit: 12,
             },
         },
         {
             wave: 3,
             trigger: 'start',
             dialog: {
-                title: 'РАЗВЕДКА',
-                text: 'Сканеры показывают крупных существ в следующей волне. Подготовиться?',
+                kind: 'full',
+                title: 'СНАБЖЕНИЕ ЛАБОРАТОРИИ',
+                text: 'Соседняя лаборатория просит контейнер инструментов.',
                 choices: [
                     {
-                        text: 'Экстренное улучшение башен (+80 ресурсов)',
-                        effect: { type: 'resources', value: 80 },
+                        text: 'Передать контейнер',
+                        effect: {
+                            type: 'flag',
+                            name: 'lab_supplies',
+                            value: 80,
+                        },
+                        consequence:
+                            'Следующая миссия в лаборатории начнётся с дополнительными 80 ресурсами.',
+                        cost: {
+                            resources: 50,
+                        },
                     },
                     {
-                        text: 'Укрепить позиции (+3 военных)',
-                        effect: { type: 'addMilitary', count: 3 },
+                        text: 'Отказать',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
                     },
                 ],
                 timed: true,
@@ -160,22 +213,29 @@ export function createLevel2(): Level {
         },
         {
             wave: 4,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 120,
             dialog: {
-                title: 'ИНЖЕНЕР ПЕТРОВ',
-                text: 'Обнаружены аномалии в поведении врагов. Они адаптируются к нашим атакам!',
+                kind: 'unknown',
+                title: 'РАЗВЕДКА',
+                text: 'В коридоре обнаружена неопознанная капсула.',
                 choices: [
                     {
-                        text: 'Разработать новую тактику (+100 ресурсов)',
-                        effect: { type: 'resources', value: 100 },
+                        text: 'Извлечь капсулу',
+                        effect: {
+                            type: 'resources',
+                            value: 100,
+                        },
+                        consequence: 'Получено 100 ресурсов.',
                     },
                     {
-                        text: 'Увеличить численность (+4 военных)',
-                        effect: { type: 'addMilitary', count: 4 },
+                        text: 'Обойти',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
                     },
                 ],
                 timed: true,
-                timeLimit: 15,
+                timeLimit: 7,
             },
         },
     ]

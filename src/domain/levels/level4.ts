@@ -76,9 +76,23 @@ export function createLevel4(): Level {
     level.waveDifficulty = 1.2
 
     level.objectives = [
-        { id: 'survive', text: 'Пережить все волны', completed: false },
-        { id: 'max_towers', text: 'Иметь минимум 8 активных башен', completed: false },
-        { id: 'save_reactor', text: 'Защитить реактор', completed: false },
+        {
+            id: 'survive',
+            text: 'Пережить все волны',
+            completed: false,
+        },
+        {
+            id: 'max_towers',
+            text: 'Иметь минимум 8 активных башен',
+            completed: false,
+            target: 8,
+        },
+        {
+            id: 'save_reactor',
+            text: 'Допустить не более 2 прорывов в жилой отсек',
+            completed: false,
+            target: 2,
+        },
     ]
 
     level.events = [
@@ -86,16 +100,25 @@ export function createLevel4(): Level {
             wave: 1,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'РАЗВЕДКА',
                 text: 'Волны становятся сильнее. Нужна стратегия!',
                 choices: [
                     {
-                        text: 'Фокус на урон (+100 ресурсов)',
-                        effect: { type: 'resources', value: 100 },
+                        text: 'Фокус на урон',
+                        effect: {
+                            type: 'resources',
+                            value: 100,
+                        },
+                        consequence: 'Получено 100 ресурсов.',
                     },
                     {
-                        text: 'Фокус на защиту (+5 военных)',
-                        effect: { type: 'addMilitary', count: 5 },
+                        text: 'Фокус на защиту',
+                        effect: {
+                            type: 'addMilitary',
+                            count: 5,
+                        },
+                        consequence: 'Прибыли 5 военных.',
                     },
                 ],
                 timed: true,
@@ -104,89 +127,141 @@ export function createLevel4(): Level {
         },
         {
             wave: 2,
-            trigger: 'start',
+            trigger: 'delay',
+            delay: 180,
             dialog: {
+                kind: 'partial',
                 title: 'НАХОДКА',
-                text: 'Нашли склад с припасами! Что взять?',
+                text: 'Найден склад, содержимое контейнеров неизвестно.',
                 choices: [
                     {
-                        text: 'Технические части (+150 ресурсов)',
-                        effect: { type: 'resources', value: 150 },
+                        text: 'Открыть технический контейнер',
+                        effect: {
+                            type: 'resources',
+                            value: 150,
+                        },
+                        consequence: 'Получено 150 ресурсов.',
                     },
-                    { text: 'Медикаменты (+6 шахтёров)', effect: { type: 'addMiners', count: 6 } },
+                    {
+                        text: 'Открыть медицинский контейнер',
+                        effect: {
+                            type: 'addMiners',
+                            count: 6,
+                        },
+                        consequence: 'Спасены 6 шахтёров.',
+                    },
                 ],
                 timed: true,
-                timeLimit: 18,
+                timeLimit: 12,
             },
         },
         {
             wave: 3,
             trigger: 'start',
             dialog: {
+                kind: 'unknown',
                 title: 'АНОМАЛИЯ',
-                text: 'Сканеры зафиксировали мощную энергию. Существа мутируют!',
+                text: 'Сканеры фиксируют мощную энергию в коридоре.',
                 choices: [
                     {
-                        text: 'Экстренная подготовка (+120 ресурсов, +3 военных)',
-                        effect: { type: 'emergency', resources: 120, military: 3 },
+                        text: 'Подключить резерв',
+                        effect: {
+                            type: 'emergency',
+                            resources: 120,
+                            military: 3,
+                        },
+                        consequence: 'Получено 120 ресурсов и 3 военных.',
                     },
-                    { text: 'Наблюдать и ждать', effect: null },
+                    {
+                        text: 'Наблюдать',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
                 timed: true,
-                timeLimit: 12,
+                timeLimit: 7,
             },
         },
         {
             wave: 4,
             trigger: 'start',
             dialog: {
-                title: 'КРИТИЧЕСКАЯ СИТУАЦИЯ',
-                text: 'Половина пути! Нужны силы для финального рывка!',
+                kind: 'full',
+                title: 'МОБИЛИЗАЦИЯ',
+                text: 'Нужны силы для финального рывка.',
                 choices: [
                     {
-                        text: 'Все на оборону! (+200 ресурсов)',
-                        effect: { type: 'resources', value: 200 },
+                        text: 'Открыть арсенал',
+                        effect: {
+                            type: 'resources',
+                            value: 200,
+                        },
+                        consequence: 'Получено 200 ресурсов.',
                     },
                     {
-                        text: 'Мобилизация! (+6 военных)',
-                        effect: { type: 'addMilitary', count: 6 },
+                        text: 'Вызвать подкрепление',
+                        effect: {
+                            type: 'addMilitary',
+                            count: 6,
+                        },
+                        consequence: 'Прибыли 6 военных.',
                     },
-                ],
-                timed: true,
-                timeLimit: 15,
-            },
-        },
-        {
-            wave: 5,
-            trigger: 'start',
-            dialog: {
-                title: 'ИНЖЕНЕР ПЕТРОВ',
-                text: 'Оборудование перегружено! Риск поломки!',
-                choices: [
-                    {
-                        text: 'Ремонтировать оборудование (+80 ресурсов)',
-                        effect: { type: 'resources', value: 80 },
-                    },
-                    { text: 'Продолжить на максимальной мощности', effect: null },
                 ],
                 timed: true,
                 timeLimit: 12,
             },
         },
         {
+            wave: 5,
+            trigger: 'delay',
+            delay: 120,
+            dialog: {
+                kind: 'full',
+                title: 'ИНЖЕНЕР ПЕТРОВ',
+                text: 'Оборудование перегружено.',
+                choices: [
+                    {
+                        text: 'Подключить запасные линии',
+                        effect: {
+                            type: 'resources',
+                            value: 80,
+                        },
+                        consequence: 'Получено 80 ресурсов.',
+                    },
+                    {
+                        text: 'Продолжить',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
+                ],
+                timed: true,
+                timeLimit: 10,
+            },
+        },
+        {
             wave: 6,
             trigger: 'start',
             dialog: {
+                kind: 'full',
                 title: 'ПОСЛЕДНИЙ БОЙ',
-                text: 'Финальная волна! Это наш шанс!',
+                text: 'Финальная волна приближается.',
                 choices: [
                     {
-                        text: 'Максимальная огневая мощь! (+250 ресурсов)',
-                        effect: { type: 'resources', value: 250 },
+                        text: 'Задействовать все резервы',
+                        effect: {
+                            type: 'resources',
+                            value: 250,
+                        },
+                        consequence: 'Получено 250 ресурсов.',
                     },
-                    { text: 'Доверимся построенной обороне', effect: null },
+                    {
+                        text: 'Довериться обороне',
+                        effect: null,
+                        consequence: 'Решение принято. Состояние сектора не изменилось.',
+                    },
                 ],
-                timed: false,
+                timed: true,
+                timeLimit: 15,
             },
         },
     ]

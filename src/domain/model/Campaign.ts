@@ -1,4 +1,6 @@
 import { LEVEL_IDS, createLevel } from '../levels/registry'
+import { MISSION_SECTORS } from '../story/missions'
+import type { StoryFlags } from './Level'
 export interface LevelSummary {
     id: string
     name: string
@@ -9,6 +11,7 @@ export interface LevelSummary {
     locked: boolean
 }
 export interface CampaignProgress {
+    flags?: StoryFlags
     completedLevels: string[]
     totalStars: number
     currentLevelIndex: number
@@ -19,6 +22,7 @@ export class Campaign {
     currentLevelIndex = 0
     completedLevels: string[] = []
     totalStars = 0
+    flags: StoryFlags = {}
     constructor() {
         this.reset()
     }
@@ -32,8 +36,11 @@ export class Campaign {
             Number.isFinite(stars) ? Math.max(0, Math.min(3, Math.floor(stars))) : 0,
         )
         if (!this.completedLevels.includes(id)) this.completedLevels.push(id)
-        const next = this.levels[index + 1]
-        if (next) next.locked = false
+        for (const mission of MISSION_SECTORS) {
+            const entry = this.levels.find((candidate) => candidate.id === mission.id)
+            if (entry)
+                entry.locked = !mission.requires.every((id) => this.completedLevels.includes(id))
+        }
         this.totalStars = this.levels.reduce((sum, entry) => sum + entry.stars, 0)
     }
     selectLevel(id: string): LevelSummary | null {
@@ -59,6 +66,7 @@ export class Campaign {
     }
     toProgress(): CampaignProgress {
         return {
+            flags: { ...this.flags },
             completedLevels: [...this.completedLevels],
             totalStars: this.totalStars,
             currentLevelIndex: this.currentLevelIndex,
@@ -74,6 +82,9 @@ export class Campaign {
         const campaign = new Campaign()
         for (const level of progress?.levels ?? []) {
             if (level.completed) campaign.completeLevel(level.id, level.stars)
+        }
+        for (const [key, value] of Object.entries(progress?.flags ?? {})) {
+            if (Number.isFinite(value)) campaign.flags[key] = value
         }
         const selected = campaign.levels[progress?.currentLevelIndex ?? 0]
         if (selected && !selected.locked) campaign.selectLevel(selected.id)
@@ -95,5 +106,6 @@ export class Campaign {
         this.currentLevelIndex = 0
         this.completedLevels = []
         this.totalStars = 0
+        this.flags = {}
     }
 }
