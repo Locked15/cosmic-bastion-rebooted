@@ -35,11 +35,14 @@ describe('difficulty', () => {
     it('has the four levels with their labels in order', () => {
         expect(DIFFICULTY_IDS).toEqual(['simple', 'modest', 'complex', 'xhard'])
         expect(DIFFICULTY_IDS.map((id) => DIFFICULTIES[id].label)).toEqual([
-            'Не бей меня',
-            'Подходи!',
-            'Это пальба!',
-            'На смерть!',
+            'Рядовой',
+            'Лейтенант',
+            'Майор',
+            'Генерал',
         ])
+        const descriptions = DIFFICULTY_IDS.map((id) => DIFFICULTIES[id].description)
+        expect(new Set(descriptions).size).toBe(4)
+        for (const description of descriptions) expect(description.length).toBeGreaterThan(40)
     })
 
     it('scales enemy health and speed relative to the modest level', () => {

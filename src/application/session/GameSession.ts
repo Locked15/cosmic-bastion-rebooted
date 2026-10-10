@@ -107,7 +107,6 @@ export class GameSession implements Scene {
     status: GameStatus = 'running'
     result: SessionResult | null = null
     speedIndex = 1
-    enemySpeed = 1
     // Fixed for the level run; checkpoints restore it.
     difficulty: DifficultyId
     // Story buffs: multiply tower damage and barricade durability.
@@ -586,8 +585,7 @@ export class GameSession implements Scene {
 
             if (enemy.alive) {
                 this.toughen(enemy)
-                enemy.speed =
-                    enemy.baseSpeed * this.enemySpeed * DIFFICULTIES[this.difficulty].speed
+                enemy.speed = enemy.baseSpeed * DIFFICULTIES[this.difficulty].speed
                 enemy._barricadeId = null
                 const before = saveMove(enemy)
                 const teleported = enemy.abilityStates.hasTeleported

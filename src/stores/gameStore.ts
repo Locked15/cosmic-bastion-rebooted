@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { shallowRef, watch } from 'vue'
+import { shallowRef } from 'vue'
 import {
     GameSession,
     fitViewport,
@@ -44,13 +44,6 @@ export const useGameStore = defineStore('game', () => {
     let seen = { wave: 0, inProgress: false, dialog: false, reached: 0 }
     let ticksSinceAchievementCheck = 0
 
-    watch(
-        () => settings.settings.enemySpeed,
-        (value) => {
-            if (session) session.enemySpeed = value
-        },
-    )
-
     // `resume` continues from the level's between-wave checkpoint if there is one.
     function start(levelId: string, resume = false): boolean {
         stop()
@@ -67,7 +60,6 @@ export const useGameStore = defineStore('game', () => {
             dialog: !!session.activeDialog,
             reached: session.stats.reached,
         }
-        session.enemySpeed = settings.settings.enemySpeed
         reported = false
         resolution = null
         scheduler = services.createScheduler()

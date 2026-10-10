@@ -9,12 +9,6 @@
     const settingsStore = useSettingsStore()
     const { settings } = storeToRefs(settingsStore)
     const ui = useUiStore()
-
-    const speedOptions = [
-        { value: 0.7, text: 'МЕДЛЕННО' },
-        { value: 1, text: 'НОРМАЛЬНО' },
-        { value: 1.3, text: 'БЫСТРО' },
-    ]
 </script>
 
 <template>
@@ -28,15 +22,13 @@
                 label="СЛОЖНОСТЬ:"
                 :options="settingsStore.difficultyOptions"
             />
-            <p class="settings-modal__hint">
-                Здоровье и скорость врагов, допустимые прорывы в жилой отсек. Применяется при
-                запуске уровня.
-            </p>
-            <OptionGroup
-                v-model="settings.enemySpeed"
-                label="СКОРОСТЬ ВРАГОВ:"
-                :options="speedOptions"
-            />
+            <div class="settings-modal__difficulty">
+                <p class="settings-modal__description">
+                    {{ settingsStore.difficultyDetails.description }}
+                </p>
+                <p class="settings-modal__effects">{{ settingsStore.difficultyDetails.effects }}</p>
+                <p class="settings-modal__hint">Применяется при запуске уровня.</p>
+            </div>
             <div class="modal__footer">
                 <AppButton variant="secondary" @click="settingsStore.reset()">
                     СБРОСИТЬ НАСТРОЙКИ
@@ -51,8 +43,25 @@
     .settings-modal {
         width: 560px;
 
-        &__hint {
+        &__difficulty {
             margin: -$spacing-md 0 $spacing-lg;
+            padding: $spacing-sm $spacing-md;
+            border-left: 2px solid $color-accent;
+        }
+
+        &__description {
+            color: $color-accent;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        &__effects {
+            margin-top: $spacing-xs;
+            color: $color-success;
+            font-size: 11px;
+        }
+
+        &__hint {
             color: $color-secondary;
             font-size: 11px;
         }

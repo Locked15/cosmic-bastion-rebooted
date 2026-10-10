@@ -2,6 +2,8 @@ export type DifficultyId = 'simple' | 'modest' | 'complex' | 'xhard'
 
 export interface Difficulty {
     label: string
+    // Flavour text shown in the settings for the selected level.
+    description: string
     // Multiplies every enemy's health.
     health: number
     // Multiplies every enemy's movement speed.
@@ -11,10 +13,38 @@ export interface Difficulty {
 }
 
 export const DIFFICULTIES: Record<DifficultyId, Difficulty> = {
-    simple: { label: 'Не бей меня', health: 0.7, speed: 0.85, maxBreakthroughs: 15 },
-    modest: { label: 'Подходи!', health: 1, speed: 1, maxBreakthroughs: 10 },
-    complex: { label: 'Это пальба!', health: 1.35, speed: 1.15, maxBreakthroughs: 6 },
-    xhard: { label: 'На смерть!', health: 1.8, speed: 1.3, maxBreakthroughs: 3 },
+    simple: {
+        label: 'Рядовой',
+        description:
+            'Учебная тревога для новобранцев. Твари вялые и хрупкие, а жилой отсек выдержит не один прорыв — есть время освоиться с орудиями и баррикадами.',
+        health: 0.7,
+        speed: 0.85,
+        maxBreakthroughs: 15,
+    },
+    modest: {
+        label: 'Лейтенант',
+        description:
+            'Штатный режим обороны. Рой бьёт в полную силу, но экипаж знает своё дело: каждая ошибка заметна, но ещё не смертельна.',
+        health: 1,
+        speed: 1,
+        maxBreakthroughs: 10,
+    },
+    complex: {
+        label: 'Майор',
+        description:
+            'Улей адаптировался: существа живучее и быстрее, а оборона отсека трещит по швам. Баррикады и улучшения нужны с первых волн.',
+        health: 1.35,
+        speed: 1.15,
+        maxBreakthroughs: 6,
+    },
+    xhard: {
+        label: 'Генерал',
+        description:
+            'Последний рубеж. Рой стремителен и почти неуязвим, жилой отсек падёт после нескольких прорывов. Ошибок командование не прощает.',
+        health: 1.8,
+        speed: 1.3,
+        maxBreakthroughs: 3,
+    },
 }
 
 export const DIFFICULTY_IDS = Object.keys(DIFFICULTIES) as DifficultyId[]

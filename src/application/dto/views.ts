@@ -135,7 +135,6 @@ export interface LevelSummary {
 export interface Settings {
     brightness: number
     volume: number
-    enemySpeed: number
     // Applied when a level starts.
     difficulty: DifficultyId
 }
@@ -143,6 +142,5 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
     brightness: 100,
     volume: 50,
-    enemySpeed: 1,
     difficulty: DEFAULT_DIFFICULTY,
 }

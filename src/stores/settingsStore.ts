@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { DEFAULT_SETTINGS, type Settings } from '@/application/dto/views'
 import { DIFFICULTIES, DIFFICULTY_IDS, isDifficultyId } from '@/domain'
 import { useServices } from './services'
@@ -9,10 +9,10 @@ const SETTINGS_KEY = 'settings'
 export const useSettingsStore = defineStore('settings', () => {
     const { storage, sound } = useServices()
     const saved = storage.read<Partial<Settings>>(SETTINGS_KEY) ?? {}
+    // Take only known keys: older saves may carry removed settings (e.g. enemy speed).
     const settings = ref<Settings>({
-        ...DEFAULT_SETTINGS,
-        ...saved,
-        // Ignore unknown values from older saves.
+        brightness: saved.brightness ?? DEFAULT_SETTINGS.brightness,
+        volume: saved.volume ?? DEFAULT_SETTINGS.volume,
         difficulty: isDifficultyId(saved.difficulty)
             ? saved.difficulty
             : DEFAULT_SETTINGS.difficulty,
@@ -31,9 +31,18 @@ export const useSettingsStore = defineStore('settings', () => {
         text: DIFFICULTIES[id].label,
     }))
 
+    // Description and effects of the selected difficulty, derived from the rules.
+    const difficultyDetails = computed(() => {
+        const difficulty = DIFFICULTIES[settings.value.difficulty]
+        return {
+            description: difficulty.description,
+            effects: `Здоровье врагов ×${difficulty.health} · Скорость ×${difficulty.speed} · Прорывов до поражения: ${difficulty.maxBreakthroughs}`,
+        }
+    })
+
     function reset() {
         settings.value = { ...DEFAULT_SETTINGS }
     }
 
-    return { settings, difficultyOptions, reset }
+    return { settings, difficultyOptions, difficultyDetails, reset }
 })
