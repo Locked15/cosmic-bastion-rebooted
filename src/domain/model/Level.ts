@@ -1,4 +1,4 @@
-import { lineIntersectsRect, pointInRect } from '../geometry'
+import { lineIntersectsRect, pointInRect, projectOntoPath } from '../geometry'
 import type { Point, Rect } from '../geometry'
 import type { TowerType } from '../rules/towerCatalog'
 import type { Barricade } from './Barricade'
@@ -38,6 +38,9 @@ export interface FloorBreach extends Rect {
 export interface TowerSlotData extends Point {
     type: TowerType
 }
+// How far from the track centerline a click may be to place a barricade on it.
+export const TRACK_SNAP_RADIUS = 30
+
 export class Level {
     width = 1200
     height = 700
@@ -83,6 +86,34 @@ export class Level {
             .slice(1)
             .some((point, index) => lineIntersectsRect(path[index]!, point, barricade))
     }
+    // All routes enemies can take.
+    get paths(): Point[][] {
+        return [this.basePath, ...this.alternativePaths]
+    }
+
+    // Where a barricade of `size` may stand when the player points at `point`:
+    // over a floor breach (covers the whole breach) or snapped onto the enemy track.
+    barricadePlacement(point: Point, size: number): Rect | null {
+        const breach = this.floorBreaches.find((candidate) => pointInRect(point, candidate))
+        if (breach) return { x: breach.x, y: breach.y, width: breach.width, height: breach.height }
+        let best: Point | null = null
+        let bestDistance: number = TRACK_SNAP_RADIUS
+        for (const path of this.paths) {
+            const projection = projectOntoPath(point, path)
+            if (
+                projection &&
+                projection.distance <= bestDistance &&
+                projection.point.y < this.livingQuartersY - size / 2
+            ) {
+                best = projection.point
+                bestDistance = projection.distance
+            }
+        }
+        return best
+            ? { x: best.x - size / 2, y: best.y - size / 2, width: size, height: size }
+            : null
+    }
+
     checkBreachFall(point: Point): boolean {
         return this.floorBreaches.some((breach) => !breach.closed && pointInRect(point, breach))
     }

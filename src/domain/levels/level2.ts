@@ -62,18 +62,18 @@ export function createLevel2(): Level {
     level.exitPoints = [{ x: 1300, y: 550 }]
 
     level.floorBreaches = [
-        { x: 400, y: 450, width: 100, height: 40, closed: false, canBeClosed: true },
-        { x: 900, y: 450, width: 100, height: 40, closed: false, canBeClosed: true },
+        { x: 445, y: 180, width: 60, height: 40, closed: false, canBeClosed: true },
+        { x: 940, y: 195, width: 60, height: 40, closed: false, canBeClosed: true },
     ]
 
     level.towerSlots = [
-        { x: 150, y: 130, type: 'cannon' },
-        { x: 300, y: 100, type: 'machinegun' },
+        { x: 140, y: 185, type: 'cannon' },
+        { x: 275, y: 125, type: 'machinegun' },
         { x: 450, y: 130, type: 'rocket' },
         { x: 600, y: 150, type: 'cannon' },
-        { x: 200, y: 300, type: 'machinegun' },
-        { x: 350, y: 270, type: 'laser' },
-        { x: 500, y: 300, type: 'rocket' },
+        { x: 195, y: 300, type: 'machinegun' },
+        { x: 350, y: 275, type: 'laser' },
+        { x: 510, y: 290, type: 'rocket' },
     ]
 
     level.barricadeSlots = [

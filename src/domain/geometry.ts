@@ -43,3 +43,32 @@ export function lineIntersectsRect(a: Point, b: Point, r: Rect): boolean {
     }
     return true
 }
+
+export interface PathProjection {
+    point: Point
+    distance: number
+}
+
+// Closest point to `p` on the polyline `path`.
+export function projectOntoPath(p: Point, path: readonly Point[]): PathProjection | null {
+    let best: PathProjection | null = null
+    for (let i = 0; i < path.length - 1; i++) {
+        const a = path[i]!
+        const b = path[i + 1]!
+        const dx = b.x - a.x
+        const dy = b.y - a.y
+        const lengthSquared = dx * dx + dy * dy
+        const t =
+            lengthSquared === 0
+                ? 0
+                : Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSquared))
+        const point = { x: a.x + t * dx, y: a.y + t * dy }
+        const d = distance(p, point)
+        if (!best || d < best.distance) best = { point, distance: d }
+    }
+    return best
+}
+
+export function rectCenter(r: Rect): Point {
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
+}
