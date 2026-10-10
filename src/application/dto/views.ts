@@ -80,7 +80,6 @@ export interface CampaignResolution {
 export interface ResultView {
     objectives: ObjectiveView[]
     unlocks: string[]
-    campaignAdvanced: boolean
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]
@@ -110,7 +109,6 @@ export interface LevelSummary {
     mapX: number
     mapY: number
     prerequisites: string[]
-    keyObjective: string | null
     id: string
     name: string
     description: string

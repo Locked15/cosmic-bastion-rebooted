@@ -55,8 +55,6 @@ export class CampaignService {
                 completed: entry.completed,
                 stars: entry.stars,
                 objectives: level.objectives.map((objective) => objective.text),
-                keyObjective:
-                    level.objectives.find((objective) => objective.keyObjective)?.text ?? null,
                 sector: sector.sector,
                 mapX: sector.x,
                 mapY: sector.y,
@@ -105,15 +103,9 @@ export class CampaignService {
             }
         }
         this.campaign.flags[`survivors_${levelId}`] = Math.max(0, Math.floor(report.survivors))
-        const keySaved =
-            level.type === 'story' &&
-            !!level.keyObjective &&
-            report.objectives.some(
-                (objective) => objective.id === level.keyObjective && objective.completed,
-            )
-        const advanced = report.outcome === 'victory' || keySaved
-        if (advanced)
-            this.campaign.completeLevel(levelId, report.outcome === 'victory' ? report.stars : 0)
+        // Only a won mission completes the level and opens the next sectors.
+        const advanced = report.outcome === 'victory'
+        if (advanced) this.campaign.completeLevel(levelId, report.stars)
         const unlocks = this.unlocks.technologies
             .filter((tech) => !before.has(tech.id))
             .map((tech) => tech.name)

@@ -55,7 +55,8 @@ Key rules:
 - **Randomness is injected.** Gameplay uses `Random` (`rng.next()`, `rng.id(prefix)`). Pass `createSeededRandom(seed)` in tests for reproducible runs. Renderers may use `Math.random` for cosmetics only.
 - **Entities are never reactive.** `gameStore` keeps the `GameSession` in a plain variable and publishes `snapshot` (a `GameSnapshot` DTO) via `shallowRef` after each tick. Canvas renderers read the session through the read-only `Scene` interface.
 - **Commands return `CommandResult`** (`{ok}` or `{ok:false, error}`). The store turns errors into toasts. Domain and application code never show UI.
-- **Level layout rules** (tested in `domain/__tests__/layout.spec.ts`): tower foundations stay ≥45 px from every enemy route and ≥50 px from each other; floor breaches lie on the base route. Barricades can only be placed via `Level.barricadePlacement` (snapped onto a route or covering a breach); an intact barricade stops enemies until destroyed and seals a breach it covers.
+- **Level layout rules** (tested in `domain/__tests__/layout.spec.ts`): tower foundations stay ≥45 px from every enemy route and ≥50 px from each other. Barricades can only be placed via `Level.barricadePlacement` (snapped onto a route); an intact barricade stops enemies until destroyed. Enemies enter the living quarters only at the end of their route.
+- **Campaign progression:** a level is completed — and the sectors that require it unlock — only on victory. Defeats keep story flags but never advance the map.
 - **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
 - **New level:** add `src/domain/levels/levelN.ts` and register it in `levels/registry.ts`.
 - **New story effect:** extend `EventEffect` (`domain/model/Level.ts`), then handle it in `GameSession.applyEffect` and `canAfford`.

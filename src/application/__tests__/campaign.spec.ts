@@ -59,7 +59,7 @@ describe('campaign story progression', () => {
         ['level_1', 'save_engineer'],
         ['level_3', 'save_scientist'],
         ['level_5', 'save_archive'],
-    ])('advances %s on tactical failure only when its key objective is completed', (id, key) => {
+    ])('does not advance %s after a defeat, even with %s completed', (id, key) => {
         const storage = new MemoryStore()
         const campaign = new CampaignService(storage)
         for (const previous of ['level_1', 'level_2', 'level_3', 'level_4']) {
@@ -70,22 +70,17 @@ describe('campaign story progression', () => {
             id,
             report({
                 outcome: 'defeat',
-                objectives: [{ id: key, text: 'Спасение', completed: false }],
+                objectives: [{ id: key, text: 'Спасение', completed: true }],
             }),
         )
         expect(failed.advanced).toBe(false)
         expect(campaign.listLevels().find((level) => level.id === id)?.completed).toBe(false)
-        const saved = campaign.recordResult(
-            id,
-            report({
-                outcome: 'defeat',
-                objectives: [{ id: key, text: 'Спасение', completed: true }],
-            }),
-        )
-        expect(saved.advanced).toBe(true)
+
+        const won = campaign.recordResult(id, report({ outcome: 'victory', stars: 2 }))
+        expect(won.advanced).toBe(true)
         expect(
             new CampaignService(storage).listLevels().find((level) => level.id === id),
-        ).toMatchObject({ completed: true, stars: 0 })
+        ).toMatchObject({ completed: true, stars: 2 })
     })
 
     it('does not advance ordinary failed missions or accept results for locked missions', () => {

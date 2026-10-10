@@ -35,10 +35,6 @@ describe('story content', () => {
                 ['max_towers', 'save_reactor', 'no_personnel_loss'].includes(objective.id),
             )
             for (const objective of numeric) expect(objective.target).toBeGreaterThanOrEqual(0)
-            expect(level.objectives.filter((objective) => objective.keyObjective)).toHaveLength(
-                level.type === 'story' ? 1 : 0,
-            )
-            expect(level.keyObjective === undefined).toBe(level.type !== 'story')
         },
     )
 

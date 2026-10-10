@@ -122,13 +122,12 @@ describe('story and campaign UI', () => {
         expect(nodes[1]?.attributes('style')).toContain('left: 26%')
         expect(nodes[2]?.attributes('style')).toContain('left: 74%')
         await nodes[0]!.trigger('click')
-        expect(wrapper.find('.mission-info').text()).toContain('Ключевая задача')
         const start = wrapper.findAll('button').find((button) => button.text() === 'НАЧАТЬ ЗАЩИТУ')!
         await start.trigger('click')
         await vi.waitFor(() => expect(navigation.currentRoute.value.fullPath).toBe('/game/level_1'))
     })
 
-    it('shows objective completion marks, unlocked tech and story advancement after defeat', async () => {
+    it('shows objective marks and unlocked tech after a defeat without opening the ship map', async () => {
         const game = useGameStore()
         game.start('level_1')
         game.snapshot = {
@@ -140,7 +139,6 @@ describe('story and campaign UI', () => {
                 reason: 'Отсек потерян',
                 stars: 0,
                 stats: [],
-                campaignAdvanced: true,
                 unlocks: ['Ракетница', 'Улучшения II'],
                 objectives: [
                     { id: 'save_engineer', text: 'Чен спасён', completed: true },
@@ -153,8 +151,9 @@ describe('story and campaign UI', () => {
         expect(wrapper.text()).toContain('○ Отразить волны')
         expect(wrapper.text()).toContain('НОВЫЕ ТЕХНОЛОГИИ')
         expect(wrapper.text()).toContain('Ракетница')
-        expect(wrapper.text()).toContain('История продолжается')
-        expect(wrapper.text()).toContain('К СХЕМЕ КОРАБЛЯ')
+        // A defeat never advances the campaign: only retry or leave.
+        expect(wrapper.text()).toContain('ПОВТОРИТЬ')
+        expect(wrapper.text()).not.toContain('К СХЕМЕ КОРАБЛЯ')
     })
 
     it('passes campaign options and starting resources through gameStore.start', () => {
@@ -201,14 +200,15 @@ describe('story and campaign UI', () => {
         tick(1)
         expect(current.snapshot?.result).toMatchObject({
             outcome: 'defeat',
-            campaignAdvanced: true,
         })
         expect(current.snapshot?.result?.unlocks).toContain('Лазерная установка')
         const first = current.snapshot?.result?.unlocks
         tick(1)
         expect(current.snapshot?.result?.unlocks).toEqual(first)
-        current.start('level_3')
+        // The defeat keeps story flags (laser) but does not unlock the next sectors.
+        expect(new CampaignService(storage).isUnlocked('level_3')).toBe(false)
+        expect(current.start('level_3')).toBe(false)
+        current.start('level_1')
         expect(current.snapshot?.buildOptions.map((option) => option.type)).toContain('laser')
-        expect(new CampaignService(storage).isUnlocked('level_3')).toBe(true)
     })
 })

@@ -20,8 +20,6 @@ export function drawLevel(ctx: CanvasRenderingContext2D, level: Level): void {
     ctx.stroke()
     ctx.setLineDash([])
 
-    drawBreaches(ctx, level)
-
     drawGrid(ctx, level)
 
     drawTowerSlots(ctx, level)
@@ -54,37 +52,6 @@ function drawCorridors(ctx: CanvasRenderingContext2D, level: Level): void {
         }
     })
 
-    ctx.restore()
-}
-
-function drawBreaches(ctx: CanvasRenderingContext2D, level: Level): void {
-    if (!ctx || !level.floorBreaches || !Array.isArray(level.floorBreaches)) return
-
-    ctx.save()
-    level.floorBreaches.forEach((breach) => {
-        if (!breach) return
-
-        if (breach.closed) {
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.15)'
-            ctx.fillRect(breach.x, breach.y, breach.width, breach.height)
-            ctx.strokeStyle = '#00ff00'
-        } else {
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.3)'
-            ctx.fillRect(breach.x, breach.y, breach.width, breach.height)
-            ctx.strokeStyle = '#ff0000'
-        }
-
-        ctx.lineWidth = 3
-        ctx.strokeRect(breach.x, breach.y, breach.width, breach.height)
-
-        if (!breach.closed) {
-            ctx.strokeStyle = '#ffff00'
-            ctx.setLineDash([8, 8])
-            ctx.lineWidth = 2
-            ctx.strokeRect(breach.x - 8, breach.y - 8, breach.width + 16, breach.height + 16)
-            ctx.setLineDash([])
-        }
-    })
     ctx.restore()
 }
 

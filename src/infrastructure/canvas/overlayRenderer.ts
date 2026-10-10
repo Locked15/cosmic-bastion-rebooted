@@ -139,7 +139,7 @@ export function drawOverlays(ctx: CanvasRenderingContext2D, scene: Scene): void 
     }
     if (pointer.footprint) {
         const rect = pointer.footprint
-        // Green where a barricade can stand (track or breach), red elsewhere.
+        // Green where a barricade can stand (on the track), red elsewhere.
         ctx.strokeStyle = pointer.footprintValid ? '#00ff00' : '#ff0000'
         ctx.fillStyle = pointer.footprintValid ? 'rgba(0, 255, 0, 0.1)' : 'rgba(255, 0, 0, 0.1)'
         ctx.lineWidth = 3

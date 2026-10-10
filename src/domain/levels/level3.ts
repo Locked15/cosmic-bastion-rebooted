@@ -35,12 +35,6 @@ export function createLevel3(): Level {
     level.spawnPoints = [{ x: 100, y: 250 }]
     level.exitPoints = [{ x: 1500, y: 600 }]
 
-    level.floorBreaches = [
-        { x: 455, y: 190, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 900, y: 205, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 1245, y: 225, width: 60, height: 40, closed: false, canBeClosed: true },
-    ]
-
     level.towerSlots = [
         { x: 200, y: 225, type: 'cannon' },
         { x: 320, y: 175, type: 'laser' },
@@ -94,7 +88,6 @@ export function createLevel3(): Level {
             id: 'save_scientist',
             text: 'Эвакуировать доктора Сильву',
             completed: false,
-            keyObjective: true,
         },
     ]
 

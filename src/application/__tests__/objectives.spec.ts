@@ -117,12 +117,11 @@ describe('objectives', () => {
         expect(objective.completed).toBe(true)
     })
 
-    it('tracks key story objectives from flags and exposes checked results with stars', () => {
+    it('tracks story objectives from flags and exposes checked results', () => {
         const session = sessionFor('level_1')
         session.story.flags.engineer_saved = 1
         expect(session.objectives.update(session)).toContain('Эвакуировать инженера Чена')
         const defeat = end(session, 'defeat')
-        expect(defeat.campaignAdvanced).toBe(true)
         expect(
             defeat.objectives.find((objective) => objective.id === 'save_engineer')?.completed,
         ).toBe(true)

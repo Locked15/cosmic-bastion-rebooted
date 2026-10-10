@@ -336,10 +336,10 @@ export class GameSession implements Scene {
         return ok
     }
 
-    // `point` is where the player clicked; the barricade snaps onto the track or a breach.
+    // `point` is where the player clicked; the barricade snaps onto the enemy track.
     buildBarricade(point: Point, type: BarricadeType): CommandResult {
         const placement = this.barricadePlacement(point)
-        if (!placement) return fail('Баррикаду можно ставить только на путь врагов или пролом')
+        if (!placement) return fail('Баррикаду можно ставить только на путь врагов')
         if (this.barricadeAt(placement)) return fail('Здесь уже стоит баррикада')
         const cost = BARRICADE_CATALOG[type].cost
         if (this.resources < cost) return fail('Недостаточно ресурсов!')
@@ -516,9 +516,7 @@ export class GameSession implements Scene {
     private updateBarricades(dt: number): void {
         for (const barricade of this.barricades) {
             if (barricade.building && barricade.updateBuild(this.personnel.military, dt)) {
-                if (this.level.floorBreaches.some((breach) => rectsOverlap(barricade, breach))) {
-                    this.completeObjective('close_breach')
-                }
+                this.completeObjective('build_barricade')
             }
             barricade.setHealthMultiplier(this.barricadeMultiplier)
             barricade.updateUpgrade(this.personnel.military, dt)
@@ -540,12 +538,6 @@ export class GameSession implements Scene {
                     }
                 }
             }
-        }
-        // A breach stays sealed only while an intact barricade covers it.
-        for (const breach of this.level.floorBreaches) {
-            breach.closed = this.barricades.some(
-                (barricade) => barricade.active && rectsOverlap(barricade, breach),
-            )
         }
     }
 
@@ -582,7 +574,8 @@ export class GameSession implements Scene {
                     ambushed === enemy.abilityStates.ambushed
                 )
                     this.resolveBarricades(enemy, before, dt)
-                if (enemy.alive && (enemy.reached || this.level.checkBreachFall(enemy))) {
+                // Enemies enter the living quarters only at the end of the track.
+                if (enemy.alive && enemy.reached) {
                     this.breakThrough(enemy)
                     continue
                 }

@@ -39,18 +39,11 @@ describe('levels', () => {
         barricade.destroy()
         expect(level.getCurrentPath([barricade])).toEqual(level.basePath)
     })
-    it('closes breaches and isolates state between factory calls', () => {
+    it('isolates state between factory calls', () => {
         const level = createLevel2()
-        const point = level.floorBreaches[0]!
-        expect(level.checkBreachFall(point)).toBe(true)
-        level.closeBreach(0)
-        expect(level.checkBreachFall(point)).toBe(false)
-        expect(createLevel2().floorBreaches[0]!.closed).toBe(false)
         const path = level.getCurrentPath([])
         path[0]!.x = -999
         expect(level.basePath[0]!.x).not.toBe(-999)
-        level.closeBreach(-1)
-        level.closeBreach(999)
     })
 })
 

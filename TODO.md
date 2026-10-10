@@ -4,6 +4,7 @@ Remaining work and known limitations. Implemented items from the original list a
 
 ## Open
 
+- [ ] Floor breaches (shortcuts into the living quarters that barricades can seal) were removed for now; reintroduce once the core loop is balanced.
 - [ ] Programmatic automation API (the vanilla `window.CosmicBastion`) was not carried over by choice; e2e drives the real UI.
 - [ ] Level save is a checkpoint between waves. Leaving mid-wave loses the progress of the current wave.
 - [ ] Layout is tuned for 1024 px and wider; phones and touch input are not supported.

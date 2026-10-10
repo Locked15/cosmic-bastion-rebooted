@@ -33,11 +33,6 @@ export function createLevel1(): Level {
     level.spawnPoints = [{ x: 50, y: 250 }]
     level.exitPoints = [{ x: 1100, y: 500 }]
 
-    level.floorBreaches = [
-        { x: 340, y: 230, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 740, y: 250, width: 60, height: 40, closed: false, canBeClosed: true },
-    ]
-
     level.towerSlots = [
         { x: 205, y: 175, type: 'cannon' },
         { x: 270, y: 175, type: 'machinegun' },
@@ -73,15 +68,14 @@ export function createLevel1(): Level {
             completed: false,
         },
         {
-            id: 'close_breach',
-            text: 'Закрыть хотя бы один пролом',
+            id: 'build_barricade',
+            text: 'Построить хотя бы одну баррикаду',
             completed: false,
         },
         {
             id: 'save_engineer',
             text: 'Эвакуировать инженера Чена',
             completed: false,
-            keyObjective: true,
         },
     ]
 
@@ -109,7 +103,7 @@ export function createLevel1(): Level {
             dialog: {
                 kind: 'full',
                 title: 'ИНЖЕНЕР CHEN',
-                text: 'Обнаружены проломы в полу. Существа могут провалиться прямо к нашим людям. Закрыть баррикадами?',
+                text: 'Существа идут по коридору прямо к жилому отсеку. Перекрыть проход баррикадами?',
                 choices: [
                     {
                         text: 'Выделить резервы',
@@ -117,7 +111,7 @@ export function createLevel1(): Level {
                             type: 'resources',
                             value: 40,
                         },
-                        consequence: 'Получено 40 ресурсов для защиты проломов.',
+                        consequence: 'Получено 40 ресурсов на баррикады.',
                     },
                     {
                         text: 'Справимся своими силами',

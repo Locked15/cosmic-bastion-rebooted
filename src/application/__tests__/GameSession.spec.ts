@@ -152,7 +152,7 @@ describe('GameSession', () => {
         expect(JSON.parse(JSON.stringify(snapshot))).toEqual(snapshot)
     })
 
-    it('builds barricades only on the track or a floor breach', () => {
+    it('builds barricades only on the enemy track', () => {
         const session = newSession()
         answerDialogs(session)
         const slot = session.slots[0]!
@@ -165,11 +165,6 @@ describe('GameSession', () => {
         const center = { x: wall.x + wall.width / 2, y: wall.y + wall.height / 2 }
         expect(projectOntoPath(center, session.level.basePath)!.distance).toBeLessThan(0.01)
         expect(session.buildBarricade(vertex, 'wall').ok).toBe(false)
-
-        const breach = session.level.floorBreaches[0]!
-        const breachCenter = { x: breach.x + breach.width / 2, y: breach.y + breach.height / 2 }
-        expect(session.buildBarricade(breachCenter, 'wall').ok).toBe(true)
-        expect(session.barricades[1]).toMatchObject({ x: breach.x, width: breach.width })
     })
 
     it('stops enemies at a wall until it is destroyed', () => {
@@ -201,17 +196,22 @@ describe('GameSession', () => {
         expect(wall.active).toBe(false)
     })
 
-    it('seals a breach only while its barricade stands', () => {
+    it('lets enemies into the living quarters only at the end of the track', () => {
         const session = newSession()
         answerDialogs(session)
-        const breach = session.level.floorBreaches[0]!
-        session.buildBarricade({ x: breach.x + 5, y: breach.y + 5 }, 'wall')
-        runUntil(session, () => session.barricades[0]!.active)
-        session.update(1)
-        expect(breach.closed).toBe(true)
-        session.barricades[0]!.destroy()
-        session.update(1)
-        expect(breach.closed).toBe(false)
+        session.startWave()
+        let earliest = Infinity
+        runUntil(session, () => {
+            answerDialogs(session)
+            if (session.stats.reached > 0) {
+                const entered = session.enemiesInQuarters[0]
+                if (entered) earliest = Math.min(earliest, entered.pathIndex)
+                return true
+            }
+            return false
+        })
+        expect(session.stats.reached).toBeGreaterThan(0)
+        expect(earliest).toBe(session.level.basePath.length - 1)
     })
 })
 

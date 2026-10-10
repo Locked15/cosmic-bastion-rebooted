@@ -37,12 +37,6 @@ export function createLevel5(): Level {
     level.spawnPoints = [{ x: 100, y: 350 }]
     level.exitPoints = [{ x: 1900, y: 750 }]
 
-    level.floorBreaches = [
-        { x: 630, y: 280, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 1110, y: 300, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 1710, y: 330, width: 60, height: 40, closed: false, canBeClosed: true },
-    ]
-
     level.towerSlots = [
         { x: 210, y: 310, type: 'cannon' },
         { x: 270, y: 320, type: 'laser' },
@@ -103,7 +97,6 @@ export function createLevel5(): Level {
             id: 'save_archive',
             text: 'Передать архив корабля спасательному судну',
             completed: false,
-            keyObjective: true,
         },
     ]
 

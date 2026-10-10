@@ -21,10 +21,6 @@
             <p v-if="level.prerequisites.length" class="mission-info__requirements">
                 Доступ после: {{ level.prerequisites.join(' и ') }}
             </p>
-            <p v-if="level.keyObjective" class="mission-info__story">
-                Ключевая задача: {{ level.keyObjective }}. Её выполнение продолжит историю даже при
-                потере сектора.
-            </p>
             <p class="mission-info__description">{{ level.description }}</p>
             <div class="mission-info__objectives">
                 <h4>ЗАДАЧИ:</h4>

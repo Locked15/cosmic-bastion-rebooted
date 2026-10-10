@@ -1,4 +1,4 @@
-import { lineIntersectsRect, pointInRect, projectOntoPath } from '../geometry'
+import { lineIntersectsRect, projectOntoPath } from '../geometry'
 import type { Point, Rect } from '../geometry'
 import type { TowerType } from '../rules/towerCatalog'
 import type { BarricadeType } from '../rules/barricadeCatalog'
@@ -56,11 +56,6 @@ export interface Objective {
     text: string
     completed: boolean
     target?: number
-    keyObjective?: boolean
-}
-export interface FloorBreach extends Rect {
-    closed: boolean
-    canBeClosed: boolean
 }
 export interface TowerSlotData extends Point {
     type: TowerType
@@ -78,7 +73,6 @@ export class Level {
     corridors: Rect[] = []
     spawnPoints: Point[] = []
     exitPoints: Point[] = []
-    floorBreaches: FloorBreach[] = []
     towerSlots: TowerSlotData[] = []
     barricadeSlots: Rect[] = []
     totalWaves = 5
@@ -90,9 +84,6 @@ export class Level {
     objectives: Objective[] = []
     objectivesCompleted: Record<string, boolean> = {}
     events: LevelEvent[] = []
-    get keyObjective(): string | undefined {
-        return this.objectives.find((objective) => objective.keyObjective)?.id
-    }
     completed = false
     locked = false
     stars = 0
@@ -122,10 +113,8 @@ export class Level {
     }
 
     // Where a barricade of `size` may stand when the player points at `point`:
-    // over a floor breach (covers the whole breach) or snapped onto the enemy track.
+    // snapped onto the enemy track, or nowhere if the point is too far from it.
     barricadePlacement(point: Point, size: number): Rect | null {
-        const breach = this.floorBreaches.find((candidate) => pointInRect(point, candidate))
-        if (breach) return { x: breach.x, y: breach.y, width: breach.width, height: breach.height }
         let best: Point | null = null
         let bestDistance: number = TRACK_SNAP_RADIUS
         for (const path of this.paths) {
@@ -142,13 +131,5 @@ export class Level {
         return best
             ? { x: best.x - size / 2, y: best.y - size / 2, width: size, height: size }
             : null
-    }
-
-    checkBreachFall(point: Point): boolean {
-        return this.floorBreaches.some((breach) => !breach.closed && pointInRect(point, breach))
-    }
-    closeBreach(index: number): void {
-        const breach = this.floorBreaches[index]
-        if (breach) breach.closed = true
     }
 }

@@ -17,13 +17,7 @@ export function presentResult(session: GameSession): ResultView | null {
         text,
         completed,
     }))
-    const campaignAdvanced =
-        result.outcome === 'victory' ||
-        (level.type === 'story' &&
-            objectives.some(
-                (objective) => objective.id === level.keyObjective && objective.completed,
-            ))
-    const detail = { objectives, unlocks: [], campaignAdvanced }
+    const detail = { objectives, unlocks: [] }
     if (result.outcome === 'victory') {
         const done = level.objectives.filter((objective) => objective.completed).length
         return {

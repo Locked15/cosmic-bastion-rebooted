@@ -35,12 +35,6 @@ export function createLevel4(): Level {
     level.spawnPoints = [{ x: 100, y: 300 }]
     level.exitPoints = [{ x: 1700, y: 650 }]
 
-    level.floorBreaches = [
-        { x: 510, y: 220, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 990, y: 240, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 1350, y: 255, width: 60, height: 40, closed: false, canBeClosed: true },
-    ]
-
     level.towerSlots = [
         { x: 200, y: 260, type: 'cannon' },
         { x: 260, y: 255, type: 'laser' },

@@ -55,12 +55,6 @@
                     :completed="objective.completed"
                 />
             </div>
-            <p
-                v-if="result.outcome === 'defeat' && result.campaignAdvanced"
-                class="game-menu__advance"
-            >
-                Ключевая задача выполнена. История продолжается, новые секторы доступны.
-            </p>
             <div v-if="result.unlocks.length" class="game-menu__unlocks">
                 <h4>НОВЫЕ ТЕХНОЛОГИИ</h4>
                 <ul>
@@ -72,7 +66,7 @@
             </div>
         </div>
         <AppButton v-if="!result" @click="game.togglePause()">ПРОДОЛЖИТЬ</AppButton>
-        <AppButton v-if="result?.campaignAdvanced" @click="quit">К СХЕМЕ КОРАБЛЯ</AppButton>
+        <AppButton v-if="result?.outcome === 'victory'" @click="quit">К СХЕМЕ КОРАБЛЯ</AppButton>
         <AppButton v-if="result?.outcome === 'defeat'" @click="restart">ПОВТОРИТЬ</AppButton>
         <AppButton v-if="!result" variant="secondary" @click="restart">ПЕРЕЗАПУСТИТЬ</AppButton>
         <AppButton variant="secondary" @click="quit">ВЫХОД В МЕНЮ</AppButton>

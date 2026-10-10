@@ -61,11 +61,6 @@ export function createLevel2(): Level {
 
     level.exitPoints = [{ x: 1300, y: 550 }]
 
-    level.floorBreaches = [
-        { x: 445, y: 180, width: 60, height: 40, closed: false, canBeClosed: true },
-        { x: 940, y: 195, width: 60, height: 40, closed: false, canBeClosed: true },
-    ]
-
     level.towerSlots = [
         { x: 140, y: 185, type: 'cannon' },
         { x: 275, y: 125, type: 'machinegun' },
@@ -101,8 +96,8 @@ export function createLevel2(): Level {
             completed: false,
         },
         {
-            id: 'close_breach',
-            text: 'Закрыть проломы',
+            id: 'build_barricade',
+            text: 'Построить хотя бы одну баррикаду',
             completed: false,
         },
         {

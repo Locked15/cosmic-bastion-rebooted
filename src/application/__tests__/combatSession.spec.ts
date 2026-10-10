@@ -16,7 +16,6 @@ import { presentSelection } from '../session/presenters/selection'
 function session() {
     const level = createLevel('level_1')!
     level.events = []
-    level.floorBreaches = []
     const value = new GameSession(level, createSeededRandom(24))
     value.resources = 10000
     return value
