@@ -75,6 +75,8 @@ describe('story choices and consequences', () => {
     it('keeps x0.5 through the consequence window then restores player speed', () => {
         const session = sessionWith([{ wave: 0, trigger: 'start', dialog: dialog() }])
         session.speedIndex = 4
+        // Resources (our clock here) are mined only during a wave.
+        session.startWave()
         let before = session.resources
         session.advance(60)
         expect(session.resources - before).toBeCloseTo(session.miners * 0.5 * 0.5)
@@ -84,8 +86,9 @@ describe('story choices and consequences', () => {
         expect(session.resources - before).toBeCloseTo(session.miners * 0.5 * 0.5)
         session.story.acknowledge()
         before = session.resources
-        session.advance(60)
-        expect(session.resources - before).toBeCloseTo(session.miners * 0.5 * 8)
+        // A short window, before the wave reaches the living quarters and stops mining.
+        session.advance(10)
+        expect(session.resources - before).toBeCloseTo(((session.miners * 0.5 * 8) / 60) * 10)
         expect(session.speed).toBe(8)
     })
 

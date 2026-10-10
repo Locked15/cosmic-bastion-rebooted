@@ -99,8 +99,26 @@ describe('GameSession', () => {
         expect(second.resources).toBeCloseTo(first.resources)
     })
 
+    it('mines resources only while a wave is in progress', () => {
+        const session = newSession()
+        answerDialogs(session)
+        const before = session.resources
+        session.advance(600)
+        expect(session.resources).toBe(before)
+        expect(presentSession(session).resourceRate).toBe(0)
+
+        session.startWave()
+        answerDialogs(session)
+        const waveStart = session.resources
+        session.advance(60)
+        expect(session.resources - waveStart).toBeCloseTo(session.miners * 0.5)
+    })
+
     it('ignores time while paused and speeds up when asked', () => {
         const session = newSession()
+        answerDialogs(session)
+        // Mining runs only during a wave; enemies spawn with a delay and earn nothing yet.
+        session.startWave()
         answerDialogs(session)
         session.togglePause()
         const before = session.resources

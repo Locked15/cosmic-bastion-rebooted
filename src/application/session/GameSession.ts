@@ -483,8 +483,9 @@ export class GameSession implements Scene {
 
     // ----- Simulation steps -----
 
+    // Miners only produce during a wave, so idling between waves cannot farm resources.
     private updateResources(dt: number, quartersUnderAttack: boolean): void {
-        if (quartersUnderAttack) {
+        if (!this.waveInProgress || quartersUnderAttack) {
             this.resourceRate = 0
             return
         }
