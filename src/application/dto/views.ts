@@ -48,6 +48,11 @@ export interface SelectionView {
     nextAbility: AbilityView | null
     upgradeCost: number | null
     canUpgrade: boolean
+    // Set only for a destroyed barricade that is not being rebuilt yet.
+    repairCost: number | null
+    canRepair: boolean
+    // Resources returned on demolition (0 for destroyed barricades).
+    refund: number
     canDemolish: boolean
 }
 

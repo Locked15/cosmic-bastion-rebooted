@@ -54,7 +54,11 @@ describe('CheckpointService', () => {
         const later = newSession()
         service.restore(later)
         expect(later.currentWave).toBe(1)
-        expect(later.barricades.length).toBe(session.barricades.filter((b) => b.active).length)
+        // Destroyed barricades are kept too, so they can be repaired.
+        expect(later.barricades.length).toBe(session.barricades.length)
+        expect(later.barricades.filter((b) => b.destroyed).length).toBe(
+            session.barricades.filter((b) => b.destroyed).length,
+        )
 
         service.clear('level_1')
         expect(service.savedWave('level_1')).toBeNull()
@@ -65,5 +69,24 @@ describe('CheckpointService', () => {
         settle(session)
         session.startWave()
         expect(new CheckpointService(new MemoryStore()).save(session)).toBe(false)
+    })
+})
+
+describe('CheckpointService with broken barricades', () => {
+    it('keeps a destroyed barricade repairable after resuming', () => {
+        const service = new CheckpointService(new MemoryStore())
+        const session = newSession()
+        session.resources = 1_000
+        settle(session)
+        session.buildBarricade(session.level.basePath[2]!, 'wall')
+        settle(session)
+        session.barricades[0]!.destroy()
+        expect(service.save(session)).toBe(true)
+
+        const resumed = newSession()
+        service.restore(resumed)
+        expect(resumed.barricades).toHaveLength(1)
+        expect(resumed.barricades[0]!.destroyed).toBe(true)
+        expect(resumed.repair(resumed.barricades[0]!.id).ok).toBe(true)
     })
 })

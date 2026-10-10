@@ -4,6 +4,7 @@ import {
     BARRICADE_SIZE,
     Barricade,
     TOWER_CATALOG,
+    barricadeRepairCost,
     TOWER_MAX_LEVEL,
     TowerSlot,
     distance,
@@ -39,7 +40,7 @@ const VICTORY_DELAY = 60
 const MAX_BREAKTHROUGHS = 10
 const PICK_RADIUS = 30
 const SLOT_SNAP_RADIUS = 50
-const REFUND_RATE = 0.5
+export const REFUND_RATE = 0.5
 const UPGRADE_LOCKED = 'Этот уровень улучшения ещё не открыт'
 // Filter barricades slow the enemies they let through for 5 seconds.
 const FILTER_SLOW_FRAMES = 5 * FPS
@@ -368,8 +369,22 @@ export class GameSession implements Scene {
         const slot = this.slots.find((candidate) => candidate.id === id)
         if (slot) return this.upgradeTower(slot)
         const barricade = this.barricades.find((candidate) => candidate.id === id)
+        // For a destroyed barricade the upgrade action (button, U key) means repair.
+        if (barricade?.destroyed) return this.repair(barricade.id)
         if (barricade) return this.upgradeBarricade(barricade)
         return fail('Ничего не выбрано')
+    }
+
+    // Rebuild a destroyed barricade in place for a share of its price.
+    repair(id: string | null = this.selectedId): CommandResult {
+        const barricade = this.barricades.find((candidate) => candidate.id === id)
+        if (!barricade?.destroyed) return fail('Ремонтировать нечего')
+        if (barricade.building) return fail('Ремонт уже идёт')
+        const cost = barricadeRepairCost(barricade.type)
+        if (this.resources < cost) return fail('Недостаточно ресурсов для ремонта!')
+        this.resources -= cost
+        barricade.startRepair()
+        return ok
     }
 
     demolish(id: string | null = this.selectedId): CommandResult {
@@ -382,7 +397,7 @@ export class GameSession implements Scene {
         } else {
             const barricade = this.barricades.find((candidate) => candidate.id === id)
             if (!barricade) return fail('Нечего демонтировать')
-            this.resources += Math.floor(BARRICADE_CATALOG[barricade.type].cost * REFUND_RATE)
+            this.resources += barricadeRefund(barricade)
             this.barricades = this.barricades.filter((candidate) => candidate !== barricade)
         }
         if (this.selectedId === id) this.selectedId = null
@@ -682,6 +697,13 @@ export class GameSession implements Scene {
         const text = this.objectives.complete(id)
         if (text) this.messages.push(`Задача выполнена: ${text}`)
     }
+}
+
+// Half the price back for a working barricade; nothing for a destroyed one.
+export function barricadeRefund(barricade: Barricade): number {
+    return barricade.destroyed
+        ? 0
+        : Math.floor(BARRICADE_CATALOG[barricade.type].cost * REFUND_RATE)
 }
 
 function saveMove(enemy: Enemy): MoveState {

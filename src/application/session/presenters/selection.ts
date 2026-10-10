@@ -3,11 +3,12 @@ import {
     BARRICADE_MAX_LEVEL,
     TOWER_CATALOG,
     TOWER_MAX_LEVEL,
+    barricadeRepairCost,
     type Barricade,
     type TowerSlot,
 } from '@/domain'
 import type { SelectionView } from '../../dto/views'
-import type { GameSession } from '../GameSession'
+import { REFUND_RATE, barricadeRefund, type GameSession } from '../GameSession'
 import { percent, row } from './format'
 
 export function presentSelection(session: GameSession): SelectionView | null {
@@ -85,6 +86,9 @@ function presentSlot(slot: TowerSlot, resources: number): SelectionView | null {
         nextAbility: next,
         upgradeCost,
         canUpgrade: upgradeCost !== null && resources >= upgradeCost,
+        repairCost: null,
+        canRepair: false,
+        refund: Math.floor(entry.cost * REFUND_RATE),
         canDemolish: true,
     }
 }
@@ -96,10 +100,13 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
         barricade.active && !barricade.upgrading && level < BARRICADE_MAX_LEVEL
             ? (entry.upgradeCosts[level] ?? null)
             : null
+    const repairing = barricade.destroyed && barricade.building
+    const repairCost =
+        barricade.destroyed && !barricade.building ? barricadeRepairCost(barricade.type) : null
     const progress = barricade.building
         ? [
               {
-                  label: 'Строительство',
+                  label: repairing ? 'Ремонт' : 'Строительство',
                   percent: percent(barricade.buildProgress, barricade.buildTime),
               },
           ]
@@ -120,9 +127,11 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
             ? 'Улучшение'
             : barricade.active
               ? 'Активна'
-              : barricade.building
-                ? 'Строительство'
-                : 'Разрушена',
+              : repairing
+                ? 'Ремонт'
+                : barricade.building
+                  ? 'Строительство'
+                  : 'Разрушена',
         disabled: false,
         stats: barricade.active
             ? [row('Прочность', `${Math.floor(barricade.currentHealth)}/${barricade.maxHealth}`)]
@@ -132,6 +141,9 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
         nextAbility: next,
         upgradeCost,
         canUpgrade: upgradeCost !== null && resources >= upgradeCost,
+        repairCost,
+        canRepair: repairCost !== null && resources >= repairCost,
+        refund: barricadeRefund(barricade),
         canDemolish: true,
     }
 }

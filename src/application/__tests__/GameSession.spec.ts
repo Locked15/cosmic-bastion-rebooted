@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createLevel, createSeededRandom, projectOntoPath } from '@/domain'
+import {
+    BARRICADE_CATALOG,
+    barricadeRepairCost,
+    createLevel,
+    createSeededRandom,
+    projectOntoPath,
+} from '@/domain'
 import { GameSession } from '../session/GameSession'
 import { presentSession } from '../session/presenter'
 
@@ -227,5 +233,79 @@ describe('GameSession campaign limits', () => {
         runUntil(session, () => slot.tower !== null)
         const outcome = session.upgrade(slot.id)
         expect(outcome).toEqual({ ok: false, error: 'Этот уровень улучшения ещё не открыт' })
+    })
+})
+
+describe('GameSession barricade repair', () => {
+    function brokenWall(type: 'wall' | 'filter' = 'wall') {
+        const session = new GameSession(createLevel('level_1')!, createSeededRandom(4))
+        answerDialogs(session)
+        session.resources = 1_000
+        session.buildBarricade(session.level.basePath[2]!, type)
+        const barricade = session.barricades[0]!
+        runUntil(session, () => barricade.active)
+        barricade.level = 1
+        barricade.destroy()
+        return { session, barricade }
+    }
+
+    it.each(['wall', 'filter'] as const)('repairs a destroyed %s for 75%% of its cost', (type) => {
+        const { session, barricade } = brokenWall(type)
+        const before = session.resources
+        expect(session.repair(barricade.id).ok).toBe(true)
+        expect(before - session.resources).toBe(barricadeRepairCost(type))
+        expect(session.repair(barricade.id).ok).toBe(false)
+
+        runUntil(session, () => barricade.active)
+        expect(barricade.currentHealth).toBe(barricade.maxHealth)
+        expect(barricade.level).toBe(1)
+        expect(barricade.destroyed).toBe(false)
+    })
+
+    it('refuses to repair a barricade that is not destroyed or without resources', () => {
+        const { session, barricade } = brokenWall()
+        session.resources = 0
+        expect(session.repair(barricade.id)).toEqual({
+            ok: false,
+            error: 'Недостаточно ресурсов для ремонта!',
+        })
+        session.resources = 1_000
+        session.repair(barricade.id)
+        runUntil(session, () => barricade.active)
+        expect(session.repair(barricade.id).ok).toBe(false)
+    })
+
+    it('returns nothing when demolishing a destroyed barricade', () => {
+        const { session, barricade } = brokenWall()
+        const before = session.resources
+        expect(session.demolish(barricade.id).ok).toBe(true)
+        expect(session.resources).toBe(before)
+        expect(session.barricades).toHaveLength(0)
+    })
+
+    it('still refunds half for an intact barricade', () => {
+        const session = new GameSession(createLevel('level_1')!, createSeededRandom(4))
+        answerDialogs(session)
+        session.buildBarricade(session.level.basePath[2]!, 'wall')
+        const before = session.resources
+        session.demolish(session.barricades[0]!.id)
+        expect(session.resources).toBe(before + Math.floor(BARRICADE_CATALOG.wall.cost / 2))
+    })
+
+    it('presents the repair cost and a zero refund for a destroyed barricade', () => {
+        const { session, barricade } = brokenWall()
+        session.selectedId = barricade.id
+        const selection = presentSession(session).selection!
+        expect(selection).toMatchObject({
+            status: 'Разрушена',
+            repairCost: barricadeRepairCost('wall'),
+            canRepair: true,
+            refund: 0,
+        })
+        session.upgrade(barricade.id) // U on a destroyed barricade repairs it
+        expect(presentSession(session).selection).toMatchObject({
+            status: 'Ремонт',
+            repairCost: null,
+        })
     })
 })

@@ -30,7 +30,12 @@
     }
 
     async function demolish() {
-        if (await ui.confirm('Демонтировать? Вы получите 50% стоимости обратно.')) {
+        const refund = selection.value?.refund ?? 0
+        const message =
+            refund > 0
+                ? `Демонтировать? Вы получите 💎 ${refund} обратно.`
+                : 'Демонтировать разрушенную баррикаду? Ресурсы не вернутся.'
+        if (await ui.confirm(message)) {
             game.demolishSelection()
         }
     }
@@ -140,12 +145,24 @@
                 УЛУЧШИТЬ (💎 {{ selection.upgradeCost }})
             </AppButton>
             <AppButton
+                v-if="selection.repairCost !== null"
+                size="compact"
+                :disabled="!selection.canRepair"
+                @click="game.repairSelection()"
+            >
+                ВОССТАНОВИТЬ (💎 {{ selection.repairCost }})
+            </AppButton>
+            <AppButton
                 v-if="selection.canDemolish"
                 size="compact"
                 variant="secondary"
                 @click="demolish"
             >
-                ДЕМОНТИРОВАТЬ (возврат 50%)
+                {{
+                    selection.refund > 0
+                        ? `ДЕМОНТИРОВАТЬ (возврат 💎 ${selection.refund})`
+                        : 'ДЕМОНТИРОВАТЬ (без возврата)'
+                }}
             </AppButton>
         </section>
 

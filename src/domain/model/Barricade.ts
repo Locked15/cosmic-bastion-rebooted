@@ -10,6 +10,8 @@ export class Barricade {
     level = 0
     active = false
     broken = true
+    // Set when enemies break it; cleared once it is repaired.
+    destroyed = false
     building = false
     buildProgress = 0
     buildTime = 120
@@ -184,6 +186,14 @@ export class Barricade {
         return true
     }
 
+    // Rebuild a destroyed barricade in place, keeping its upgrades.
+    startRepair(): boolean {
+        if (!this.destroyed || this.building) return false
+        this.building = true
+        this.buildProgress = 0
+        return true
+    }
+
     updateBuild(militaryCount: number, deltaTime: number = 1): boolean {
         if (!this.building) return false
 
@@ -193,6 +203,7 @@ export class Barricade {
         if (this.buildProgress >= this.buildTime) {
             this.active = true
             this.broken = false
+            this.destroyed = false
             this.building = false
             this.buildProgress = 0
             this.currentHealth = this.maxHealth
@@ -215,6 +226,7 @@ export class Barricade {
     destroy(): void {
         this.active = false
         this.broken = true
+        this.destroyed = true
         this.currentHealth = 0
         this.upgrading = false
         this.upgradeProgress = 0

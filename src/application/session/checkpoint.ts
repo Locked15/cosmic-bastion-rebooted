@@ -25,6 +25,8 @@ export interface LevelCheckpoint {
         height: number
         level: number
         health: number
+        // Broken barricades stay on the track and can still be repaired after resuming.
+        destroyed?: boolean
     }[]
     objectives: string[]
     story: StoryState
@@ -60,17 +62,17 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
             const level = (slot.tower?.level ?? 0) + (slot.tower?.upgrading ? 1 : 0)
             return type ? { type, level } : null
         }),
-        barricades: session.barricades
-            .filter((barricade) => barricade.active || barricade.building)
-            .map((barricade) => ({
-                type: barricade.type,
-                x: barricade.x,
-                y: barricade.y,
-                width: barricade.width,
-                height: barricade.height,
-                level: barricade.level + (barricade.upgrading ? 1 : 0),
-                health: barricade.active ? barricade.currentHealth : Infinity,
-            })),
+        barricades: session.barricades.map((barricade) => ({
+            type: barricade.type,
+            x: barricade.x,
+            y: barricade.y,
+            width: barricade.width,
+            height: barricade.height,
+            level: barricade.level + (barricade.upgrading ? 1 : 0),
+            health: barricade.active ? barricade.currentHealth : Infinity,
+            // A repair in progress is already paid for, so it is saved as done.
+            destroyed: barricade.destroyed && !barricade.building,
+        })),
         objectives: session.objectives.all.filter((o) => o.completed).map((o) => o.id),
         story: session.story.toState(),
     }
@@ -106,6 +108,7 @@ export function restoreCheckpoint(session: GameSession, checkpoint: LevelCheckpo
             barricade.updateUpgrade(1, INSTANT)
         }
         barricade.currentHealth = Math.min(barricade.maxHealth, saved.health)
+        if (saved.destroyed) barricade.destroy()
     }
 
     for (const id of checkpoint.objectives) session.objectives.complete(id)

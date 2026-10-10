@@ -1,4 +1,10 @@
-import { TOWER_CATALOG, BARRICADE_CATALOG, TOWER_MAX_LEVEL, BARRICADE_MAX_LEVEL } from '@/domain'
+import {
+    TOWER_CATALOG,
+    BARRICADE_CATALOG,
+    TOWER_MAX_LEVEL,
+    BARRICADE_MAX_LEVEL,
+    barricadeRepairCost,
+} from '@/domain'
 import type { Tower, Barricade } from '@/domain'
 import type { Scene } from '@/application/session/scene'
 
@@ -58,8 +64,11 @@ function drawBarricadeUpgradeHint(ctx: CanvasRenderingContext2D, barricade: Barr
     let text: string
     let borderColor = '#00ff88'
 
-    if (!barricade.active) {
-        text = barricade.building ? 'Строительство...' : 'Баррикада повреждена'
+    if (barricade.destroyed && !barricade.building) {
+        text = `U ▸ восстановить (💎 ${barricadeRepairCost(barricade.type)})`
+        borderColor = '#ff4444'
+    } else if (!barricade.active) {
+        text = barricade.destroyed ? 'Ремонт...' : 'Строительство...'
         borderColor = '#ffaa00'
     } else if (barricade.upgrading) {
         text = 'Улучшение...'

@@ -232,6 +232,8 @@ export const useGameStore = defineStore('game', () => {
         cycleSpeed: () => run((current) => current.cycleSpeed()),
         toggleView: () => run((current) => current.toggleView()),
         upgradeSelection,
+        repairSelection: () =>
+            run((current) => current.repair(current.selectedId ?? current.pointer.hoverId)),
         demolishSelection: () =>
             run((current) => current.demolish(current.selectedId ?? current.pointer.hoverId)),
         convert: (from: PersonType, to: PersonType, count: number) =>

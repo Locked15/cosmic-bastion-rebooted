@@ -70,3 +70,10 @@ export const BARRICADE_CATALOG: Record<BarricadeType, BarricadeCatalogEntry> = {
         },
     },
 }
+
+// Rebuilding a destroyed barricade costs 75% of a new one.
+export const BARRICADE_REPAIR_RATE = 0.75
+
+export function barricadeRepairCost(type: BarricadeType): number {
+    return Math.ceil(BARRICADE_CATALOG[type].cost * BARRICADE_REPAIR_RATE)
+}
