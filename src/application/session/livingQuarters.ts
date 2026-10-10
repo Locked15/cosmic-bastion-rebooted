@@ -51,9 +51,12 @@ export class LivingQuarters {
         )
         for (const soldier of soldiers) soldier.isShooting = false
 
+        const offspring: Enemy[] = []
         for (const enemy of this.enemies) {
-            enemy.update(dt, { towers: [], enemies: [], rng: this.rng })
-            if (this.chasePeople(enemy)) report.lost++
+            // No towers here, but abilities like spawn/absorb still work among enemies.
+            enemy.update(dt, { towers: [], enemies: this.enemies, rng: this.rng, slots: [] })
+            offspring.push(...this.takeOffspring(enemy))
+            if (enemy.alive && this.chasePeople(enemy)) report.lost++
         }
 
         for (const soldier of soldiers) {
@@ -68,12 +71,29 @@ export class LivingQuarters {
 
         this.enemies = this.enemies.filter((enemy) => {
             if (enemy.alive) return true
+            if (enemy.splitPending) enemy.onSplit(this.rng)
+            offspring.push(...this.takeOffspring(enemy))
             report.killed.push(enemy)
             return false
         })
+        for (const child of offspring) this.admitOffspring(child)
         this.personnel.removeDead()
         if (!this.underAttack) this.resetAlert()
         return report
+    }
+
+    // Enemies split off or spawned by an enemy inside the quarters stay inside.
+    private takeOffspring(enemy: Enemy): Enemy[] {
+        const children = enemy.spawnedEnemies
+        enemy.spawnedEnemies = []
+        return children
+    }
+
+    private admitOffspring(child: Enemy): void {
+        child.spawned = true
+        child.spawnDelay = 0
+        child.y = Math.max(child.y, this.level.livingQuartersY + 30)
+        this.enemies.push(child)
     }
 
     private updatePeople(dt: number): void {

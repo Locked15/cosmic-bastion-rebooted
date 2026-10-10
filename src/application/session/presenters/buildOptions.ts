@@ -30,5 +30,5 @@ export function canUpgradeTechnology(session: GameSession, id: string | null): b
     const entity =
         session.slots.find((slot) => slot.id === id)?.tower ??
         session.barricades.find((barricade) => barricade.id === id)
-    return !!entity && entity.level < (session.story.flags.tech_upgrade_tier ?? 3)
+    return !!entity && entity.level < session.upgradeTier
 }

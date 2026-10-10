@@ -40,6 +40,7 @@ const MAX_BREAKTHROUGHS = 10
 const PICK_RADIUS = 30
 const SLOT_SNAP_RADIUS = 50
 const REFUND_RATE = 0.5
+const UPGRADE_LOCKED = 'Этот уровень улучшения ещё не открыт'
 // Filter barricades slow the enemies they let through for 5 seconds.
 const FILTER_SLOW_FRAMES = 5 * FPS
 
@@ -443,9 +444,15 @@ export class GameSession implements Scene {
 
     // ----- Upgrades -----
 
+    // Highest upgrade level unlocked by the campaign tech tree.
+    get upgradeTier(): number {
+        return this.story.flags.tech_upgrade_tier ?? TOWER_MAX_LEVEL
+    }
+
     private upgradeTower(slot: TowerSlot): CommandResult {
         const tower = slot.tower
         if (!tower) return fail('Башня ещё не построена')
+        if (tower.level >= this.upgradeTier) return fail(UPGRADE_LOCKED)
         if (!tower.active) return fail('Башня неактивна')
         if (tower.upgrading) return fail('Улучшение уже идёт')
         if (tower.level >= TOWER_MAX_LEVEL) return fail('Максимальный уровень')
@@ -458,6 +465,7 @@ export class GameSession implements Scene {
 
     private upgradeBarricade(barricade: Barricade): CommandResult {
         if (!barricade.active) return fail('Баррикада не готова')
+        if (barricade.level >= this.upgradeTier) return fail(UPGRADE_LOCKED)
         if (barricade.upgrading) return fail('Улучшение уже идёт')
         if (barricade.level >= BARRICADE_MAX_LEVEL) return fail('Максимальный уровень')
         const cost = BARRICADE_CATALOG[barricade.type].upgradeCosts[barricade.level] ?? Infinity

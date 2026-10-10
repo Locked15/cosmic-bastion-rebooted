@@ -196,3 +196,18 @@ describe('GameSession', () => {
         expect(breach.closed).toBe(false)
     })
 })
+
+describe('GameSession campaign limits', () => {
+    it('refuses upgrades above the unlocked tech tier', () => {
+        const session = new GameSession(createLevel('level_1')!, createSeededRandom(3), {
+            campaignFlags: { tech_upgrade_tier: 0 },
+        })
+        answerDialogs(session)
+        session.resources = 10_000
+        const slot = session.slots[0]!
+        session.buildTower(slot.id, 'cannon')
+        runUntil(session, () => slot.tower !== null)
+        const outcome = session.upgrade(slot.id)
+        expect(outcome).toEqual({ ok: false, error: 'Этот уровень улучшения ещё не открыт' })
+    })
+})
