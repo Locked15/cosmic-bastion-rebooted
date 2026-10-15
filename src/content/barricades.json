@@ -1,0 +1,100 @@
+{
+    "wall": {
+        "name": "Стена",
+        "description": "Блокирует путь",
+        "cost": 30,
+        "stats": {
+            "maxHealth": 400,
+            "buildTime": 140,
+            "damageMitigation": 0.35,
+            "pushBackStrength": 3
+        },
+        "upgrades": [
+            {
+                "cost": 50,
+                "name": "Усиленная обшивка",
+                "description": "Прочность увеличена, враги задерживаются дольше",
+                "stats": { "maxHealth": 520 },
+                "restoreHealth": true
+            },
+            {
+                "cost": 80,
+                "name": "Самопочинка",
+                "description": "Восстанавливает 5% прочности каждые 5 с",
+                "stats": { "selfRepair": true }
+            },
+            {
+                "cost": 120,
+                "name": "Отбрасывающий барьер",
+                "description": "Каждые 5 с отбрасывает остановившихся врагов по пути",
+                "stats": { "knockbackEnemies": true, "pushBackStrength": 30 }
+            }
+        ]
+    },
+    "filter": {
+        "name": "Фильтр",
+        "description": "Пропускает слабых врагов",
+        "cost": 40,
+        "stats": {
+            "maxHealth": 220,
+            "buildTime": 160,
+            "damageMitigation": 0.45,
+            "damageToEnemies": 4,
+            "filterSlowMultiplier": 0.45
+        },
+        "upgrades": [
+            {
+                "cost": 60,
+                "name": "Коррозийные решётки",
+                "description": "Сильнее замедляет врагов и наносит им урон",
+                "stats": { "maxHealth": 280, "damageToEnemies": 8 },
+                "restoreHealth": true
+            },
+            {
+                "cost": 100,
+                "name": "Автоочистка",
+                "description": "Восстанавливает 5% прочности каждые 5 с",
+                "stats": { "selfRepair": true }
+            },
+            {
+                "cost": 150,
+                "name": "Интеллектуальный пропуск",
+                "description": "Малые враги проходят с замедлением на 5 с, остальные ломают фильтр",
+                "stats": { "filterMode": true }
+            }
+        ]
+    },
+    "shield": {
+        "name": "Щит",
+        "description": "Очень прочный барьер",
+        "cost": 80,
+        "stats": {
+            "maxHealth": 550,
+            "buildTime": 200,
+            "damageMitigation": 0.25,
+            "damageToEnemies": 10
+        },
+        "upgrades": [
+            {
+                "cost": 100,
+                "name": "Статический регенератор",
+                "description": "Полностью восстанавливает прочность",
+                "stats": {},
+                "restoreHealth": true
+            },
+            {
+                "cost": 150,
+                "name": "Усиленная матрица",
+                "description": "Полностью восстанавливает прочность и повышает урон",
+                "stats": { "damageToEnemies": 16 },
+                "restoreHealth": true
+            },
+            {
+                "cost": 250,
+                "name": "Силовое поле",
+                "description": "Только первые 5 остановившихся врагов могут наносить урон",
+                "stats": { "forceField": true, "maxAttackers": 5 }
+            }
+        ]
+    }
+}

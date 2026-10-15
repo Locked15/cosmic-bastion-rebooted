@@ -1,3 +1,4 @@
+import { CONTENT_VERSION } from '@/domain'
 import type { KeyValueStore } from './ports/KeyValueStore'
 import type { GameSession } from './session/GameSession'
 import {
@@ -9,13 +10,19 @@ import {
 
 const key = (levelId: string) => `checkpoint:${levelId}`
 
+// Slots and barricades are saved by position: a save from other level content cannot resume.
+function isCurrent(checkpoint: LevelCheckpoint): boolean {
+    return checkpoint.version === 1 && (checkpoint.content ?? 1) === CONTENT_VERSION
+}
+
 // Saves level progress between waves so the player can leave and resume later.
 export class CheckpointService {
     constructor(private readonly storage: KeyValueStore) {}
 
     // Wave number the saved progress resumes after, or null.
     savedWave(levelId: string): number | null {
-        return this.storage.read<LevelCheckpoint>(key(levelId))?.wave ?? null
+        const checkpoint = this.storage.read<LevelCheckpoint>(key(levelId))
+        return checkpoint && isCurrent(checkpoint) ? checkpoint.wave : null
     }
 
     save(session: GameSession): boolean {
@@ -26,7 +33,7 @@ export class CheckpointService {
 
     restore(session: GameSession): boolean {
         const checkpoint = this.storage.read<LevelCheckpoint>(key(session.level.id))
-        if (!checkpoint || checkpoint.version !== 1) return false
+        if (!checkpoint || !isCurrent(checkpoint)) return false
         restoreCheckpoint(session, checkpoint)
         return true
     }

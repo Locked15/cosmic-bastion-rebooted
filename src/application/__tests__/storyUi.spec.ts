@@ -119,8 +119,8 @@ describe('story and campaign UI', () => {
         expect(nodes[1]?.attributes('disabled')).toBeUndefined()
         expect(nodes[2]?.attributes('disabled')).toBeUndefined()
         expect(nodes[3]?.attributes('disabled')).toBeDefined()
-        expect(nodes[1]?.attributes('style')).toContain('left: 26%')
-        expect(nodes[2]?.attributes('style')).toContain('left: 74%')
+        expect(nodes[1]?.attributes('style')).toContain('left: 48%')
+        expect(nodes[2]?.attributes('style')).toContain('left: 48%')
         await nodes[0]!.trigger('click')
         const start = wrapper.findAll('button').find((button) => button.text() === 'НАЧАТЬ ЗАЩИТУ')!
         await start.trigger('click')
@@ -140,6 +140,7 @@ describe('story and campaign UI', () => {
                 stars: 0,
                 stats: [],
                 unlocks: ['Ракетница', 'Улучшения II'],
+                ending: null,
                 objectives: [
                     { id: 'save_engineer', text: 'Чен спасён', completed: true },
                     { id: 'survive', text: 'Отразить волны', completed: false },

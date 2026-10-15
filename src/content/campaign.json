@@ -1,0 +1,46 @@
+{
+    "contentVersion": 1,
+    "finale": "level_5",
+    "sectors": [
+        {
+            "level": "level_1",
+            "code": "A-7",
+            "name": "Внешний корпус",
+            "layer": "outer",
+            "requires": [],
+            "map": { "x": 640, "y": 40, "width": 200, "height": 70 }
+        },
+        {
+            "level": "level_2",
+            "code": "B-3",
+            "name": "Жилые отсеки",
+            "layer": "living",
+            "requires": ["level_1"],
+            "map": { "x": 380, "y": 120, "width": 200, "height": 70 }
+        },
+        {
+            "level": "level_3",
+            "code": "C-9",
+            "name": "Лаборатории",
+            "layer": "living",
+            "requires": ["level_1"],
+            "map": { "x": 380, "y": 410, "width": 200, "height": 70 }
+        },
+        {
+            "level": "level_4",
+            "code": "D-1",
+            "name": "Техническое ядро",
+            "layer": "core",
+            "requires": ["level_2", "level_3"],
+            "map": { "x": 470, "y": 250, "width": 190, "height": 100 }
+        },
+        {
+            "level": "level_5",
+            "code": "R-0",
+            "name": "Центральный реактор",
+            "layer": "core",
+            "requires": ["level_4"],
+            "map": { "x": 320, "y": 245, "width": 120, "height": 110 }
+        }
+    ]
+}

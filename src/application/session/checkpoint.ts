@@ -1,4 +1,4 @@
-import { type BarricadeType, type DifficultyId, type TowerType } from '@/domain'
+import { CONTENT_VERSION, type BarricadeType, type DifficultyId, type TowerType } from '@/domain'
 import type { GameSession, SessionStats } from './GameSession'
 import type { StoryState } from './story'
 
@@ -8,6 +8,8 @@ const INSTANT = 1e9
 // Level progress saved between waves (no enemies on the field).
 export interface LevelCheckpoint {
     version: 1
+    // Content version the level layout came from (missing in saves before it existed).
+    content?: number
     levelId: string
     wave: number
     difficulty?: DifficultyId
@@ -49,6 +51,7 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
     for (const conversion of session.conversions) transit[conversion.toType] += conversion.count
     return {
         version: 1,
+        content: CONTENT_VERSION,
         levelId: session.level.id,
         wave: session.currentWave,
         difficulty: session.difficulty,

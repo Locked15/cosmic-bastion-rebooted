@@ -45,7 +45,10 @@
                 v-for="level in levels"
                 :key="level.id"
                 class="level-select__node"
-                :style="{ left: `${level.mapX}%`, top: `${level.mapY}%` }"
+                :style="{
+                    left: `${(level.map.x + level.map.width / 2) / 10}%`,
+                    top: `${(level.map.y + level.map.height / 2) / 6}%`,
+                }"
                 :sector="level.sector"
                 :name="level.name"
                 :description="level.description"

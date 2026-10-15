@@ -1,18 +1,36 @@
-import type { Level } from '../model/Level'
-import { createLevel1 } from './level1'
-import { createLevel2 } from './level2'
-import { createLevel3 } from './level3'
-import { createLevel4 } from './level4'
-import { createLevel5 } from './level5'
-export const LEVEL_IDS = ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'] as const
-export type LevelId = (typeof LEVEL_IDS)[number]
-const factories: Record<LevelId, () => Level> = {
-    level_1: createLevel1,
-    level_2: createLevel2,
-    level_3: createLevel3,
-    level_4: createLevel4,
-    level_5: createLevel5,
+import { parseContent } from '../content/parse'
+import { Level } from '../model/Level'
+import { CAMPAIGN } from '../story/campaign'
+import { levelSchema, type LevelDefinition } from './schema'
+
+// Every file in content/levels is bundled and validated at startup.
+const files = import.meta.glob<unknown>('@/content/levels/*.json', {
+    eager: true,
+    import: 'default',
+})
+
+const definitions = new Map<string, LevelDefinition>()
+for (const [path, data] of Object.entries(files)) {
+    const definition = parseContent(levelSchema, data, path)
+    const fileId = path
+        .split('/')
+        .pop()!
+        .replace(/\.json$/, '')
+    if (definition.id !== fileId) throw new Error(`${path}: id must match the file name`)
+    definitions.set(definition.id, definition)
 }
+
+// Levels in campaign order.
+export const LEVEL_IDS: readonly string[] = CAMPAIGN.sectors.map((sector) => sector.level)
+for (const id of LEVEL_IDS) {
+    if (!definitions.has(id)) throw new Error(`content/campaign.json: no level file for ${id}`)
+}
+
+export function levelDefinition(id: string): LevelDefinition | null {
+    return definitions.get(id) ?? null
+}
+
 export function createLevel(id: string): Level | null {
-    return Object.prototype.hasOwnProperty.call(factories, id) ? factories[id as LevelId]() : null
+    const definition = definitions.get(id)
+    return definition ? Level.fromDefinition(definition) : null
 }

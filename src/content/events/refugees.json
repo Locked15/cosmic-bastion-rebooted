@@ -1,0 +1,23 @@
+{
+    "wave": 2,
+    "delay": 180,
+    "timeLimit": 12,
+    "title": "БЕЖЕНЦЫ ИЗ СОСЕДНЕГО ОТСЕКА",
+    "text": "У шлюза ждут {miners} и {military}. Поможем им?",
+    "accept": {
+        "text": "Принять",
+        "cost": 80,
+        "consequence": "Приняты {miners} и {military}. Потрачено {cost} ресурсов."
+    },
+    "redirect": {
+        "text": "Перенаправить",
+        "cost": 30,
+        "minersLost": 2,
+        "militaryLost": 1,
+        "consequence": "В следующем выбранном секторе встретятся {miners} и {military}. Потрачено {cost} ресурсов."
+    },
+    "refuse": {
+        "text": "Отказать",
+        "consequence": "Группа покинула шлюз. Ресурсы и персонал не изменились."
+    }
+}

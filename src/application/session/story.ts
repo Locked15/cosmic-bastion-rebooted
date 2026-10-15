@@ -1,4 +1,10 @@
-import type { EventEffect, LevelEvent, StoryDialog, StoryFlags } from '@/domain'
+import {
+    flagsMatch,
+    type EventEffect,
+    type LevelEvent,
+    type StoryDialog,
+    type StoryFlags,
+} from '@/domain'
 import { choiceEffect, refugeeEvent } from '@/domain/story/events'
 
 const FPS = 60
@@ -147,8 +153,7 @@ export class StoryDirector {
                 (event) =>
                     event.wave === this.wave &&
                     (event.delay ?? 0) <= this.elapsed &&
-                    (!event.condition ||
-                        (this.flags[event.condition.flag] ?? 0) >= event.condition.atLeast),
+                    flagsMatch(this.flags, event.when ?? []),
             )
             .sort((a, b) => (a.delay ?? 0) - (b.delay ?? 0))
         this.pending = this.pending.filter((event) => !due.includes(event))

@@ -1,30 +1,28 @@
+import * as v from 'valibot'
+import data from '@/content/technologies.json'
+import { count, parseContent, text } from '../content/parse'
 import type { StoryFlags } from '../model/Level'
-import type { TowerType } from '../rules/towerCatalog'
-import type { BarricadeType } from '../rules/barricadeCatalog'
+import { TOWER_TYPES, type TowerType } from '../rules/towerCatalog'
+import { BARRICADE_TYPES, type BarricadeType } from '../rules/barricadeCatalog'
 
-export interface Technology {
-    id: string
-    name: string
-    storyCompletions: number
-    tower?: TowerType
-    barricade?: BarricadeType
-    upgradeTier?: number
-}
+const technologySchema = v.strictObject({
+    id: text,
+    name: text,
+    // Opens once this many story missions are completed.
+    storyCompletions: count,
+    tower: v.optional(v.picklist(TOWER_TYPES)),
+    barricade: v.optional(v.picklist(BARRICADE_TYPES)),
+    upgradeTier: v.optional(v.pipe(count, v.minValue(1), v.maxValue(3))),
+})
+export type Technology = v.InferOutput<typeof technologySchema>
 
 // Progress follows completed story missions; branch order does not matter.
-export const TECHNOLOGIES: readonly Technology[] = [
-    { id: 'cannon', name: 'Пушка', storyCompletions: 0, tower: 'cannon' },
-    { id: 'machinegun', name: 'Пулемёт', storyCompletions: 0, tower: 'machinegun' },
-    { id: 'wall', name: 'Стандартная стена', storyCompletions: 0, barricade: 'wall' },
-    { id: 'upgrade_1', name: 'Улучшения I', storyCompletions: 0, upgradeTier: 1 },
-    { id: 'rocket', name: 'Ракетница', storyCompletions: 1, tower: 'rocket' },
-    { id: 'filter', name: 'Баррикада «Фильтр»', storyCompletions: 1, barricade: 'filter' },
-    { id: 'upgrade_2', name: 'Улучшения II', storyCompletions: 1, upgradeTier: 2 },
-    { id: 'laser', name: 'Лазерная установка', storyCompletions: 2, tower: 'laser' },
-    { id: 'shock', name: 'Электрошоковая установка', storyCompletions: 2, tower: 'shock' },
-    { id: 'shield', name: 'Лазерный щит', storyCompletions: 2, barricade: 'shield' },
-    { id: 'upgrade_3', name: 'Улучшения III', storyCompletions: 2, upgradeTier: 3 },
-]
+// A story flag `tech_<id>` opens a technology early.
+export const TECHNOLOGIES: readonly Technology[] = parseContent(
+    v.array(technologySchema),
+    data,
+    'content/technologies.json',
+)
 
 export interface TechnologyUnlocks {
     towers: TowerType[]

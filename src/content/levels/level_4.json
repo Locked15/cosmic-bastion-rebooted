@@ -1,0 +1,214 @@
+{
+    "id": "level_4",
+    "name": "СЕКТОР D-1: МАССОВАЯ АТАКА",
+    "description": "Огромные силы врага. Это испытание на прочность.",
+    "type": "normal",
+    "width": 1800,
+    "height": 1000,
+    "livingQuartersY": 600,
+    "paths": {
+        "base": [
+            { "x": 120, "y": 260 },
+            { "x": 240, "y": 170 },
+            { "x": 360, "y": 280 },
+            { "x": 480, "y": 180 },
+            { "x": 600, "y": 300 },
+            { "x": 720, "y": 190 },
+            { "x": 840, "y": 310 },
+            { "x": 960, "y": 200 },
+            { "x": 1080, "y": 320 },
+            { "x": 1200, "y": 210 },
+            { "x": 1320, "y": 330 },
+            { "x": 1440, "y": 220 },
+            { "x": 1560, "y": 340 },
+            { "x": 1700, "y": 400 },
+            { "x": 1700, "y": 650 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 80, "y": 200, "width": 1650, "height": 250 }],
+    "towerSlots": [
+        { "x": 200, "y": 260, "type": "cannon" },
+        { "x": 260, "y": 255, "type": "laser" },
+        { "x": 475, "y": 250, "type": "rocket" },
+        { "x": 600, "y": 230, "type": "machinegun" },
+        { "x": 740, "y": 280, "type": "shock" },
+        { "x": 895, "y": 325, "type": "cannon" },
+        { "x": 1020, "y": 330, "type": "laser" },
+        { "x": 1160, "y": 350, "type": "rocket" },
+        { "x": 1300, "y": 380, "type": "machinegun" },
+        { "x": 1440, "y": 400, "type": "shock" }
+    ],
+    "start": { "miners": 22, "military": 12, "resources": 400 },
+    "waves": { "total": 7, "difficulty": 1.2 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "max_towers",
+            "text": "Иметь минимум 8 активных башен",
+            "kind": "activeTowers",
+            "target": 8
+        },
+        {
+            "id": "save_reactor",
+            "text": "Допустить не более 2 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 2
+        }
+    ],
+    "events": [
+        {
+            "wave": 1,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "РАЗВЕДКА",
+                "text": "Волны становятся сильнее. Нужна стратегия!",
+                "choices": [
+                    {
+                        "text": "Фокус на урон",
+                        "effect": { "type": "resources", "value": 100 },
+                        "consequence": "Получено 100 ресурсов."
+                    },
+                    {
+                        "text": "Фокус на защиту",
+                        "effect": { "type": "addMilitary", "count": 5 },
+                        "consequence": "Прибыли 5 военных."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "partial",
+                "title": "НАХОДКА",
+                "text": "Найден склад, содержимое контейнеров неизвестно.",
+                "choices": [
+                    {
+                        "text": "Открыть технический контейнер",
+                        "effect": { "type": "resources", "value": 150 },
+                        "consequence": "Получено 150 ресурсов."
+                    },
+                    {
+                        "text": "Открыть медицинский контейнер",
+                        "effect": { "type": "addMiners", "count": 6 },
+                        "consequence": "Спасены 6 шахтёров."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "АНОМАЛИЯ",
+                "text": "Сканеры фиксируют мощную энергию в коридоре.",
+                "choices": [
+                    {
+                        "text": "Подключить резерв",
+                        "effect": { "type": "emergency", "resources": 120, "military": 3 },
+                        "consequence": "Получено 120 ресурсов и 3 военных."
+                    },
+                    {
+                        "text": "Наблюдать",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 7
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "МОБИЛИЗАЦИЯ",
+                "text": "Нужны силы для финального рывка.",
+                "choices": [
+                    {
+                        "text": "Открыть арсенал",
+                        "effect": { "type": "resources", "value": 200 },
+                        "consequence": "Получено 200 ресурсов."
+                    },
+                    {
+                        "text": "Вызвать подкрепление",
+                        "effect": { "type": "addMilitary", "count": 6 },
+                        "consequence": "Прибыли 6 военных."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "ИНЖЕНЕР ПЕТРОВ",
+                "text": "Оборудование перегружено.",
+                "choices": [
+                    {
+                        "text": "Подключить запасные линии",
+                        "effect": { "type": "resources", "value": 80 },
+                        "consequence": "Получено 80 ресурсов."
+                    },
+                    {
+                        "text": "Продолжить",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 6,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНИЙ БОЙ",
+                "text": "Финальная волна приближается.",
+                "choices": [
+                    {
+                        "text": "Задействовать все резервы",
+                        "effect": { "type": "resources", "value": 250 },
+                        "consequence": "Получено 250 ресурсов."
+                    },
+                    {
+                        "text": "Довериться обороне",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "start",
+            "stat": "miners",
+            "flags": ["survivors_level_2", "survivors_level_3"],
+            "divide": 10
+        }
+    ]
+}

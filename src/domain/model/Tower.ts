@@ -1,7 +1,7 @@
 import type { Point } from '../geometry'
 import type { Random } from '../random'
 import { TOWER_CATALOG } from '../rules/towerCatalog'
-import type { TowerType } from '../rules/towerCatalog'
+import type { TowerStats, TowerType } from '../rules/towerCatalog'
 import type { Enemy } from './Enemy'
 import { Projectile, ExplosiveProjectile } from './Projectile'
 export abstract class Tower {
@@ -27,7 +27,8 @@ export abstract class Tower {
     angle = 0
     targetAngle = 0
     projectiles: Projectile[] = []
-    baseStats: { damage: number; range: number; fireRate: number; explosionRadius?: number }
+    // Catalog stats of level 0; upgrades apply the catalog stats of each level on top.
+    baseStats: TowerStats
     abilities: { name: string; description: string }[]
     showShockEffect = 0
     damageMultiplier = 1
@@ -74,7 +75,7 @@ export abstract class Tower {
         this.x = x
         this.y = y
 
-        this.baseStats = { damage: 0, range: 0, fireRate: 0 }
+        this.baseStats = { ...TOWER_CATALOG[type].stats }
         this.abilities = []
     }
 
@@ -104,7 +105,18 @@ export abstract class Tower {
         }
     }
 
-    abstract setBaseStats(): void
+    setBaseStats(): void {
+        this.resetAbilities()
+        this.resetBehaviour()
+        this.applyStats(this.baseStats)
+    }
+
+    // Switch off what upgrades of this tower type switch on.
+    protected resetBehaviour(): void {}
+
+    protected applyStats(stats: TowerStats): void {
+        Object.assign(this, stats)
+    }
 
     resetAbilities(): void {
         this.abilities = []
@@ -174,7 +186,11 @@ export abstract class Tower {
         return false
     }
 
-    abstract applyUpgrade(): void
+    applyUpgrade(): void {
+        const upgrade = TOWER_CATALOG[this.type].upgrades[this.level - 1]
+        if (upgrade) this.applyStats(upgrade.stats)
+        this.unlockAbilityByLevel()
+    }
 
     disable(duration: number): void {
         this.disabled = true
@@ -289,34 +305,11 @@ export class CannonTower extends Tower {
 
     constructor(x: number, y: number, id: string) {
         super('cannon', x, y, id)
-        this.damage = 15
-        this.range = 120
-        this.fireRate = 60
-
-        this.baseStats = {
-            damage: 15,
-            range: 120,
-            fireRate: 60,
-        }
+        this.setBaseStats()
     }
 
-    setBaseStats(): void {
-        this.resetAbilities()
-        this.damage = this.baseStats.damage
-        this.range = this.baseStats.range
-        this.fireRate = this.baseStats.fireRate
+    protected resetBehaviour(): void {
         this.multiTarget = false
-    }
-
-    applyUpgrade(): void {
-        if (this.level === 1) {
-            this.damage = 25
-        } else if (this.level === 2) {
-            this.fireRate = 40
-        } else if (this.level === 3) {
-            this.multiTarget = true
-        }
-        this.unlockAbilityByLevel()
     }
 
     fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
@@ -360,37 +353,11 @@ export class RocketTower extends Tower {
 
     constructor(x: number, y: number, id: string) {
         super('rocket', x, y, id)
-        this.damage = 20
-        this.range = 100
-        this.fireRate = 120
-
-        this.baseStats = {
-            damage: 20,
-            range: 100,
-            fireRate: 120,
-            explosionRadius: 40,
-        }
+        this.setBaseStats()
     }
 
-    setBaseStats(): void {
-        this.resetAbilities()
-        this.damage = this.baseStats.damage
-        this.range = this.baseStats.range
-        this.fireRate = this.baseStats.fireRate
-        this.explosionRadius = this.baseStats.explosionRadius ?? 40
+    protected resetBehaviour(): void {
         this.knockback = false
-    }
-
-    applyUpgrade(): void {
-        if (this.level === 1) {
-            this.damage = 30
-        } else if (this.level === 2) {
-            this.range = 150
-            this.explosionRadius = 60
-        } else if (this.level === 3) {
-            this.knockback = true
-        }
-        this.unlockAbilityByLevel()
     }
 
     fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
@@ -413,34 +380,11 @@ export class MachineGunTower extends Tower {
 
     constructor(x: number, y: number, id: string) {
         super('machinegun', x, y, id)
-        this.damage = 5
-        this.range = 100
-        this.fireRate = 15
-
-        this.baseStats = {
-            damage: 5,
-            range: 100,
-            fireRate: 15,
-        }
+        this.setBaseStats()
     }
 
-    setBaseStats(): void {
-        this.resetAbilities()
-        this.damage = this.baseStats.damage
-        this.range = this.baseStats.range
-        this.fireRate = this.baseStats.fireRate
+    protected resetBehaviour(): void {
         this.slowEffect = false
-    }
-
-    applyUpgrade(): void {
-        if (this.level === 1) {
-            this.fireRate = 10
-        } else if (this.level === 2) {
-            this.damage = 10
-        } else if (this.level === 3) {
-            this.slowEffect = true
-        }
-        this.unlockAbilityByLevel()
     }
 
     fire(target: Enemy, allEnemies: Enemy[], rng: Random): void {
@@ -467,28 +411,20 @@ export class LaserTower extends Tower {
 
     constructor(x: number, y: number, id: string) {
         super('laser', x, y, id)
-        this.baseStats = { damage: 2, range: 130, fireRate: 300 }
         this.setBaseStats()
     }
 
-    setBaseStats(): void {
-        this.resetAbilities()
-        Object.assign(this, this.baseStats)
+    protected resetBehaviour(): void {
         this.piercing = false
         this.currentTarget = null
         this.beamEnd = null
         this.beamTimer = 0
     }
 
-    applyUpgrade(): void {
-        if (this.level === 1) this.range = 180
-        if (this.level === 2) this.fireRate = 240
-        if (this.level === 3) {
-            this.piercing = true
-            this.range = Infinity
-            this.fireRate = 480
-        }
-        this.unlockAbilityByLevel()
+    // The final upgrade turns the beam into a ray across the whole map.
+    protected applyStats(stats: TowerStats): void {
+        super.applyStats(stats)
+        if (this.piercing) this.range = Infinity
     }
 
     holdFire(deltaTime: number): void {
@@ -578,34 +514,11 @@ export class ShockTower extends Tower {
 
     constructor(x: number, y: number, id: string) {
         super('shock', x, y, id)
-        this.damage = 3
-        this.range = 9999
-        this.fireRate = 90
-
-        this.baseStats = {
-            damage: 3,
-            range: 9999,
-            fireRate: 90,
-        }
+        this.setBaseStats()
     }
 
-    setBaseStats(): void {
-        this.resetAbilities()
-        this.damage = this.baseStats.damage
-        this.range = this.baseStats.range
-        this.fireRate = this.baseStats.fireRate
+    protected resetBehaviour(): void {
         this.stunEffect = false
-    }
-
-    applyUpgrade(): void {
-        if (this.level === 1) {
-            this.damage = 5
-        } else if (this.level === 2) {
-            this.fireRate = 60
-        } else if (this.level === 3) {
-            this.stunEffect = true
-        }
-        this.unlockAbilityByLevel()
     }
 
     findTargetAndFire(enemies: Enemy[]): void {

@@ -100,7 +100,7 @@ describe('objectives', () => {
         expect(result.stars).toBe(0)
     })
 
-    it('waits for the actual upgrade target even when GameSession emits a lower upgrade milestone', () => {
+    it('waits for the actual upgrade target, not just any upgrade', () => {
         const session = sessionFor()
         session.buildTower(session.slots[0]!.id, 'cannon')
         for (let frame = 0; frame < 1000; frame++) session.update(1)
@@ -109,7 +109,6 @@ describe('objectives', () => {
             (objective) => objective.id === 'upgrade_tower',
         )!
         tower.level = 1
-        session.objectives.complete('upgrade_tower')
         session.objectives.update(session)
         expect(objective.completed).toBe(false)
         tower.level = 2

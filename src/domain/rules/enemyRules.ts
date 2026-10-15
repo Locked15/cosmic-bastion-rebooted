@@ -1,70 +1,81 @@
-export type EnemySize = 'small' | 'medium' | 'large'
-export type EnemyKind = 'simple' | 'ability' | 'miniboss' | 'boss'
-export type EnemyAbility =
-    | 'ambush'
-    | 'split'
-    | 'accelerate'
-    | 'teleport'
-    | 'adaptation'
-    | 'sabotage'
-    | 'absorb'
-    | 'weakImmunity'
-    | 'dodge'
-    | 'confuse'
-    | 'blind'
-    | 'destroy'
-    | 'spawn'
-export interface EnemyStats {
-    maxHealth: number
-    speed: number
-    damage: number
-    reward: number
-    mass: number
-}
-export const ENEMY_BASE_STATS: Record<EnemySize, EnemyStats> = {
-    small: {
-        maxHealth: 30,
-        speed: 2.0,
-        damage: 1,
-        reward: 5,
-        mass: 1,
-    },
-    medium: {
-        maxHealth: 60,
-        speed: 1.5,
-        damage: 2,
-        reward: 10,
-        mass: 2,
-    },
-    large: {
-        maxHealth: 150,
-        speed: 0.8,
-        damage: 5,
-        reward: 25,
-        mass: 5,
-    },
-}
+import * as v from 'valibot'
+import data from '@/content/enemies.json'
+import { count, parseContent, positive, recordOf, text } from '../content/parse'
+
+export const ENEMY_SIZES = ['small', 'medium', 'large'] as const
+export type EnemySize = (typeof ENEMY_SIZES)[number]
+export const ENEMY_KINDS = ['simple', 'ability', 'miniboss', 'boss'] as const
+export type EnemyKind = (typeof ENEMY_KINDS)[number]
+export const ENEMY_ABILITIES = [
+    'ambush',
+    'split',
+    'accelerate',
+    'teleport',
+    'adaptation',
+    'sabotage',
+    'absorb',
+    'weakImmunity',
+    'dodge',
+    'confuse',
+    'blind',
+    'destroy',
+    'spawn',
+] as const
+export type EnemyAbility = (typeof ENEMY_ABILITIES)[number]
+export const enemyAbilitySchema = v.picklist(ENEMY_ABILITIES)
+
+const statsSchema = v.strictObject({
+    maxHealth: positive,
+    speed: positive,
+    damage: positive,
+    reward: count,
+    mass: positive,
+})
+export type EnemyStats = v.InferOutput<typeof statsSchema>
+
+// Chance that grows by `perWave` each wave, capped at `max`.
+const chanceSchema = v.strictObject({ base: positive, perWave: positive, max: positive })
+export type WaveChance = v.InferOutput<typeof chanceSchema>
+
+const wavesSchema = v.strictObject({
+    baseCount: count,
+    countPerWave: count,
+    // Frames between two spawns.
+    spawnInterval: positive,
+    largeChance: chanceSchema,
+    // Share of the remaining roll that becomes medium; the rest is small.
+    mediumShare: positive,
+    abilityChance: chanceSchema,
+    abilityFromWave: count,
+    miniBossChance: chanceSchema,
+    miniBossFromWave: count,
+    // A boss closes every N-th wave.
+    bossEvery: v.pipe(count, v.minValue(1)),
+    // Frames after the last regular spawn.
+    bossDelay: positive,
+    regularAbilities: v.pipe(v.array(enemyAbilitySchema), v.nonEmpty()),
+    bossAbilities: v.pipe(v.array(enemyAbilitySchema), v.nonEmpty()),
+})
+export type WaveRules = v.InferOutput<typeof wavesSchema>
+
+const rules = parseContent(
+    v.strictObject({
+        sizes: recordOf(ENEMY_SIZES, statsSchema),
+        kinds: recordOf(
+            ENEMY_KINDS,
+            v.strictObject({ health: positive, reward: positive, mass: positive }),
+        ),
+        abilities: recordOf(ENEMY_ABILITIES, text),
+        waves: wavesSchema,
+    }),
+    data,
+    'content/enemies.json',
+)
+
+export const ENEMY_BASE_STATS: Record<EnemySize, EnemyStats> = rules.sizes
 export const ENEMY_KIND_MODIFIERS: Record<
     EnemyKind,
     { health: number; reward: number; mass: number }
-> = {
-    simple: { health: 1, reward: 1, mass: 1 },
-    ability: { health: 1.5, reward: 1.5, mass: 1 },
-    miniboss: { health: 2.5, reward: 3, mass: 2 },
-    boss: { health: 12, reward: 10, mass: 5 },
-}
-export const ABILITY_DESCRIPTIONS: Record<EnemyAbility, string> = {
-    ambush: 'ЗАСАДА: Появляется в первой половине пути',
-    split: 'РАССЕИВАНИЕ: При смерти создаёт малых врагов',
-    accelerate: 'УСКОРЕНИЕ: Постоянно увеличивает скорость',
-    teleport: 'ТЕЛЕПОРТАЦИЯ: Перелетает через башню',
-    adaptation: 'АДАПТАЦИЯ: Уязвим только для одной башни',
-    sabotage: 'САБОТАЖ: Отключает случайную башню',
-    absorb: 'ПОГЛОЩЕНИЕ: Восстанавливает здоровье, убивая врагов',
-    weakImmunity: 'ИММУНИТЕТ: Игнорирует урон ниже 0.5% от макс. здоровья',
-    dodge: 'УКЛОНЕНИЕ: Уворачивается от снарядов',
-    confuse: 'ЗАМЕШАТЕЛЬСТВО: Башни атакуют других врагов',
-    blind: 'ОСЛЕПЛЕНИЕ: Башни стреляют по последней позиции',
-    destroy: 'УНИЧТОЖЕНИЕ: Может полностью уничтожить башню',
-    spawn: 'ГЕНЕРАЦИЯ: Создаёт других врагов',
-}
+> = rules.kinds
+export const ABILITY_DESCRIPTIONS: Record<EnemyAbility, string> = rules.abilities
+export const WAVE_RULES: WaveRules = rules.waves

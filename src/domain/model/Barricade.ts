@@ -1,5 +1,5 @@
 import { BARRICADE_CATALOG } from '../rules/barricadeCatalog'
-import type { BarricadeType } from '../rules/barricadeCatalog'
+import type { BarricadeStats, BarricadeType } from '../rules/barricadeCatalog'
 export class Barricade {
     id: string
     type: BarricadeType
@@ -92,25 +92,16 @@ export class Barricade {
         this.maxAttackers = Infinity
         this.resetAbilities()
 
-        if (this.type === 'wall') {
-            this.maxHealth = 400
-            this.buildTime = 140
-            this.damageMitigation = 0.35
-            this.pushBackStrength = 3
-        } else if (this.type === 'filter') {
-            this.maxHealth = 220
-            this.buildTime = 160
-            this.damageMitigation = 0.45
-            this.damageToEnemies = 4
-            this.filterSlowMultiplier = 0.45
-        } else if (this.type === 'shield') {
-            this.maxHealth = 550
-            this.buildTime = 200
-            this.damageMitigation = 0.25
-            this.damageToEnemies = 10
-        }
+        this.applyStats(BARRICADE_CATALOG[this.type].stats)
 
         this.currentHealth = this.maxHealth
+    }
+
+    // Durability from the catalog is scaled by the current story buff.
+    private applyStats(stats: BarricadeStats): void {
+        const { maxHealth, ...rest } = stats
+        Object.assign(this, rest)
+        if (maxHealth !== undefined) this.maxHealth = maxHealth * this.healthMultiplier
     }
 
     resetAbilities(): void {
@@ -249,31 +240,10 @@ export class Barricade {
     }
 
     applyUpgrade(): void {
-        if (this.type === 'wall') {
-            if (this.level === 1) {
-                this.maxHealth = 520 * this.healthMultiplier
-                this.currentHealth = this.maxHealth
-            }
-            if (this.level === 2) this.selfRepair = true
-            if (this.level === 3) {
-                this.knockbackEnemies = true
-                this.pushBackStrength = 30
-            }
-        } else if (this.type === 'filter') {
-            if (this.level === 1) {
-                this.maxHealth = 280 * this.healthMultiplier
-                this.currentHealth = this.maxHealth
-                this.damageToEnemies = 8
-            }
-            if (this.level === 2) this.selfRepair = true
-            if (this.level === 3) this.filterMode = true
-        } else if (this.type === 'shield') {
-            if (this.level === 1 || this.level === 2) this.currentHealth = this.maxHealth
-            if (this.level === 2) this.damageToEnemies = 16
-            if (this.level === 3) {
-                this.forceField = true
-                this.maxAttackers = 5
-            }
+        const upgrade = BARRICADE_CATALOG[this.type].upgrades[this.level - 1]
+        if (upgrade) {
+            this.applyStats(upgrade.stats)
+            if (upgrade.restoreHealth) this.currentHealth = this.maxHealth
         }
         this.unlockAbilityByLevel()
     }

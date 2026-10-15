@@ -205,7 +205,7 @@ describe('story scheduling', () => {
                 wave: 0,
                 trigger: 'delay',
                 delay: 10,
-                condition: { flag: 'signal', atLeast: 1 },
+                when: [{ flag: 'signal', atLeast: 1 }],
                 dialog: dialog(),
             },
         ])

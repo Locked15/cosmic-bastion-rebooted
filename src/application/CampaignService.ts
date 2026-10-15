@@ -1,5 +1,17 @@
-import { Campaign, createLevel, type CampaignProgress, type Level, type StoryFlags } from '@/domain'
-import { MISSION_SECTORS } from '@/domain/story/missions'
+import {
+    CAMPAIGN,
+    Campaign,
+    campaignSector,
+    createLevel,
+    flagsMatch,
+    missionIndex,
+    resolveEnding,
+    type CampaignProgress,
+    type EnemyAbility,
+    type EventEffect,
+    type Level,
+    type StoryFlags,
+} from '@/domain'
 import { technologyUnlocks, type TechnologyUnlocks } from '@/domain/story/technology'
 import type { CampaignResolution, LevelSummary, ObjectiveView } from './dto/views'
 import type { KeyValueStore } from './ports/KeyValueStore'
@@ -45,7 +57,7 @@ export class CampaignService {
         return this.campaign.levels.map((entry) => {
             const level = createLevel(entry.id)!
             this.applyStartingConditions(level)
-            const sector = MISSION_SECTORS.find((mission) => mission.id === entry.id)!
+            const sector = campaignSector(entry.id)!
             return {
                 id: entry.id,
                 name: entry.name,
@@ -55,9 +67,11 @@ export class CampaignService {
                 completed: entry.completed,
                 stars: entry.stars,
                 objectives: level.objectives.map((objective) => objective.text),
-                sector: sector.sector,
-                mapX: sector.x,
-                mapY: sector.y,
+                sector: sector.name,
+                code: sector.code,
+                layer: sector.layer,
+                map: { ...sector.map },
+                requires: [...sector.requires],
                 prerequisites: sector.requires.map(
                     (id) => this.campaign.levels.find((candidate) => candidate.id === id)!.name,
                 ),
@@ -73,14 +87,25 @@ export class CampaignService {
     prepareLevel(level: Level): SessionOptions {
         this.applyStartingConditions(level)
         const unlocks = this.unlocks
+        const flags = this.campaign.flags
+        const startEffects: { effect: EventEffect; message?: string }[] = []
+        const excludedAbilities: EnemyAbility[] = []
+        for (const rule of level.carryOver) {
+            if (rule.type === 'effect' && flagsMatch(flags, rule.when))
+                startEffects.push({ effect: rule.effect, message: rule.message })
+            if (rule.type === 'excludeAbility' && flagsMatch(flags, rule.when))
+                excludedAbilities.push(rule.ability)
+        }
         return {
             unlockedTowers: unlocks.towers,
             unlockedBarricades: unlocks.barricades,
             campaignFlags: {
-                ...this.campaign.flags,
-                mission_index: Number(level.id.split('_')[1]),
+                ...flags,
+                mission_index: missionIndex(level.id),
                 tech_upgrade_tier: unlocks.upgradeTier,
             },
+            startEffects,
+            excludedAbilities,
         }
     }
 
@@ -95,7 +120,8 @@ export class CampaignService {
 
     recordResult(levelId: string, report: MissionReport): CampaignResolution {
         const level = createLevel(levelId)
-        if (!level || !this.isUnlocked(levelId)) return { advanced: false, unlocks: [] }
+        if (!level || !this.isUnlocked(levelId))
+            return { advanced: false, unlocks: [], ending: null }
         const before = new Set(this.unlocks.technologies.map((tech) => tech.id))
         for (const [key, value] of Object.entries(report.flags)) {
             if (key !== 'mission_index' && key !== 'tech_upgrade_tier' && Number.isFinite(value)) {
@@ -110,7 +136,10 @@ export class CampaignService {
             .filter((tech) => !before.has(tech.id))
             .map((tech) => tech.name)
         this.save()
-        return { advanced, unlocks }
+        // The finale closes the story either way: a defeat there is an ending too.
+        const ending =
+            levelId === CAMPAIGN.finale ? resolveEnding(report.outcome, this.campaign.flags) : null
+        return { advanced, unlocks, ending }
     }
 
     reset(): void {
@@ -118,17 +147,17 @@ export class CampaignService {
         this.storage.remove(CAMPAIGN_KEY)
     }
 
+    // Carry-over from earlier missions (supplies, survivors) is part of the level data.
     private applyStartingConditions(level: Level): void {
         const flags = this.campaign.flags
-        if (level.id !== 'level_1') level.startingResources += flags.supply_cache ?? 0
-        if (level.id === 'level_3') level.startingResources += flags.lab_supplies ?? 0
-        if (level.id === 'level_4') {
-            level.startingMiners += Math.floor(
-                ((flags.survivors_level_2 ?? 0) + (flags.survivors_level_3 ?? 0)) / 10,
-            )
+        for (const rule of level.carryOver) {
+            if (rule.type !== 'start') continue
+            const sum = rule.flags.reduce((total, flag) => total + (flags[flag] ?? 0), 0)
+            const bonus = Math.max(0, Math.floor(sum / rule.divide))
+            if (rule.stat === 'resources') level.startingResources += bonus
+            if (rule.stat === 'miners') level.startingMiners += bonus
+            if (rule.stat === 'military') level.startingMilitary += bonus
         }
-        if (level.id === 'level_5')
-            level.startingMilitary += Math.floor((flags.survivors_level_4 ?? 0) / 10)
     }
 
     private save(): void {

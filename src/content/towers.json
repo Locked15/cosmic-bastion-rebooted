@@ -1,0 +1,132 @@
+{
+    "cannon": {
+        "name": "Пушка",
+        "description": "Средний урон и скорость",
+        "cost": 50,
+        "stats": { "damage": 15, "range": 120, "fireRate": 60 },
+        "upgrades": [
+            {
+                "cost": 75,
+                "name": "Усиленные снаряды",
+                "description": "Урон увеличен до 25 ед.",
+                "stats": { "damage": 25 }
+            },
+            {
+                "cost": 100,
+                "name": "Быстрая перезарядка",
+                "description": "Интервал между залпами снижен до 40 кадров",
+                "stats": { "fireRate": 40 }
+            },
+            {
+                "cost": 150,
+                "name": "Залповый режим",
+                "description": "Одновременно поражает до 3 целей",
+                "stats": { "multiTarget": true }
+            }
+        ]
+    },
+    "rocket": {
+        "name": "Ракетница",
+        "description": "Урон по площади",
+        "cost": 80,
+        "stats": { "damage": 20, "range": 100, "fireRate": 120, "explosionRadius": 40 },
+        "upgrades": [
+            {
+                "cost": 100,
+                "name": "Осколочные боеголовки",
+                "description": "Урон увеличен до 30 ед.",
+                "stats": { "damage": 30 }
+            },
+            {
+                "cost": 150,
+                "name": "Усиленные ускорители",
+                "description": "Дальность до 150, радиус взрыва до 60 ед.",
+                "stats": { "range": 150, "explosionRadius": 60 }
+            },
+            {
+                "cost": 200,
+                "name": "Шоковая волна",
+                "description": "Отбрасывает поражённых врагов",
+                "stats": { "knockback": true }
+            }
+        ]
+    },
+    "machinegun": {
+        "name": "Пулемёт",
+        "description": "Высокая скорострельность",
+        "cost": 60,
+        "stats": { "damage": 5, "range": 100, "fireRate": 15 },
+        "upgrades": [
+            {
+                "cost": 80,
+                "name": "Синхронные приводы",
+                "description": "Скорострельность повышена на 33%",
+                "stats": { "fireRate": 10 }
+            },
+            {
+                "cost": 120,
+                "name": "Укреплённый калибр",
+                "description": "Урон увеличен до 10 ед.",
+                "stats": { "damage": 10 }
+            },
+            {
+                "cost": 180,
+                "name": "Подавляющий огонь",
+                "description": "Замедляет поражённых врагов",
+                "stats": { "slowEffect": true }
+            }
+        ]
+    },
+    "laser": {
+        "name": "Лазер",
+        "description": "Луч на 1 с, перезарядка 5 с",
+        "cost": 100,
+        "stats": { "damage": 2, "range": 130, "fireRate": 300, "beamDuration": 60 },
+        "upgrades": [
+            {
+                "cost": 120,
+                "name": "Фокусировка луча",
+                "description": "Дальность увеличена до 180 ед.",
+                "stats": { "range": 180 }
+            },
+            {
+                "cost": 180,
+                "name": "Охлаждение ядра",
+                "description": "Перезарядка снижена до 4 с",
+                "stats": { "fireRate": 240 }
+            },
+            {
+                "cost": 250,
+                "name": "Пробивной импульс",
+                "description": "Луч на всю карту по сильнейшему врагу, перезарядка 8 с",
+                "stats": { "piercing": true, "fireRate": 480 }
+            }
+        ]
+    },
+    "shock": {
+        "name": "Электрошок",
+        "description": "Урон всем врагам",
+        "cost": 120,
+        "stats": { "damage": 3, "range": 9999, "fireRate": 90 },
+        "upgrades": [
+            {
+                "cost": 150,
+                "name": "Усиленный разряд",
+                "description": "Урон увеличен до 5 ед.",
+                "stats": { "damage": 5 }
+            },
+            {
+                "cost": 200,
+                "name": "Грозовой конденсатор",
+                "description": "Интервал разрядов снижен до 1 с",
+                "stats": { "fireRate": 60 }
+            },
+            {
+                "cost": 300,
+                "name": "Импульсное оглушение",
+                "description": "Каждые 10 с оглушает группы от 3 врагов на 7 с",
+                "stats": { "stunEffect": true }
+            }
+        ]
+    }
+}

@@ -1,4 +1,7 @@
-import type { EventEffect, LevelEvent, StoryChoice } from '../model/Level'
+import * as v from 'valibot'
+import data from '@/content/events/refugees.json'
+import { count, parseContent, text } from '../content/parse'
+import type { EventEffect, LevelEvent, StoryChoice } from '../levels/schema'
 
 export function choiceEffect(choice: StoryChoice): EventEffect | null {
     return choice.cost
@@ -22,31 +25,70 @@ function people(count: number, forms: [string, string, string]): string {
 const minersText = (count: number) => people(count, ['шахтёр', 'шахтёра', 'шахтёров'])
 const militaryText = (count: number) => people(count, ['военный', 'военных', 'военных'])
 
+const option = v.strictObject({ text, consequence: text })
+const template = parseContent(
+    v.strictObject({
+        wave: count,
+        delay: count,
+        timeLimit: v.pipe(v.number(), v.minValue(7), v.maxValue(15)),
+        title: text,
+        // {miners} and {military} become counted phrases ("6 шахтёров").
+        text,
+        accept: v.strictObject({ ...option.entries, cost: count }),
+        // The redirected group is smaller by the given numbers when it reaches the next sector.
+        redirect: v.strictObject({
+            ...option.entries,
+            cost: count,
+            minersLost: count,
+            militaryLost: count,
+        }),
+        refuse: option,
+    }),
+    data,
+    'content/events/refugees.json',
+)
+
+function fill(pattern: string, values: { miners: number; military: number; cost?: number }) {
+    return pattern
+        .split('{miners}')
+        .join(minersText(values.miners))
+        .split('{military}')
+        .join(militaryText(values.military))
+        .split('{cost}')
+        .join(String(values.cost ?? 0))
+}
+
+// The refugees event from the brief, built from its template in content/events.
 export function refugeeEvent(miners = 6, military = 3, from = 1): LevelEvent {
-    const fewerMiners = Math.max(0, miners - 2)
-    const fewerMilitary = Math.max(0, military - 1)
+    const { accept, redirect, refuse } = template
+    const fewerMiners = Math.max(0, miners - redirect.minersLost)
+    const fewerMilitary = Math.max(0, military - redirect.militaryLost)
     return {
         id: 'refugees',
-        wave: 2,
+        wave: template.wave,
         trigger: 'delay',
-        delay: 180,
+        delay: template.delay,
         dialog: {
             kind: 'full',
-            title: 'БЕЖЕНЦЫ ИЗ СОСЕДНЕГО ОТСЕКА',
-            text: `У шлюза ждут ${minersText(miners)} и ${militaryText(military)}. Поможем им?`,
+            title: template.title,
+            text: fill(template.text, { miners, military }),
             timed: true,
-            timeLimit: 12,
+            timeLimit: template.timeLimit,
             choices: [
                 {
-                    text: 'Принять',
-                    cost: { resources: 80 },
-                    consequence: `Приняты ${minersText(miners)} и ${militaryText(military)}. Потрачено 80 ресурсов.`,
+                    text: accept.text,
+                    cost: { resources: accept.cost },
+                    consequence: fill(accept.consequence, { miners, military, cost: accept.cost }),
                     effect: { type: 'addPersonnel', miners, military },
                 },
                 {
-                    text: 'Перенаправить',
-                    cost: { resources: 30 },
-                    consequence: `В следующем выбранном секторе встретятся ${minersText(fewerMiners)} и ${militaryText(fewerMilitary)}. Потрачено 30 ресурсов.`,
+                    text: redirect.text,
+                    cost: { resources: redirect.cost },
+                    consequence: fill(redirect.consequence, {
+                        miners: fewerMiners,
+                        military: fewerMilitary,
+                        cost: redirect.cost,
+                    }),
                     effect: {
                         type: 'transaction',
                         cost: {},
@@ -62,11 +104,7 @@ export function refugeeEvent(miners = 6, military = 3, from = 1): LevelEvent {
                         ],
                     },
                 },
-                {
-                    text: 'Отказать',
-                    consequence: 'Группа покинула шлюз. Ресурсы и персонал не изменились.',
-                    effect: null,
-                },
+                { text: refuse.text, consequence: refuse.consequence, effect: null },
             ],
         },
     }

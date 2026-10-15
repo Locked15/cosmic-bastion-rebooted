@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Campaign, LEVEL_IDS, createLevel } from '@/domain'
 import { refugeeEvent, choiceEffect, costText } from '../story/events'
 import { technologyUnlocks } from '../story/technology'
-import { MISSION_SECTORS } from '../story/missions'
+import { CAMPAIGN } from '../story/campaign'
 
 describe('story content', () => {
     it.each(LEVEL_IDS)(
@@ -32,7 +32,7 @@ describe('story content', () => {
                 expect(event.dialog.timeLimit).toBeLessThanOrEqual(15)
             }
             const numeric = level.objectives.filter((objective) =>
-                ['max_towers', 'save_reactor', 'no_personnel_loss'].includes(objective.id),
+                ['activeTowers', 'maxBreaches', 'maxLosses', 'towerLevel'].includes(objective.kind),
             )
             for (const objective of numeric) expect(objective.target).toBeGreaterThanOrEqual(0)
         },
@@ -77,9 +77,11 @@ describe('story content', () => {
     })
 
     it('places parallel missions between hull and core and copies campaign flags', () => {
-        expect(MISSION_SECTORS[1]?.requires).toEqual(['level_1'])
-        expect(MISSION_SECTORS[2]?.requires).toEqual(['level_1'])
-        expect(MISSION_SECTORS[0]!.y).toBeLessThan(MISSION_SECTORS[4]!.y)
+        const sector = (id: string) => CAMPAIGN.sectors.find((entry) => entry.level === id)!
+        expect(sector('level_2').requires).toEqual(['level_1'])
+        expect(sector('level_3').requires).toEqual(['level_1'])
+        expect(sector('level_1').layer).toBe('outer')
+        expect(sector(CAMPAIGN.finale).layer).toBe('core')
         const campaign = new Campaign()
         campaign.flags.refugees_pending = 1
         const saved = campaign.toProgress()

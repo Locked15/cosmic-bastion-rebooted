@@ -90,3 +90,20 @@ describe('CheckpointService with broken barricades', () => {
         expect(resumed.repair(resumed.barricades[0]!.id).ok).toBe(true)
     })
 })
+
+describe('CheckpointService content version', () => {
+    it('ignores saves made for other level content', () => {
+        const storage = new MemoryStore()
+        const service = new CheckpointService(storage)
+        const session = newSession()
+        settle(session)
+        expect(service.save(session)).toBe(true)
+        expect(service.savedWave('level_1')).toBe(0)
+        const saved = storage.read<{ content?: number }>('checkpoint:level_1')!
+        storage.write('checkpoint:level_1', { ...saved, content: undefined })
+        expect(service.savedWave('level_1')).toBe(0)
+        storage.write('checkpoint:level_1', { ...saved, content: 999 })
+        expect(service.savedWave('level_1')).toBeNull()
+        expect(service.restore(newSession())).toBe(false)
+    })
+})

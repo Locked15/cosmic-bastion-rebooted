@@ -1,78 +1,61 @@
-export type TowerType = 'cannon' | 'rocket' | 'machinegun' | 'laser' | 'shock'
-export interface TowerCatalogEntry {
-    name: string
-    description: string
-    cost: number
-    upgradeCosts: [number, number, number]
-    benefits: Record<1 | 2 | 3, { name: string; description: string }>
-}
+import * as v from 'valibot'
+import data from '@/content/towers.json'
+import { count, parseContent, positive, recordOf, text } from '../content/parse'
+
+// Each tower type has its own behaviour in code (model/Tower.ts); numbers and texts are data.
+export const TOWER_TYPES = ['cannon', 'rocket', 'machinegun', 'laser', 'shock'] as const
+export type TowerType = (typeof TOWER_TYPES)[number]
 export const TOWER_MAX_LEVEL = 3
-export const TOWER_CATALOG: Record<TowerType, TowerCatalogEntry> = {
-    cannon: {
-        name: 'Пушка',
-        description: 'Средний урон и скорость',
-        cost: 50,
-        upgradeCosts: [75, 100, 150],
+
+// Stats a tower starts with or an upgrade sets. Flags switch on behaviour of the tower type.
+const statsSchema = v.strictObject({
+    damage: v.optional(positive),
+    range: v.optional(positive),
+    fireRate: v.optional(positive),
+    explosionRadius: v.optional(positive),
+    beamDuration: v.optional(positive),
+    multiTarget: v.optional(v.boolean()),
+    knockback: v.optional(v.boolean()),
+    slowEffect: v.optional(v.boolean()),
+    piercing: v.optional(v.boolean()),
+    stunEffect: v.optional(v.boolean()),
+})
+export type TowerStats = v.InferOutput<typeof statsSchema>
+
+const upgradeSchema = v.strictObject({
+    cost: count,
+    name: text,
+    description: text,
+    stats: statsSchema,
+})
+
+const entrySchema = v.pipe(
+    v.strictObject({
+        name: text,
+        description: text,
+        cost: count,
+        stats: v.strictObject({
+            ...statsSchema.entries,
+            damage: positive,
+            range: positive,
+            fireRate: positive,
+        }),
+        upgrades: v.tuple([upgradeSchema, upgradeSchema, upgradeSchema]),
+    }),
+    v.transform((entry) => ({
+        ...entry,
+        upgradeCosts: entry.upgrades.map((upgrade) => upgrade.cost) as [number, number, number],
         benefits: {
-            1: { name: 'Усиленные снаряды', description: 'Урон увеличен до 25 ед.' },
-            2: {
-                name: 'Быстрая перезарядка',
-                description: 'Интервал между залпами снижен до 40 кадров',
-            },
-            3: { name: 'Залповый режим', description: 'Одновременно поражает до 3 целей' },
+            1: entry.upgrades[0],
+            2: entry.upgrades[1],
+            3: entry.upgrades[2],
         },
-    },
-    rocket: {
-        name: 'Ракетница',
-        description: 'Урон по площади',
-        cost: 80,
-        upgradeCosts: [100, 150, 200],
-        benefits: {
-            1: { name: 'Осколочные боеголовки', description: 'Урон увеличен до 30 ед.' },
-            2: {
-                name: 'Усиленные ускорители',
-                description: 'Дальность до 150, радиус взрыва до 60 ед.',
-            },
-            3: { name: 'Шоковая волна', description: 'Отбрасывает поражённых врагов' },
-        },
-    },
-    machinegun: {
-        name: 'Пулемёт',
-        description: 'Высокая скорострельность',
-        cost: 60,
-        upgradeCosts: [80, 120, 180],
-        benefits: {
-            1: { name: 'Синхронные приводы', description: 'Скорострельность повышена на 33%' },
-            2: { name: 'Укреплённый калибр', description: 'Урон увеличен до 10 ед.' },
-            3: { name: 'Подавляющий огонь', description: 'Замедляет поражённых врагов' },
-        },
-    },
-    laser: {
-        name: 'Лазер',
-        description: 'Луч на 1 с, перезарядка 5 с',
-        cost: 100,
-        upgradeCosts: [120, 180, 250],
-        benefits: {
-            1: { name: 'Фокусировка луча', description: 'Дальность увеличена до 180 ед.' },
-            2: { name: 'Охлаждение ядра', description: 'Перезарядка снижена до 4 с' },
-            3: {
-                name: 'Пробивной импульс',
-                description: 'Луч на всю карту по сильнейшему врагу, перезарядка 8 с',
-            },
-        },
-    },
-    shock: {
-        name: 'Электрошок',
-        description: 'Урон всем врагам',
-        cost: 120,
-        upgradeCosts: [150, 200, 300],
-        benefits: {
-            1: { name: 'Усиленный разряд', description: 'Урон увеличен до 5 ед.' },
-            2: { name: 'Грозовой конденсатор', description: 'Интервал разрядов снижен до 1 с' },
-            3: {
-                name: 'Импульсное оглушение',
-                description: 'Каждые 10 с оглушает группы от 3 врагов на 7 с',
-            },
-        },
-    },
-}
+    })),
+)
+export type TowerCatalogEntry = v.InferOutput<typeof entrySchema>
+
+export const TOWER_CATALOG: Record<TowerType, TowerCatalogEntry> = parseContent(
+    recordOf(TOWER_TYPES, entrySchema),
+    data,
+    'content/towers.json',
+)

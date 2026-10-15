@@ -130,6 +130,7 @@ export const useGameStore = defineStore('game', () => {
         const next = presentSession(session)
         if (next.result && resolution) {
             next.result.unlocks = resolution.unlocks
+            next.result.ending = resolution.ending
         }
         snapshot.value = next
     }

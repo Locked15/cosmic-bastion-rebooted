@@ -17,6 +17,7 @@ import {
     type BarricadeType,
     type DifficultyId,
     type Enemy,
+    type EnemyAbility,
     type EventEffect,
     type Level,
     type PersonType,
@@ -28,7 +29,7 @@ import {
 import type { BuildCategory, GameStatus, GameView } from '../dto/views'
 import { applyEffect, canAfford } from './effects'
 import { LivingQuarters } from './livingQuarters'
-import { ObjectiveTracker } from './objectives'
+import { ObjectiveTracker, type ObjectiveEvent } from './objectives'
 import { Personnel } from './personnel'
 import type { Scene, ScenePointer } from './scene'
 import { StoryDirector, type ActiveDialog } from './story'
@@ -54,6 +55,10 @@ export interface SessionOptions {
     // Story flags carried over from earlier levels (choices, redirected refugees, …).
     campaignFlags?: Readonly<Record<string, number>>
     difficulty?: DifficultyId
+    // Consequences of earlier missions applied when the level starts.
+    startEffects?: readonly { effect: EventEffect; message?: string }[]
+    // Enemy abilities that never appear in this run.
+    excludedAbilities?: readonly EnemyAbility[]
 }
 
 export const DEFAULT_TOWERS: readonly TowerType[] = ['cannon', 'machinegun', 'rocket']
@@ -94,6 +99,7 @@ export class GameSession implements Scene {
     readonly objectives: ObjectiveTracker
     readonly unlockedTowers: readonly TowerType[]
     readonly unlockedBarricades: readonly BarricadeType[]
+    readonly excludedAbilities: readonly EnemyAbility[]
 
     resources: number
     resourceRate = 0
@@ -135,6 +141,7 @@ export class GameSession implements Scene {
         this.difficulty = options.difficulty ?? DEFAULT_DIFFICULTY
         this.unlockedTowers = options.unlockedTowers ?? DEFAULT_TOWERS
         this.unlockedBarricades = options.unlockedBarricades ?? DEFAULT_BARRICADES
+        this.excludedAbilities = options.excludedAbilities ?? []
         this.objectives = new ObjectiveTracker(level)
         this.resources = level.startingResources
         this.personnel = new Personnel(level, rng, level.startingMiners, level.startingMilitary)
@@ -150,6 +157,10 @@ export class GameSession implements Scene {
         this.slots = level.towerSlots.map(
             (slot) => new TowerSlot(rng.id('slot'), slot.x, slot.y, slot.type),
         )
+        for (const { effect, message } of options.startEffects ?? []) {
+            applyEffect(this, effect)
+            if (message) this.messages.push(message)
+        }
         this.story.onWaveStart(0)
     }
 
@@ -282,7 +293,9 @@ export class GameSession implements Scene {
         this.currentWave++
         this.waveInProgress = true
         const path = this.level.getCurrentPath(this.barricades)
-        const wave = generateWave(this.currentWave, this.level.waveDifficulty, this.rng)
+        const wave = generateWave(this.currentWave, this.level.waveDifficulty, this.rng, {
+            excludedAbilities: this.excludedAbilities,
+        })
         for (const enemy of wave) enemy.setPath(path)
         this.enemies.push(...wave)
         this.story.onWaveStart(this.currentWave)
@@ -529,10 +542,10 @@ export class GameSession implements Scene {
             if (enemy.alive && enemy.spawned) enemy.prepareCombat(towers, this.rng)
         }
         for (const slot of this.slots) {
-            if (slot.updateConstruction(military, dt)) this.completeObjective('repair_tower')
+            if (slot.updateConstruction(military, dt)) this.notifyObjectives('buildTower')
             const tower = slot.tower
             if (!tower) continue
-            if (tower.updateUpgrade(military, dt)) this.completeObjective('upgrade_tower')
+            tower.updateUpgrade(military, dt)
             tower.damageMultiplier = this.damageMultiplier
             // Towers hold fire while the living quarters are under attack.
             if (!quartersUnderAttack) tower.update(dt, this.enemies, this.rng)
@@ -543,7 +556,7 @@ export class GameSession implements Scene {
     private updateBarricades(dt: number): void {
         for (const barricade of this.barricades) {
             if (barricade.building && barricade.updateBuild(this.personnel.military, dt)) {
-                this.completeObjective('build_barricade')
+                this.notifyObjectives('buildBarricade')
             }
             barricade.setHealthMultiplier(this.barricadeMultiplier)
             barricade.updateUpgrade(this.personnel.military, dt)
@@ -709,15 +722,15 @@ export class GameSession implements Scene {
 
     private finish(outcome: 'victory' | 'defeat', reason: string): void {
         if (this.ended) return
-        if (outcome === 'victory') this.completeObjective('survive')
+        if (outcome === 'victory') this.notifyObjectives('survive')
         this.status = outcome
         this.result = { outcome, reason }
         this.story.close()
     }
 
-    private completeObjective(id: string): void {
-        const text = this.objectives.complete(id)
-        if (text) this.messages.push(`Задача выполнена: ${text}`)
+    private notifyObjectives(event: ObjectiveEvent): void {
+        for (const text of this.objectives.notify(event))
+            this.messages.push(`Задача выполнена: ${text}`)
     }
 }
 

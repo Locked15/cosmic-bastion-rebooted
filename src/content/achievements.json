@@ -1,0 +1,35 @@
+[
+    {
+        "id": "firstBlood",
+        "title": "Первая кровь",
+        "description": "Уничтожить первого врага",
+        "when": [{ "fact": "killed", "atLeast": 1 }]
+    },
+    {
+        "id": "builder",
+        "title": "Строитель",
+        "description": "Иметь 5 активных башен",
+        "when": [{ "fact": "activeTowers", "atLeast": 5 }]
+    },
+    {
+        "id": "survivor",
+        "title": "Выживший",
+        "description": "Пройти уровень без потерь",
+        "when": [
+            { "fact": "victory", "atLeast": 1 },
+            { "fact": "personnelLost", "atMost": 0 }
+        ]
+    },
+    {
+        "id": "economist",
+        "title": "Экономист",
+        "description": "Собрать 1000 ресурсов за уровень",
+        "when": [{ "fact": "gathered", "atLeast": 1000 }]
+    },
+    {
+        "id": "general",
+        "title": "Генерал",
+        "description": "Иметь 20+ военных одновременно",
+        "when": [{ "fact": "military", "atLeast": 20 }]
+    }
+]

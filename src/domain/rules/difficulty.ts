@@ -1,55 +1,35 @@
-export type DifficultyId = 'simple' | 'modest' | 'complex' | 'xhard'
+import * as v from 'valibot'
+import data from '@/content/difficulties.json'
+import { count, parseContent, positive, recordOf, text } from '../content/parse'
 
-export interface Difficulty {
-    label: string
+export const DIFFICULTY_IDS = ['simple', 'modest', 'complex', 'xhard'] as const
+export type DifficultyId = (typeof DIFFICULTY_IDS)[number]
+
+const difficultySchema = v.strictObject({
+    label: text,
     // Flavour text shown in the settings for the selected level.
-    description: string
+    description: text,
     // Multiplies every enemy's health.
-    health: number
+    health: positive,
     // Multiplies every enemy's movement speed.
-    speed: number
+    speed: positive,
     // Enemies that may break into the living quarters before the level is lost.
-    maxBreakthroughs: number
-}
+    maxBreakthroughs: v.pipe(count, v.minValue(1)),
+})
+export type Difficulty = v.InferOutput<typeof difficultySchema>
 
-export const DIFFICULTIES: Record<DifficultyId, Difficulty> = {
-    simple: {
-        label: 'Рядовой',
-        description:
-            'Учебная тревога для новобранцев. Твари вялые и хрупкие, а жилой отсек выдержит не один прорыв — есть время освоиться с орудиями и баррикадами.',
-        health: 0.7,
-        speed: 0.85,
-        maxBreakthroughs: 15,
-    },
-    modest: {
-        label: 'Лейтенант',
-        description:
-            'Штатный режим обороны. Рой бьёт в полную силу, но экипаж знает своё дело: каждая ошибка заметна, но ещё не смертельна.',
-        health: 1,
-        speed: 1,
-        maxBreakthroughs: 10,
-    },
-    complex: {
-        label: 'Майор',
-        description:
-            'Улей адаптировался: существа живучее и быстрее, а оборона отсека трещит по швам. Баррикады и улучшения нужны с первых волн.',
-        health: 1.35,
-        speed: 1.15,
-        maxBreakthroughs: 6,
-    },
-    xhard: {
-        label: 'Генерал',
-        description:
-            'Последний рубеж. Рой стремителен и почти неуязвим, жилой отсек падёт после нескольких прорывов. Ошибок командование не прощает.',
-        health: 1.8,
-        speed: 1.3,
-        maxBreakthroughs: 3,
-    },
-}
+const content = parseContent(
+    v.strictObject({
+        default: v.picklist(DIFFICULTY_IDS),
+        levels: recordOf(DIFFICULTY_IDS, difficultySchema),
+    }),
+    data,
+    'content/difficulties.json',
+)
 
-export const DIFFICULTY_IDS = Object.keys(DIFFICULTIES) as DifficultyId[]
+export const DIFFICULTIES: Record<DifficultyId, Difficulty> = content.levels
 
-export const DEFAULT_DIFFICULTY: DifficultyId = 'modest'
+export const DEFAULT_DIFFICULTY: DifficultyId = content.default
 
 export function isDifficultyId(value: unknown): value is DifficultyId {
     return typeof value === 'string' && value in DIFFICULTIES

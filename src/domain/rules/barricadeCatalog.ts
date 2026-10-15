@@ -1,75 +1,62 @@
-export type BarricadeType = 'wall' | 'filter' | 'shield'
-export interface BarricadeCatalogEntry {
-    name: string
-    description: string
-    cost: number
-    upgradeCosts: [number, number, number]
-    benefits: Record<1 | 2 | 3, { name: string; description: string }>
-}
+import * as v from 'valibot'
+import data from '@/content/barricades.json'
+import { count, parseContent, positive, recordOf, text } from '../content/parse'
+
+export const BARRICADE_TYPES = ['wall', 'filter', 'shield'] as const
+export type BarricadeType = (typeof BARRICADE_TYPES)[number]
 export const BARRICADE_MAX_LEVEL = 3
 export const BARRICADE_SIZE = 40
-export const BARRICADE_CATALOG: Record<BarricadeType, BarricadeCatalogEntry> = {
-    wall: {
-        name: 'Стена',
-        description: 'Блокирует путь',
-        cost: 30,
-        upgradeCosts: [50, 80, 120],
+
+// Stats a barricade starts with or an upgrade sets. Flags switch on behaviour.
+const statsSchema = v.strictObject({
+    maxHealth: v.optional(positive),
+    buildTime: v.optional(positive),
+    damageMitigation: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1))),
+    damageToEnemies: v.optional(positive),
+    filterSlowMultiplier: v.optional(v.pipe(v.number(), v.minValue(0), v.maxValue(1))),
+    pushBackStrength: v.optional(positive),
+    maxAttackers: v.optional(count),
+    selfRepair: v.optional(v.boolean()),
+    knockbackEnemies: v.optional(v.boolean()),
+    filterMode: v.optional(v.boolean()),
+    forceField: v.optional(v.boolean()),
+})
+export type BarricadeStats = v.InferOutput<typeof statsSchema>
+
+const upgradeSchema = v.strictObject({
+    cost: count,
+    name: text,
+    description: text,
+    stats: statsSchema,
+    // Refill durability to the (new) maximum when the upgrade completes.
+    restoreHealth: v.optional(v.boolean(), false),
+})
+
+const entrySchema = v.pipe(
+    v.strictObject({
+        name: text,
+        description: text,
+        cost: count,
+        stats: v.strictObject({ ...statsSchema.entries, maxHealth: positive, buildTime: positive }),
+        upgrades: v.tuple([upgradeSchema, upgradeSchema, upgradeSchema]),
+    }),
+    v.transform((entry) => ({
+        ...entry,
+        upgradeCosts: entry.upgrades.map((upgrade) => upgrade.cost) as [number, number, number],
         benefits: {
-            1: {
-                name: 'Усиленная обшивка',
-                description: 'Прочность увеличена, враги задерживаются дольше',
-            },
-            2: {
-                name: 'Самопочинка',
-                description: 'Восстанавливает 5% прочности каждые 5 с',
-            },
-            3: {
-                name: 'Отбрасывающий барьер',
-                description: 'Каждые 5 с отбрасывает остановившихся врагов по пути',
-            },
+            1: entry.upgrades[0],
+            2: entry.upgrades[1],
+            3: entry.upgrades[2],
         },
-    },
-    filter: {
-        name: 'Фильтр',
-        description: 'Пропускает слабых врагов',
-        cost: 40,
-        upgradeCosts: [60, 100, 150],
-        benefits: {
-            1: {
-                name: 'Коррозийные решётки',
-                description: 'Сильнее замедляет врагов и наносит им урон',
-            },
-            2: {
-                name: 'Автоочистка',
-                description: 'Восстанавливает 5% прочности каждые 5 с',
-            },
-            3: {
-                name: 'Интеллектуальный пропуск',
-                description: 'Малые враги проходят с замедлением на 5 с, остальные ломают фильтр',
-            },
-        },
-    },
-    shield: {
-        name: 'Щит',
-        description: 'Очень прочный барьер',
-        cost: 80,
-        upgradeCosts: [100, 150, 250],
-        benefits: {
-            1: {
-                name: 'Статический регенератор',
-                description: 'Полностью восстанавливает прочность',
-            },
-            2: {
-                name: 'Усиленная матрица',
-                description: 'Полностью восстанавливает прочность и повышает урон',
-            },
-            3: {
-                name: 'Силовое поле',
-                description: 'Только первые 5 остановившихся врагов могут наносить урон',
-            },
-        },
-    },
-}
+    })),
+)
+export type BarricadeCatalogEntry = v.InferOutput<typeof entrySchema>
+
+export const BARRICADE_CATALOG: Record<BarricadeType, BarricadeCatalogEntry> = parseContent(
+    recordOf(BARRICADE_TYPES, entrySchema),
+    data,
+    'content/barricades.json',
+)
 
 // Rebuilding a destroyed barricade costs 75% of a new one.
 export const BARRICADE_REPAIR_RATE = 0.75

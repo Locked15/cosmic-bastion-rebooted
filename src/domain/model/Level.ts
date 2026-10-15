@@ -1,82 +1,37 @@
 import { lineIntersectsRect, projectOntoPath } from '../geometry'
 import type { Point, Rect } from '../geometry'
-import type { TowerType } from '../rules/towerCatalog'
-import type { BarricadeType } from '../rules/barricadeCatalog'
+import type { CarryOver, LevelDefinition, LevelEvent, Objective } from '../levels/schema'
 import type { Barricade } from './Barricade'
 
-export interface EventCost {
-    resources?: number
-    miners?: number
-    military?: number
-}
+export type {
+    CarryOver,
+    EventCost,
+    EventEffect,
+    FlagCondition,
+    LevelDefinition,
+    LevelEvent,
+    Objective,
+    ObjectiveKind,
+    StoryChoice,
+    StoryDialog,
+    StoryFlags,
+} from '../levels/schema'
 
-export type StoryFlags = Record<string, number>
+export type TowerSlotData = LevelDefinition['towerSlots'][number]
 
-export type EventEffect =
-    | { type: 'transaction'; cost: EventCost; effects: EventEffect[] }
-    | { type: 'flag'; name: string; value: number }
-    | { type: 'unlockTower'; tower: TowerType }
-    | { type: 'unlockBarricade'; barricade: BarricadeType }
-    | { type: 'resources'; value: number; military?: number }
-    | { type: 'convert'; count: number }
-    | { type: 'addMilitary'; count: number }
-    | { type: 'addMiners'; count: number }
-    | { type: 'addPersonnel'; miners: number; military: number }
-    | { type: 'removeMilitary'; count: number; resources: number }
-    | { type: 'emergency'; resources: number; military: number }
-    | { type: 'buffDamage'; value: number }
-    | { type: 'buffBarricades'; value: number }
-    | { type: 'superWeapon'; military: number; killPercent: number }
-export interface StoryChoice {
-    text: string
-    cost?: EventCost
-    consequence?: string
-    effect: EventEffect | null
-}
-export interface StoryDialog {
-    kind: 'full' | 'partial' | 'unknown'
-    title: string
-    text: string
-    choices: StoryChoice[]
-    timed: boolean
-    // Seconds of real time; clamped to 7–15 by the story director.
-    timeLimit?: number
-}
-export interface LevelEvent {
-    id?: string
-    wave: number
-    trigger: 'start' | 'delay'
-    // Real-time frames since this wave began (60 fps); pause stops the clock.
-    delay?: number
-    condition?: { flag: string; atLeast: number }
-    dialog: StoryDialog
-}
-export interface Objective {
-    id: string
-    text: string
-    completed: boolean
-    target?: number
-}
-export interface TowerSlotData extends Point {
-    type: TowerType
-}
 // How far from the track centerline a click may be to place a barricade on it.
 export const TRACK_SNAP_RADIUS = 30
 
+// A level being played: a fresh copy of its definition plus the objectives' progress.
 export class Level {
     width = 1200
     height = 700
-    corridorHeight = 450
     livingQuartersY = 450
     basePath: Point[] = []
     alternativePaths: Point[][] = []
     corridors: Rect[] = []
-    spawnPoints: Point[] = []
-    exitPoints: Point[] = []
     towerSlots: TowerSlotData[] = []
-    barricadeSlots: Rect[] = []
     totalWaves = 5
-    currentWave = 0
     waveDifficulty = 1
     startingMiners = 10
     startingMilitary = 5
@@ -84,15 +39,36 @@ export class Level {
     objectives: Objective[] = []
     objectivesCompleted: Record<string, boolean> = {}
     events: LevelEvent[] = []
-    completed = false
-    locked = false
-    stars = 0
+    carryOver: CarryOver[] = []
     constructor(
         public id: string,
         public name: string,
         public description: string,
         public type: 'story' | 'normal' = 'normal',
     ) {}
+
+    // Every call returns an independent copy, so a session may change its level freely.
+    static fromDefinition(definition: LevelDefinition): Level {
+        const data = structuredClone(definition)
+        const level = new Level(data.id, data.name, data.description, data.type)
+        level.width = data.width
+        level.height = data.height
+        level.livingQuartersY = data.livingQuartersY
+        level.basePath = data.paths.base
+        level.alternativePaths = data.paths.alternatives
+        level.corridors = data.corridors
+        level.towerSlots = data.towerSlots
+        level.totalWaves = data.waves.total
+        level.waveDifficulty = data.waves.difficulty
+        level.startingMiners = data.start.miners
+        level.startingMilitary = data.start.military
+        level.startingResources = data.start.resources
+        level.objectives = data.objectives.map((objective) => ({ ...objective, completed: false }))
+        level.events = data.events
+        level.carryOver = data.carryOver
+        return level
+    }
+
     getCurrentPath(barricades: Barricade[]): Point[] {
         for (const barricade of barricades) {
             if (barricade.active && this.pathIntersectsBarricade(this.basePath, barricade)) {

@@ -1,0 +1,214 @@
+{
+    "id": "level_3",
+    "name": "СЕКТОР C-9: УМНАЯ УГРОЗА",
+    "description": "Существа адаптируются. Требуется новая тактика.",
+    "type": "story",
+    "width": 1600,
+    "height": 900,
+    "livingQuartersY": 550,
+    "paths": {
+        "base": [
+            { "x": 100, "y": 240 },
+            { "x": 200, "y": 160 },
+            { "x": 320, "y": 260 },
+            { "x": 430, "y": 150 },
+            { "x": 540, "y": 270 },
+            { "x": 650, "y": 160 },
+            { "x": 760, "y": 280 },
+            { "x": 870, "y": 170 },
+            { "x": 990, "y": 280 },
+            { "x": 1100, "y": 180 },
+            { "x": 1220, "y": 290 },
+            { "x": 1330, "y": 200 },
+            { "x": 1430, "y": 310 },
+            { "x": 1500, "y": 360 },
+            { "x": 1500, "y": 600 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 80, "y": 150, "width": 1450, "height": 250 }],
+    "towerSlots": [
+        { "x": 200, "y": 225, "type": "cannon" },
+        { "x": 320, "y": 175, "type": "laser" },
+        { "x": 430, "y": 225, "type": "rocket" },
+        { "x": 565, "y": 175, "type": "machinegun" },
+        { "x": 760, "y": 205, "type": "shock" },
+        { "x": 880, "y": 250, "type": "cannon" },
+        { "x": 1040, "y": 300, "type": "laser" },
+        { "x": 1155, "y": 300, "type": "rocket" }
+    ],
+    "start": { "miners": 18, "military": 10, "resources": 350 },
+    "waves": { "total": 6, "difficulty": 1 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "upgrade_tower",
+            "text": "Улучшить башню до 3 уровня",
+            "kind": "towerLevel",
+            "target": 2
+        },
+        {
+            "id": "max_towers",
+            "text": "Иметь минимум 6 активных башен",
+            "kind": "activeTowers",
+            "target": 6
+        },
+        {
+            "id": "save_scientist",
+            "text": "Эвакуировать доктора Сильву",
+            "kind": "flag",
+            "flag": "scientist_saved"
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "ДОКТОР СИЛЬВА",
+                "text": "Существа меняются и учатся. Лаборатория должна передать данные ядру.",
+                "choices": [
+                    {
+                        "text": "Подготовить лабораторию",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ВЫБОР: ТЕХНОЛОГИЯ",
+                "text": "Инженеры разработали два прототипа. Что выбрать?",
+                "choices": [
+                    {
+                        "text": "Испытать лазерный щит",
+                        "effect": { "type": "unlockBarricade", "barricade": "shield" },
+                        "consequence": "Лазерный щит открыт для следующих миссий раньше срока. Потрачено 100 ресурсов.",
+                        "cost": { "resources": 100 }
+                    },
+                    {
+                        "text": "Усилить снаряды",
+                        "effect": { "type": "buffDamage", "value": 1.3 },
+                        "consequence": "Урон всех башен увеличен на 30%."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "delay",
+            "delay": 240,
+            "dialog": {
+                "kind": "full",
+                "title": "ЭВАКУАЦИЯ СИЛЬВЫ",
+                "text": "Доктор готова покинуть лабораторию вместе с данными.",
+                "choices": [
+                    {
+                        "text": "Обеспечить эвакуацию",
+                        "effect": { "type": "flag", "name": "scientist_saved", "value": 1 },
+                        "consequence": "Сильва спасена. Сюжет продолжится даже при потере лаборатории.",
+                        "cost": { "resources": 80 }
+                    },
+                    {
+                        "text": "Продолжить исследования",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "dialog": {
+                "kind": "partial",
+                "title": "СОСЕДНИЙ СЕКТОР",
+                "text": "Сектор D-4 предлагает обмен подкреплением.",
+                "choices": [
+                    {
+                        "text": "Отправить военных",
+                        "effect": { "type": "removeMilitary", "count": 3, "resources": 100 },
+                        "consequence": "3 военных отправлены в D-4. Получено 100 ресурсов."
+                    },
+                    {
+                        "text": "Отправить ресурсы",
+                        "effect": { "type": "resources", "value": -120, "military": 4 },
+                        "consequence": "Потрачено 120 ресурсов. Прибыли 4 военных."
+                    },
+                    {
+                        "text": "Отказать",
+                        "effect": null,
+                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "КРИТИЧЕСКАЯ СИТУАЦИЯ",
+                "text": "Нужны срочные меры для обороны.",
+                "choices": [
+                    {
+                        "text": "Активировать резервы",
+                        "effect": { "type": "emergency", "resources": 150, "military": 3 },
+                        "consequence": "Получено 150 ресурсов и 3 военных."
+                    },
+                    {
+                        "text": "Перегрузить башни",
+                        "effect": { "type": "buffDamage", "value": 1.6 },
+                        "consequence": "Урон башен увеличен на 60%."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 7
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "delay",
+            "delay": 120,
+            "when": [{ "flag": "archive_signal", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ОТВЕТ АРХИВА",
+                "text": "Расшифрован прежний сигнал. Архив выделяет аварийный резерв.",
+                "choices": [
+                    {
+                        "text": "Принять резерв",
+                        "effect": { "type": "resources", "value": 100 },
+                        "consequence": "Получено 100 ресурсов."
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["lab_supplies"]
+        }
+    ]
+}

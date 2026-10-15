@@ -79,14 +79,23 @@ export interface ObjectiveView {
     completed: boolean
 }
 
+export interface EndingView {
+    id: string
+    title: string
+    paragraphs: string[]
+}
+
 export interface CampaignResolution {
     advanced: boolean
     unlocks: string[]
+    // Set after the finale: the campaign's ending.
+    ending: EndingView | null
 }
 
 export interface ResultView {
     objectives: ObjectiveView[]
     unlocks: string[]
+    ending: EndingView | null
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]
@@ -113,10 +122,23 @@ export interface GameSnapshot {
     result: ResultView | null
 }
 
+export interface MapRect {
+    x: number
+    y: number
+    width: number
+    height: number
+}
+
 export interface LevelSummary {
     sector: string
-    mapX: number
-    mapY: number
+    // Deck code on the ship map (A-7…).
+    code: string
+    layer: 'outer' | 'living' | 'core'
+    // Room outline on the ship map.
+    map: MapRect
+    // Ids of the levels whose victory opens this one.
+    requires: string[]
+    // Their names, for the mission panel.
     prerequisites: string[]
     id: string
     name: string

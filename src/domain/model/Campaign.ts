@@ -1,5 +1,5 @@
-import { LEVEL_IDS, createLevel } from '../levels/registry'
-import { MISSION_SECTORS } from '../story/missions'
+import { levelDefinition } from '../levels/registry'
+import { CAMPAIGN } from '../story/campaign'
 import type { StoryFlags } from './Level'
 export interface LevelSummary {
     id: string
@@ -36,10 +36,10 @@ export class Campaign {
             Number.isFinite(stars) ? Math.max(0, Math.min(3, Math.floor(stars))) : 0,
         )
         if (!this.completedLevels.includes(id)) this.completedLevels.push(id)
-        for (const mission of MISSION_SECTORS) {
-            const entry = this.levels.find((candidate) => candidate.id === mission.id)
+        for (const sector of CAMPAIGN.sectors) {
+            const entry = this.levels.find((candidate) => candidate.id === sector.level)
             if (entry)
-                entry.locked = !mission.requires.every((id) => this.completedLevels.includes(id))
+                entry.locked = !sector.requires.every((id) => this.completedLevels.includes(id))
         }
         this.totalStars = this.levels.reduce((sum, entry) => sum + entry.stars, 0)
     }
@@ -91,16 +91,16 @@ export class Campaign {
         return campaign
     }
     reset(): void {
-        this.levels = LEVEL_IDS.map((id, index) => {
-            const level = createLevel(id)!
+        this.levels = CAMPAIGN.sectors.map((sector) => {
+            const level = levelDefinition(sector.level)!
             return {
-                id,
+                id: level.id,
                 name: level.name,
                 description: level.description,
                 type: level.type,
                 completed: false,
                 stars: 0,
-                locked: index > 0,
+                locked: sector.requires.length > 0,
             }
         })
         this.currentLevelIndex = 0
