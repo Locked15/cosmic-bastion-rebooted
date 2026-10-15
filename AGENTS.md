@@ -85,6 +85,10 @@ Key rules:
 - Tests: Vitest specs live next to the code in `__tests__/`; e2e specs live in `e2e/`.
 - Commits follow Conventional Commits: `feat(scope): …`, `fix: …`, `refactor: …`, `test: …`, `docs: …`, `chore: …`.
 
+## Story
+
+Story content (levels, events, characters, names) follows the story bible in `docs/LORE.md`.
+
 ## Known gaps
 
 See `TODO.md`.
