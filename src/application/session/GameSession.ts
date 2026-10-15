@@ -6,6 +6,7 @@ import {
     DEFAULT_DIFFICULTY,
     DIFFICULTIES,
     SWARM_MEMORY_RULES,
+    assignRoutes,
     sectorDepth,
     TOWER_CATALOG,
     barricadeRepairCost,
@@ -224,6 +225,16 @@ export class GameSession implements Scene {
         return DIFFICULTIES[this.difficulty].maxBreakthroughs + this.bonuses.breakthroughs
     }
 
+    // Whether the rank sends a boss (Средоточие) on this wave of the level.
+    bossOnWave(wave: number): boolean {
+        const bosses = DIFFICULTIES[this.difficulty].bosses
+        return (
+            this.depth >= bosses.minDepth &&
+            ((bosses.finalWave && wave === this.level.totalWaves) ||
+                (bosses.every !== null && wave % bosses.every === 0))
+        )
+    }
+
     get refundRate(): number {
         return DIFFICULTIES[this.difficulty].refundRate
     }
@@ -371,19 +382,21 @@ export class GameSession implements Scene {
         this.waveInProgress = true
         this.waveKills.clear()
         const bosses = DIFFICULTIES[this.difficulty].bosses
-        const path = this.level.getCurrentPath(this.barricades)
         const wave = generateWave(this.currentWave, this.level.waveDifficulty, this.rng, {
             excludedAbilities: this.excludedAbilities,
             boss: {
-                onThisWave:
-                    this.depth >= bosses.minDepth &&
-                    ((bosses.finalWave && this.currentWave === this.level.totalWaves) ||
-                        (bosses.every !== null && this.currentWave % bosses.every === 0)),
+                onThisWave: this.bossOnWave(this.currentWave),
                 abilities: bosses.abilities,
                 banned: bosses.banned,
             },
         })
-        for (const enemy of wave) enemy.setPath(path)
+        const blockers = this.barricades.filter((barricade) => barricade.active)
+        const routes = assignRoutes(this.level, this.currentWave, wave, blockers, this.rng)
+        wave.forEach((enemy, index) => enemy.setPath(routes[index]!.points))
+        for (const route of this.level.routes) {
+            if (route.opensOnWave === this.currentWave && route.opensOnWave > 1 && !route.reserve)
+                this.messages.push(`Открыт новый путь: «${route.label}»`)
+        }
         this.enemies.push(...wave)
         this.story.onWaveStart(this.currentWave)
         return ok

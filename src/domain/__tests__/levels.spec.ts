@@ -4,7 +4,6 @@ import {
     createLevel,
     Level,
     Campaign,
-    Barricade,
     TOWER_CATALOG,
     lineIntersectsRect,
     pointInRect,
@@ -28,21 +27,10 @@ describe('levels', () => {
         }
         expect(createLevel('unknown')).toBeNull()
     })
-    it('switches level 2 to its alternative path when an active barricade blocks the base path', () => {
-        const level = createLevel('level_2')!
-        const point = level.basePath[1]!
-        const barricade = new Barricade('wall', point.x - 20, point.y - 20, 40, 40, 'wall')
-        expect(level.getCurrentPath([barricade])).toEqual(level.basePath)
-        barricade.active = true
-        expect(level.getCurrentPath([barricade])).toEqual(level.alternativePaths[0])
-        barricade.destroy()
-        expect(level.getCurrentPath([barricade])).toEqual(level.basePath)
-    })
     it('isolates state between factory calls', () => {
         const level = createLevel('level_2')!
-        const path = level.getCurrentPath([])
-        path[0]!.x = -999
-        expect(level.basePath[0]!.x).not.toBe(-999)
+        level.basePath[0]!.x = -999
+        expect(createLevel('level_2')!.basePath[0]!.x).not.toBe(-999)
     })
 })
 

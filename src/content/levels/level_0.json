@@ -7,23 +7,116 @@
     "width": 1100,
     "height": 650,
     "livingQuartersY": 440,
-    "paths": {
-        "base": [
-            { "x": 40, "y": 140 },
-            { "x": 500, "y": 140 },
-            { "x": 500, "y": 320 },
-            { "x": 980, "y": 320 },
-            { "x": 980, "y": 520 }
-        ],
-        "alternatives": []
-    },
-    "corridors": [{ "x": 20, "y": 100, "width": 1000, "height": 260 }],
+    "routes": [
+        {
+            "id": "main",
+            "label": "Учебный коридор",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 150
+                },
+                {
+                    "x": 220,
+                    "y": 150
+                },
+                {
+                    "x": 220,
+                    "y": 310
+                },
+                {
+                    "x": 700,
+                    "y": 310
+                },
+                {
+                    "x": 700,
+                    "y": 180
+                },
+                {
+                    "x": 960,
+                    "y": 180
+                },
+                {
+                    "x": 960,
+                    "y": 490
+                }
+            ]
+        }
+    ],
+    "corridors": [
+        {
+            "x": 0,
+            "y": 120,
+            "width": 250,
+            "height": 60
+        },
+        {
+            "x": 190,
+            "y": 120,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 190,
+            "y": 280,
+            "width": 540,
+            "height": 60
+        },
+        {
+            "x": 670,
+            "y": 150,
+            "width": 60,
+            "height": 190
+        },
+        {
+            "x": 670,
+            "y": 150,
+            "width": 320,
+            "height": 60
+        },
+        {
+            "x": 930,
+            "y": 150,
+            "width": 60,
+            "height": 370
+        }
+    ],
     "towerSlots": [
-        { "x": 200, "y": 220, "type": "cannon" },
-        { "x": 350, "y": 220, "type": "machinegun" },
-        { "x": 620, "y": 240, "type": "rocket" },
-        { "x": 800, "y": 240, "type": "cannon" },
-        { "x": 700, "y": 400, "type": "machinegun" }
+        {
+            "x": 140,
+            "y": 230,
+            "type": "cannon"
+        },
+        {
+            "x": 620,
+            "y": 260,
+            "type": "machinegun"
+        },
+        {
+            "x": 890,
+            "y": 245,
+            "type": "rocket"
+        },
+        {
+            "x": 290,
+            "y": 230,
+            "type": "cannon"
+        },
+        {
+            "x": 755,
+            "y": 230,
+            "type": "machinegun"
+        },
+        {
+            "x": 125,
+            "y": 95,
+            "type": "cannon"
+        },
+        {
+            "x": 395,
+            "y": 260,
+            "type": "machinegun"
+        }
     ],
     "start": { "miners": 10, "military": 6, "resources": 300 },
     "waves": { "total": 3, "difficulty": 0.5 },

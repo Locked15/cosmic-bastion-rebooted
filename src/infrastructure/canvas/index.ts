@@ -24,7 +24,11 @@ export function renderScene(
         if (scene.view === 'living') {
             drawLivingQuarters(ctx, scene)
         } else {
-            drawLevel(ctx, scene.level)
+            drawLevel(
+                ctx,
+                scene.level,
+                scene.waveInProgress ? scene.currentWave : scene.currentWave + 1,
+            )
             for (const barricade of scene.barricades) drawBarricade(ctx, barricade)
             for (const slot of scene.slots) {
                 drawTowerSlot(ctx, slot)

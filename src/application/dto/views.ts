@@ -135,7 +135,15 @@ export interface GameSnapshot {
     status: GameStatus
     view: GameView
     speed: number
-    wave: { current: number; total: number; inProgress: boolean }
+    wave: {
+        current: number
+        total: number
+        inProgress: boolean
+        // Routes of the running wave, or of the next one between waves (none after the last).
+        routes: { label: string; opening: boolean }[]
+        // Whether that wave brings a boss (Средоточие).
+        boss: boolean
+    }
     resources: number
     resourceRate: number
     personnel: { miners: number; military: number; lost: number }

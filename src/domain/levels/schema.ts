@@ -189,6 +189,28 @@ export type CarryOver = v.InferOutput<typeof carryOverSchema>
 
 const pathSchema = v.pipe(v.array(point), v.minLength(2))
 
+export const ROUTE_ROLES = ['fast', 'heavy', 'boss'] as const
+export type RouteRole = (typeof ROUTE_ROLES)[number]
+
+// One way enemies can walk to the living quarters.
+const routeSchema = v.strictObject({
+    id: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9_]*$/, 'Route ids look like main or vent_2')),
+    // Name shown on the map and in the wave preview.
+    label: text,
+    points: pathSchema,
+    // First wave that uses the route; before that it is shown as a closed passage.
+    opensOnWave: v.optional(v.pipe(count, v.minValue(1)), 1),
+    // Enemies this route draws first: fast (small), heavy (large, nodes) or boss.
+    role: v.optional(v.picklist(ROUTE_ROLES)),
+    // Share of the remaining enemies; role routes take none of them by default.
+    weight: v.optional(positive),
+    // Route taken instead while an intact barricade blocks this one when a wave starts.
+    detour: v.optional(v.string()),
+    // Only a detour: never assigned directly.
+    reserve: v.optional(v.boolean(), false),
+})
+export type RouteDefinition = v.InferOutput<typeof routeSchema>
+
 export const levelSchema = v.pipe(
     v.strictObject({
         id: v.pipe(v.string(), v.regex(/^level_\d+$/, 'Level ids look like level_N')),
@@ -202,11 +224,8 @@ export const levelSchema = v.pipe(
         height: positive,
         // Everything below this line is the living quarters.
         livingQuartersY: positive,
-        paths: v.strictObject({
-            base: pathSchema,
-            // Taken while an intact barricade blocks the base path.
-            alternatives: v.optional(v.array(pathSchema), []),
-        }),
+        // The first route is the main one; every route ends in the living quarters.
+        routes: v.pipe(v.array(routeSchema), v.nonEmpty()),
         corridors: v.array(rect),
         towerSlots: v.pipe(
             v.array(
@@ -230,10 +249,35 @@ export const levelSchema = v.pipe(
     ),
     v.check(
         (level) =>
-            [level.paths.base, ...level.paths.alternatives].every(
-                (path) => path[path.length - 1]!.y > level.livingQuartersY,
+            level.routes.every(
+                (route) => route.points[route.points.length - 1]!.y > level.livingQuartersY,
             ),
-        'Every path must end inside the living quarters',
+        'Every route must end inside the living quarters',
+    ),
+    v.check(
+        (level) => new Set(level.routes.map((route) => route.id)).size === level.routes.length,
+        'Route ids must be unique',
+    ),
+    v.check(
+        (level) =>
+            level.routes.every(
+                (route) =>
+                    route.detour === undefined ||
+                    (route.detour !== route.id &&
+                        level.routes.some((other) => other.id === route.detour)),
+            ),
+        'A detour must name another route of the level',
+    ),
+    v.check(
+        (level) => level.routes.every((route) => route.opensOnWave <= level.waves.total),
+        'A route opens after the last wave',
+    ),
+    v.check(
+        (level) =>
+            level.routes.some(
+                (route) => route.opensOnWave === 1 && !route.reserve && route.role === undefined,
+            ),
+        'The first wave needs an open route for any enemy',
     ),
     v.check(
         (level) => level.events.every((event) => event.wave <= level.waves.total),

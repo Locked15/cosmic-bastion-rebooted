@@ -39,13 +39,21 @@ describe('content files', () => {
         expect(withLevel((level) => (level.type = 'boss')).success).toBe(false)
         expect(
             withLevel((level) => {
-                const paths = level.paths as { base: { x: number; y: number }[] }
-                paths.base = [
+                const routes = level.routes as { points: { x: number; y: number }[] }[]
+                routes[0]!.points = [
                     { x: 0, y: 0 },
                     { x: 100, y: 100 },
                 ]
             }).success,
         ).toBe(false)
+        type RouteJson = { id: string; detour?: string; role?: string; opensOnWave?: number }
+        const routes = (level: Record<string, unknown>) => level.routes as RouteJson[]
+        expect(withLevel((level) => routes(level).push({ ...routes(level)[0]! })).success).toBe(
+            false,
+        )
+        expect(withLevel((level) => (routes(level)[0]!.detour = 'nowhere')).success).toBe(false)
+        expect(withLevel((level) => (routes(level)[0]!.role = 'fast')).success).toBe(false)
+        expect(withLevel((level) => (routes(level)[0]!.opensOnWave = 99)).success).toBe(false)
         expect(
             withLevel((level) => {
                 const events = level.events as unknown[]
