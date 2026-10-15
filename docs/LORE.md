@@ -233,6 +233,8 @@ The Synod pays its Bastions in **requisitions**: quartermaster orders that relea
 
 Weapons, in lore: **shock** works because charge holds the Swarm together. The **«Фильтр»** barricade sifts out loose dust. The **laser shield** is Synod technology that was "heretically light", allowed only by the captain's dispensation.
 
+«Память Сонма»: Сонм учится на уничтоженных формах. На старших офицерских рангах он запоминает тип орудия, уничтоживший больше всего форм за волну, и в следующей волне ослабляет его урон; равный счёт или менее трёх уничтожений стирают урок. Средоточия появляются лишь в достаточно глубоких отсеках: на учебном ранге — только в последней волне глубокого сектора, на старших рангах — раньше и чаще; на генеральском ранге каждое несёт два разных урока.
+
 ## 10. Tone and writing rules for event texts
 
 - The voice is a terminal on a dying warship: terse, formal, sometimes liturgical. No jokes and no exclamation-mark heroics. (The existing "Мы готовы к бою!" becomes "Стража на позициях.")

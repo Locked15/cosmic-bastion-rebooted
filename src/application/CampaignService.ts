@@ -1,6 +1,8 @@
 import {
     CAMPAIGN,
     Campaign,
+    DEFAULT_DIFFICULTY,
+    DIFFICULTIES,
     campaignSector,
     createLevel,
     flagsMatch,
@@ -8,6 +10,8 @@ import {
     resolveEnding,
     type CampaignProgress,
     type CampaignSector,
+    type DifficultyId,
+    type DifficultyRecords,
     type EnemyAbility,
     type EventEffect,
     type Level,
@@ -38,6 +42,8 @@ export interface MissionReport {
     objectives: readonly ObjectiveView[]
     flags: Readonly<StoryFlags>
     survivors: number
+    // Rank the mission was played on; a victory raises the level's record.
+    difficulty?: DifficultyId
 }
 
 export class CampaignService {
@@ -59,6 +65,10 @@ export class CampaignService {
         return { ...this.campaign.flags }
     }
 
+    get difficultyRecords(): DifficultyRecords {
+        return this.campaign.difficultyRecords
+    }
+
     get unlocks(): TechnologyUnlocks {
         const count = this.campaign.levels.filter(
             (level) => level.type === 'story' && level.completed,
@@ -66,7 +76,9 @@ export class CampaignService {
         return technologyUnlocks(count, this.campaign.flags)
     }
 
-    listLevels(): LevelSummary[] {
+    // Levels as the given rank will play them.
+    listLevels(difficulty: DifficultyId = DEFAULT_DIFFICULTY): LevelSummary[] {
+        const rank = DIFFICULTIES[difficulty]
         return this.campaign.levels.map((entry) => {
             const level = createLevel(entry.id)!
             this.applyStartingConditions(level)
@@ -79,6 +91,7 @@ export class CampaignService {
                 locked: entry.locked,
                 completed: entry.completed,
                 stars: entry.stars,
+                rank: entry.difficulty ? DIFFICULTIES[entry.difficulty].label : null,
                 objectives: level.objectives.map((objective) => objective.text),
                 sector: sector.name,
                 code: sector.code,
@@ -93,7 +106,7 @@ export class CampaignService {
                 ),
                 startingMiners: level.startingMiners,
                 startingMilitary: level.startingMilitary,
-                startingResources: level.startingResources,
+                startingResources: Math.round(level.startingResources * rank.startResources),
                 totalWaves: level.totalWaves,
             }
         })
@@ -150,14 +163,16 @@ export class CampaignService {
         const firstVictory =
             advanced &&
             !this.campaign.levels.some((entry) => entry.id === levelId && entry.completed)
-        if (advanced) this.campaign.completeLevel(levelId, report.stars)
+        if (advanced) this.campaign.completeLevel(levelId, report.stars, report.difficulty)
         const unlocks = this.unlocks.technologies
             .filter((tech) => !before.has(tech.id))
             .map((tech) => tech.name)
         this.save()
         // The finale closes the story either way: a defeat there is an ending too.
         const ending =
-            levelId === CAMPAIGN.finale ? resolveEnding(report.outcome, this.campaign.flags) : null
+            levelId === CAMPAIGN.finale
+                ? resolveEnding(report.outcome, this.campaign.flags, this.difficultyRecords)
+                : null
         return { advanced, firstVictory, unlocks, ending }
     }
 

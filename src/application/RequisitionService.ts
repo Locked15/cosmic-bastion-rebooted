@@ -133,8 +133,13 @@ export class RequisitionService {
     }
 
     // Pays for a finished mission and returns the amount.
-    award(outcome: 'victory' | 'defeat', stars: number, firstVictory: boolean): number {
-        return this.credit(requisitionReward(outcome, stars, firstVictory))
+    award(
+        outcome: 'victory' | 'defeat',
+        stars: number,
+        firstVictory: boolean,
+        multiplier = 1,
+    ): number {
+        return this.credit(requisitionReward(outcome, stars, firstVictory, multiplier))
     }
 
     private refund(): number {

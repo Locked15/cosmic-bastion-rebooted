@@ -5,6 +5,7 @@ import { WAVE_RULES, type EnemyAbility, type EnemySize, type WaveChance } from '
 // Abilities a level forbids (story consequences, e.g. a purged medbay stops sabotage).
 export interface WaveOptions {
     excludedAbilities?: readonly EnemyAbility[]
+    boss?: { onThisWave: boolean; abilities: number; banned: readonly EnemyAbility[] }
 }
 
 const EXCLUSIVE: readonly EnemyAbility[] = ['adaptation', 'sabotage']
@@ -50,7 +51,9 @@ export function generateWave(
     const rules = WAVE_RULES
     const excluded = options.excludedAbilities ?? []
     const regular = rules.regularAbilities.filter((ability) => !excluded.includes(ability))
-    const boss = rules.bossAbilities.filter((ability) => !excluded.includes(ability))
+    const boss = rules.bossAbilities.filter(
+        (ability) => !excluded.includes(ability) && !options.boss?.banned.includes(ability),
+    )
     const enemies: Enemy[] = []
     const count = Math.floor((rules.baseCount + waveNumber * rules.countPerWave) * difficulty)
     for (let i = 0; i < count; i++) {
@@ -72,8 +75,8 @@ export function generateWave(
         enemy.spawned = false
         enemies.push(enemy)
     }
-    if (waveNumber % rules.bossEvery === 0 && waveNumber > 0) {
-        const abilities = randomAbilities(1, rng, boss)
+    if (options.boss?.onThisWave) {
+        const abilities = randomAbilities(options.boss.abilities, rng, boss)
         const enemy = new Enemy('boss', 'large', rng.id('enemy'), abilities)
         enemy.spawnDelay = count * rules.spawnInterval + rules.bossDelay
         enemy.spawned = false

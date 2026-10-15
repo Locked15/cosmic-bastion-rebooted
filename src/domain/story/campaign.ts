@@ -88,3 +88,10 @@ export function missionIndex(levelId: string): number {
 export function campaignSector(levelId: string): CampaignSector | null {
     return CAMPAIGN.sectors.find((sector) => sector.level === levelId) ?? null
 }
+
+// Longest prerequisite chain; training and unknown levels have no campaign depth.
+export function sectorDepth(levelId: string): number {
+    const sector = campaignSector(levelId)
+    if (!sector || sector.layer === 'training') return 0
+    return 1 + Math.max(0, ...sector.requires.map(sectorDepth))
+}

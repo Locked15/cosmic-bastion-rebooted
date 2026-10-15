@@ -18,8 +18,10 @@ describe('enemies', () => {
         expect(wave(2)).not.toEqual(first)
         expect(new Set(first.map((enemy) => enemy.id)).size).toBe(first.length)
     })
-    it('adds a delayed boss every fourth wave', () => {
-        const wave = generateWave(4, 1, createSeededRandom(1))
+    it('adds a delayed boss when requested', () => {
+        const wave = generateWave(4, 1, createSeededRandom(1), {
+            boss: { onThisWave: true, abilities: 1, banned: [] },
+        })
         expect(wave).toHaveLength(21)
         const boss = wave[wave.length - 1]!
         expect(boss.type).toBe('boss')

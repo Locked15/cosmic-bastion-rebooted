@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { createLevel, createSeededRandom, upgradeCost, upgradeDefinition } from '@/domain'
+import {
+    createLevel,
+    createSeededRandom,
+    requisitionReward,
+    upgradeCost,
+    upgradeDefinition,
+} from '@/domain'
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
 import { RequisitionService } from '../RequisitionService'
 import { GameSession } from '../session/GameSession'
@@ -11,6 +17,16 @@ const funded = (amount: number) => {
 }
 
 describe('RequisitionService', () => {
+    it('credits the difficulty multiplier for victories and defeats', () => {
+        const { service } = funded(0)
+        for (const outcome of ['victory', 'defeat'] as const) {
+            const before = service.balance
+            const amount = requisitionReward(outcome, 3, true, 1.6)
+            expect(service.award(outcome, 3, true, 1.6)).toBe(amount)
+            expect(service.balance).toBe(before + amount)
+        }
+    })
+
     it('buys levels at rising prices until the money or the levels run out', () => {
         const { storage, service } = funded(100)
         const mining = upgradeDefinition('mining')!

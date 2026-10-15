@@ -49,8 +49,6 @@ const wavesSchema = v.strictObject({
     abilityFromWave: count,
     miniBossChance: chanceSchema,
     miniBossFromWave: count,
-    // A boss closes every N-th wave.
-    bossEvery: v.pipe(count, v.minValue(1)),
     // Frames after the last regular spawn.
     bossDelay: positive,
     regularAbilities: v.pipe(v.array(enemyAbilitySchema), v.nonEmpty()),

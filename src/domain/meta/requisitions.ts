@@ -107,11 +107,15 @@ export function requisitionReward(
     outcome: 'victory' | 'defeat',
     stars: number,
     firstVictory: boolean,
+    multiplier = 1,
 ): number {
     const { earning } = REQUISITIONS
-    if (outcome === 'defeat') return earning.defeat
+    if (outcome === 'defeat') return Math.round(earning.defeat * multiplier)
     const base = earning.victory + earning.perStar * Math.max(0, Math.min(3, stars))
-    return firstVictory ? base + earning.firstVictory : Math.round(base * earning.replayFactor)
+    return Math.round(
+        (firstVictory ? base + earning.firstVictory : Math.round(base * earning.replayFactor)) *
+            multiplier,
+    )
 }
 
 // Session modifiers bought with requisitions. Multipliers are 1 and counts 0 without upgrades.

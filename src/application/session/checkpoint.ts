@@ -14,6 +14,7 @@ export interface LevelCheckpoint {
     wave: number
     overridesUsed?: boolean
     difficulty?: DifficultyId
+    remembered?: TowerType | null
     resources: number
     miners: number
     military: number
@@ -56,6 +57,7 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
         levelId: session.level.id,
         wave: session.currentWave,
         difficulty: session.difficulty,
+        remembered: session.remembered,
         overridesUsed: session.overrides.used,
         resources: session.resources,
         miners: session.miners + transit.miner,
@@ -93,6 +95,7 @@ export function restoreCheckpoint(session: GameSession, checkpoint: LevelCheckpo
     session.currentWave = checkpoint.wave
     // Resume at the difficulty the run started with, whatever the settings say now.
     if (checkpoint.difficulty) session.difficulty = checkpoint.difficulty
+    session.remembered = checkpoint.remembered ?? null
     session.resources = checkpoint.resources
     session.stats = { ...checkpoint.stats }
     session.damageMultiplier = checkpoint.damageMultiplier

@@ -12,16 +12,16 @@ import type { Level } from '@/domain'
 import { useServices } from './services'
 
 export const useCampaignStore = defineStore('campaign', () => {
-    const { storage } = useServices()
+    const { storage, profiles } = useServices()
     let service = new CampaignService(storage)
     const checkpoints = new CheckpointService(storage)
-    const levels = ref<LevelSummary[]>(service.listLevels())
+    const levels = ref<LevelSummary[]>(service.listLevels(profiles.difficulty))
     const hasProgress = ref(service.hasProgress)
     // Wave each level can be resumed after (between-wave checkpoint), or null.
     const savedWaves = ref<Record<string, number | null>>({})
 
     function refresh() {
-        levels.value = service.listLevels()
+        levels.value = service.listLevels(profiles.difficulty)
         hasProgress.value = service.hasProgress
         savedWaves.value = Object.fromEntries(
             LEVEL_IDS.map((id) => [id, checkpoints.savedWave(id)]),
