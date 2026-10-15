@@ -18,31 +18,36 @@
 
 <template>
     <main class="main-menu">
-        <header v-if="profiles.activeName" class="main-menu__report" aria-live="polite">
-            <p class="main-menu__briefing">{{ profiles.briefing }}</p>
-            <p class="main-menu__identity">
-                Если это не Вы,
-                <button type="button" class="main-menu__security" @click="profiles.open()">
-                    вызовите службу безопасности</button
-                >.
-            </p>
-        </header>
-        <div class="main-menu__container">
-            <ShipSchema />
-            <h1 class="main-menu__title">COSMIC BASTION</h1>
-            <p class="main-menu__subtitle">// ПРОТОКОЛ АВАРИЙНОЙ ЗАЩИТЫ //</p>
-            <nav class="main-menu__buttons">
-                <AppButton :disabled="profiles.required" @click="router.push({ name: 'levels' })">
-                    {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
-                </AppButton>
-                <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
-                <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
-                <AppButton @click="ui.openSettings()">НАСТРОЙКИ</AppButton>
-            </nav>
-            <div class="main-menu__status">
-                <p>СТАТУС: КРИТИЧЕСКИЙ</p>
-                <p>УГРОЗА: СОНМ</p>
-                <p>ЭКИПАЖ: В ОЖИДАНИИ ПРИКАЗОВ</p>
+        <div class="main-menu__column">
+            <header v-if="profiles.activeName" class="main-menu__report" aria-live="polite">
+                <p class="main-menu__briefing">{{ profiles.briefing }}</p>
+                <p class="main-menu__identity">
+                    Если это не Вы,
+                    <button type="button" class="main-menu__security" @click="profiles.open()">
+                        вызовите службу безопасности</button
+                    >.
+                </p>
+            </header>
+            <div class="main-menu__container">
+                <ShipSchema />
+                <h1 class="main-menu__title">COSMIC BASTION</h1>
+                <p class="main-menu__subtitle">// ПРОТОКОЛ АВАРИЙНОЙ ЗАЩИТЫ //</p>
+                <nav class="main-menu__buttons">
+                    <AppButton
+                        :disabled="profiles.required"
+                        @click="router.push({ name: 'levels' })"
+                    >
+                        {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
+                    </AppButton>
+                    <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
+                    <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
+                    <AppButton @click="ui.openSettings()">НАСТРОЙКИ</AppButton>
+                </nav>
+                <div class="main-menu__status">
+                    <p>СТАТУС: КРИТИЧЕСКИЙ</p>
+                    <p>УГРОЗА: СОНМ</p>
+                    <p>ЭКИПАЖ: В ОЖИДАНИИ ПРИКАЗОВ</p>
+                </div>
             </div>
         </div>
     </main>
@@ -53,17 +58,26 @@
         @include blueprint-grid;
 
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: $spacing-lg;
+        justify-content: center;
         height: 100vh;
         padding: $spacing-lg;
         overflow-y: auto;
 
+        // The report sits above the main panel and takes exactly its width.
+        &__column {
+            display: flex;
+            flex-direction: column;
+            gap: $spacing-lg;
+            width: fit-content;
+            min-height: 100%;
+        }
+
         &__report {
             @include pop-in(report-pop, 0.96);
 
-            align-self: stretch;
+            // Width comes from the column (the main panel), never from the greeting text.
+            width: 0;
+            min-width: 100%;
             padding: $spacing-sm $spacing-md;
             border: 1px solid $color-border;
             border-left: 4px solid $color-danger;

@@ -75,7 +75,9 @@
 
             <line class="ship-schema__scan" x1="0" y1="0" x2="0" y2="300" />
         </svg>
-        <div class="ship-schema__caption">КРЕЙСЕР «БАСТИОН» · ДЛИНА 2.4 КМ · ПОСАДКА АВАРИЙНАЯ</div>
+        <div class="ship-schema__caption">
+            БАСТИОН «ТЯЖЕСТЬ ОБЕТА» · ДЛИНА 11 КМ · ПОСАДКА АВАРИЙНАЯ
+        </div>
     </div>
 </template>
 
