@@ -1,0 +1,16 @@
+// .requisition-icon — the Synod's requisition seal, drawn in the current text colour.
+// Usage: <span class="requisition-icon" aria-hidden="true" /> next to an amount.
+.requisition-icon {
+    display: inline-block;
+    width: 1.05em;
+    height: 1.05em;
+    vertical-align: -0.18em;
+    background-color: currentColor;
+    mask: url('@/assets/icons/requisition.svg') center / contain no-repeat;
+
+    &--large {
+        width: 1.6em;
+        height: 1.6em;
+        vertical-align: -0.4em;
+    }
+}

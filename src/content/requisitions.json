@@ -1,0 +1,119 @@
+{
+    "earning": {
+        "victory": 40,
+        "perStar": 15,
+        "firstVictory": 40,
+        "replayFactor": 0.5,
+        "defeat": 10
+    },
+    "costGrowth": 1.25,
+    "resetRefund": 0.75,
+    "tiers": [
+        { "rank": 1, "title": "РАЗРЯД I — ХОЗЯЙСТВЕННЫЙ", "baseCost": 25 },
+        { "rank": 2, "title": "РАЗРЯД II — ОБОРОНИТЕЛЬНЫЙ", "baseCost": 45 },
+        { "rank": 3, "title": "РАЗРЯД III — БОЕВОЙ", "baseCost": 80 },
+        { "rank": 4, "title": "РАЗРЯД IV — ОСОБЫЙ", "baseCost": 140 }
+    ],
+    "upgrades": [
+        {
+            "id": "mining",
+            "rank": 1,
+            "form": "СТ-Х-02",
+            "effect": "mining",
+            "perLevel": 0.06,
+            "maxLevel": 5,
+            "name": "Норма выработки",
+            "description": "Тягло получает лишние часы смены. Шахтёры добывают ресурсы быстрее."
+        },
+        {
+            "id": "start_resources",
+            "rank": 1,
+            "form": "СТ-Х-05",
+            "effect": "startResources",
+            "perLevel": 30,
+            "maxLevel": 5,
+            "name": "Резервный склад",
+            "description": "Интендантство заранее завозит в сектор ящики с ресурсами."
+        },
+        {
+            "id": "build_speed",
+            "rank": 1,
+            "form": "СТ-Х-09",
+            "effect": "buildSpeed",
+            "perLevel": 0.1,
+            "maxLevel": 5,
+            "name": "Строевые бригады",
+            "description": "Стража учится строить по уставу: башни, баррикады, ремонт и улучшения идут быстрее."
+        },
+        {
+            "id": "tower_range",
+            "rank": 2,
+            "form": "СТ-О-11",
+            "effect": "towerRange",
+            "perLevel": 0.04,
+            "maxLevel": 5,
+            "name": "Оптика наведения",
+            "description": "Освящённые линзы прицелов. Все башни бьют дальше."
+        },
+        {
+            "id": "barricade_health",
+            "rank": 2,
+            "form": "СТ-О-14",
+            "effect": "barricadeHealth",
+            "perLevel": 0.08,
+            "maxLevel": 5,
+            "name": "Освящённая обшивка",
+            "description": "Листы для баррикад режут из старой брони Бастиона. Баррикады прочнее."
+        },
+        {
+            "id": "soldier_damage",
+            "rank": 2,
+            "form": "СТ-О-17",
+            "effect": "soldierDamage",
+            "perLevel": 0.15,
+            "maxLevel": 5,
+            "name": "Стрелковая подготовка Стражи",
+            "description": "Учения в тренажёре не прошли даром. Военные сильнее бьют пыль в жилом отсеке."
+        },
+        {
+            "id": "conversion_speed",
+            "rank": 2,
+            "form": "СТ-О-20",
+            "effect": "conversionSpeed",
+            "perLevel": 0.1,
+            "maxLevel": 4,
+            "name": "Ускоренная присяга",
+            "description": "Короткий обряд облегчения. Переобучение персонала занимает меньше времени."
+        },
+        {
+            "id": "tower_damage",
+            "rank": 3,
+            "form": "СТ-Б-03",
+            "effect": "towerDamage",
+            "perLevel": 0.05,
+            "maxLevel": 5,
+            "name": "Литургия калибра",
+            "description": "Снаряды отливают из свинца балластных цистерн. Урон всех башен выше."
+        },
+        {
+            "id": "start_military",
+            "rank": 3,
+            "form": "СТ-Б-07",
+            "effect": "startMilitary",
+            "perLevel": 1,
+            "maxLevel": 4,
+            "name": "Призыв",
+            "description": "Интендантство приписывает к сектору дополнительных бойцов Стражи."
+        },
+        {
+            "id": "breach_tolerance",
+            "rank": 4,
+            "form": "СТ-С-01",
+            "effect": "breakthroughs",
+            "perLevel": 1,
+            "maxLevel": 3,
+            "name": "Запасная переборка",
+            "description": "Вторая переборка перед жилым отсеком. Сектор выдерживает больше прорывов."
+        }
+    ]
+}

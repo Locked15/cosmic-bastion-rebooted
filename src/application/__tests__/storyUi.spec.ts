@@ -152,6 +152,7 @@ describe('story and campaign UI', () => {
                 stats: [],
                 unlocks: ['Ракетница', 'Улучшения II'],
                 ending: null,
+                requisitions: null,
                 objectives: [
                     { id: 'save_engineer', text: 'Чен спасён', completed: true },
                     { id: 'survive', text: 'Отразить волны', completed: false },

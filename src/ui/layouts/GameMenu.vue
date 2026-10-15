@@ -62,6 +62,11 @@
                     :completed="objective.completed"
                 />
             </div>
+            <p v-if="result.requisitions" class="game-menu__requisitions">
+                Начислено: + {{ result.requisitions }}
+                <span class="requisition-icon" role="img" aria-label="реквизиций" />
+                · Интендантство
+            </p>
             <div v-if="result.unlocks.length" class="game-menu__unlocks">
                 <h4>НОВЫЕ ТЕХНОЛОГИИ</h4>
                 <ul>
@@ -157,6 +162,15 @@
             margin: $spacing-xs 0 $spacing-sm;
             font-size: 18px;
             letter-spacing: 2px;
+        }
+
+        &__requisitions {
+            margin-top: $spacing-md;
+            padding: $spacing-sm;
+            border: 1px dashed $color-accent;
+            color: $color-accent;
+            text-align: center;
+            letter-spacing: 1px;
         }
 
         &__stars {

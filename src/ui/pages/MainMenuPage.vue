@@ -3,6 +3,7 @@
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
     import { useMusicStore } from '@/stores/musicStore'
+    import { useRequisitionStore } from '@/stores/requisitionStore'
     import { useProfileStore } from '@/stores/profileStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
@@ -13,15 +14,28 @@
     const profiles = useProfileStore()
     const ui = useUiStore()
     const music = useMusicStore()
+    const requisitions = useRequisitionStore()
 
     // The report line follows story progress made since the menu was last shown.
-    onMounted(() => profiles.refresh())
+    onMounted(() => {
+        profiles.refresh()
+        requisitions.refresh()
+    })
 </script>
 
 <template>
     <main class="main-menu">
         <div class="main-menu__column">
             <header v-if="profiles.activeName" class="main-menu__report" aria-live="polite">
+                <p
+                    class="main-menu__balance"
+                    role="img"
+                    :aria-label="`Реквизиции: ${requisitions.view.balance}`"
+                    title="Реквизиции на счёте"
+                >
+                    <span class="requisition-icon requisition-icon--large" />
+                    {{ requisitions.view.balance }}
+                </p>
                 <p class="main-menu__briefing">{{ profiles.briefing }}</p>
                 <p class="main-menu__identity">
                     Если это не Вы,
@@ -40,6 +54,12 @@
                         @click="router.push({ name: 'levels' })"
                     >
                         {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
+                    </AppButton>
+                    <AppButton
+                        :disabled="profiles.required"
+                        @click="router.push({ name: 'quartermaster' })"
+                    >
+                        ИНТЕНДАНТСТВО
                     </AppButton>
                     <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
                     <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
@@ -88,6 +108,14 @@
             border: 1px solid $color-border;
             border-left: 4px solid $color-danger;
             background-color: rgba($color-bg, 0.95);
+        }
+
+        // Requisition balance in the report's corner.
+        &__balance {
+            float: right;
+            margin: 0 0 $spacing-xs $spacing-md;
+            font-size: 18px;
+            font-weight: bold;
         }
 
         &__briefing {

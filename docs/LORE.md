@@ -214,6 +214,10 @@ Further notes are added to the endings by `gardens_saved`, `foreman_saved`, `bal
 
 Story levels can still move the plot forward after a tactical defeat (brief § 4.2). That is what the existing flags `engineer_saved`, `scientist_saved` and `archive_saved` are for, and the new story flags follow the same rule.
 
+## 8a. Requisitions (Реквизиции)
+
+The Synod pays its Bastions in **requisitions**: quartermaster orders that release supplies, people and doctrine. The officer earns them for every sector held (the first victory pays a bonus; repeated drills pay half; a lost sector pays a little), and spends them at the **Интендантский терминал ИТ-41**, the quartermaster's terminal of «Тяжесть Обета». Each upgrade is an order form with a Synod code (`СТ-Х` for supply, `СТ-О` for defence, `СТ-Б` for combat, `СТ-С` for special), and higher ranks cost more. The **печь нарядов** (furnace) burns every approved order; the quartermaster refunds three quarters, because the Synod never returns weight in full.
+
 ## 9. Enemies in lore (names for UI and events)
 
 | Mechanic               | Lore name                     | Note                                            |

@@ -17,7 +17,7 @@ export function presentResult(session: GameSession): ResultView | null {
         text,
         completed,
     }))
-    const detail = { objectives, unlocks: [], ending: null }
+    const detail = { objectives, unlocks: [], ending: null, requisitions: null }
     if (result.outcome === 'victory') {
         const done = level.objectives.filter((objective) => objective.completed).length
         return {

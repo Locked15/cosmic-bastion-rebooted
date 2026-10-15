@@ -14,6 +14,8 @@ export class Personnel {
         private readonly rng: Random,
         miners: number,
         military: number,
+        // Multiplies retraining time (meta upgrades make it shorter).
+        private readonly conversionTime = 1,
     ) {
         this.miners = 0
         this.military = 0
@@ -62,7 +64,9 @@ export class Personnel {
         }
         if (from === 'miner') this.miners -= count
         else this.military -= count
-        this.conversions.push(new Conversion(from, to, count, this.rng.id('conversion')))
+        const conversion = new Conversion(from, to, count, this.rng.id('conversion'))
+        conversion.time *= this.conversionTime
+        this.conversions.push(conversion)
         return null
     }
 

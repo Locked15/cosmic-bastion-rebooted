@@ -147,3 +147,16 @@ test('keeps profiles in IndexedDB, switches between them and deletes them', asyn
     await expect(dialog).not.toContainText('Альфа')
     await expect(dialog).toContainText('Бета')
 })
+
+test('opens the quartermaster terminal from the menu', async ({ page }) => {
+    await register(page)
+    await expect(page.getByRole('img', { name: 'Реквизиции: 0' })).toBeVisible()
+    await page.getByRole('button', { name: 'ИНТЕНДАНТСТВО' }).click()
+    await expect(page).toHaveURL(/\/quartermaster$/)
+    await expect(page.getByRole('option')).toHaveCount(10)
+    await expect(page.getByRole('img', { name: 'РЕКВИЗИЦИИ НА СЧЁТЕ 0' })).toBeVisible()
+    // Nothing to spend yet: the approve key is locked.
+    await expect(page.getByRole('button', { name: /УТВЕРДИТЬ/ })).toBeDisabled()
+    await page.keyboard.press('Escape')
+    await expect(page).toHaveURL(/\/$/)
+})

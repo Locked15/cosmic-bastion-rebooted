@@ -40,7 +40,7 @@ src/
     profiles/      ProfileService (≤3 profiles, briefing line), CachedStore/SwitchingStore
     ports/         KeyValueStore, ProfileRepository, FrameScheduler, SoundPlayer, MusicPlayer (implemented in infrastructure)
     dto/           plain view models for the UI
-    CampaignService, CheckpointService, AchievementService
+    CampaignService, CheckpointService, AchievementService, RequisitionService
   infrastructure/  adapters: localStorage/memory stores, requestAnimationFrame scheduler,
                    canvas renderers, Web Audio synth sounds
   stores/          Pinia: interface adapters between the UI and the application
@@ -49,7 +49,7 @@ src/
     components/    atomic, props in / events out, no custom child components, no stores
     layouts/       compose components, may use stores
     pages/         route targets (MainMenuPage, LevelSelectPage, GamePage)
-  router/          / (menu), /levels, /game/:levelId (?resume=1 continues a checkpoint)
+  router/          / (menu), /levels, /quartermaster, /game/:levelId (?resume=1 continues a checkpoint)
   styles/          SCSS tokens, mixins, base and shared BEM blocks
   main.ts          composition root: the only place that names concrete adapters
 ```
@@ -105,12 +105,14 @@ Game content is data in `src/content/*.json`; code only interprets it. Each file
 | `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                             | `domain/rules/*Catalog.ts`                            |
 | `enemies.json`                                                | Enemy stats, ability texts, wave generation                                               | `domain/rules/enemyRules.ts`                          |
 | `music.json`                                                  | Soundtrack catalogue, menu track and the license credit; levels pick a track with `music` | `domain/story/soundtrack.ts`                          |
+| `requisitions.json`                                           | Meta-progression: earning, ranks and prices, upgrades and their effects, reset refund     | `domain/meta/requisitions.ts`                         |
 | `briefings.json`                                              | Main-menu greeting line by story progress (`{name}` is the profile)                       | `domain/story/briefing.ts`                            |
 | `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                                  | `domain/rules`, `domain/story`, `domain/achievements` |
 
 - **New level:** add `src/content/levels/level_N.json` (the `id` must match the file name) and a sector for it in `campaign.json`. A sector may only require sectors listed before it. The layout and content tests run on every level automatically.
 - **Level events:** `when` lists story-flag conditions (`atLeast` / `below`). Pairs of events with opposite conditions give branches. At most 3 events per wave and 10 per level; timers 7–15 s.
 - **Carry-over** (`carryOver` in a level): `start` adds flag sums to the starting stats, `effect` applies an effect at the start when flags hold, `excludeAbility` removes an enemy ability from the level's waves.
+- **Requisitions (meta-progression):** each profile earns requisitions for missions (`RequisitionService`, key `requisitions`) and spends them on permanent upgrades in the quartermaster terminal (`/quartermaster`). Upgrades become `MetaBonuses` passed to `GameSession` via `SessionOptions.bonuses`. A new upgrade effect needs a `BONUS_KINDS` entry (`domain/meta/requisitions.ts`) and handling in `GameSession`.
 - **Music:** every level has its own track (`music` in its file); the menu and ship map play `music.json#menu`. `HtmlMusicPlayer` loops and crossfades tracks and starts after the first user gesture when autoplay is blocked. New tracks must allow redistribution (CC0/CC BY); add the file as Opus WebM to `public/audio/music/`, list it in `music.json` and credit it in `CREDITS.md`.
 - **Changing an existing level's layout:** bump `contentVersion` in `campaign.json`, so old between-wave checkpoints of that content are discarded.
 

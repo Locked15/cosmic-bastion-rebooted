@@ -137,7 +137,7 @@ export class CampaignService {
     recordResult(levelId: string, report: MissionReport): CampaignResolution {
         const level = createLevel(levelId)
         if (!level || !this.isUnlocked(levelId))
-            return { advanced: false, unlocks: [], ending: null }
+            return { advanced: false, firstVictory: false, unlocks: [], ending: null }
         const before = new Set(this.unlocks.technologies.map((tech) => tech.id))
         for (const [key, value] of Object.entries(report.flags)) {
             if (key !== 'mission_index' && key !== 'tech_upgrade_tier' && Number.isFinite(value)) {
@@ -147,6 +147,9 @@ export class CampaignService {
         this.campaign.flags[`survivors_${levelId}`] = Math.max(0, Math.floor(report.survivors))
         // Only a won mission completes the level and opens the next sectors.
         const advanced = report.outcome === 'victory'
+        const firstVictory =
+            advanced &&
+            !this.campaign.levels.some((entry) => entry.id === levelId && entry.completed)
         if (advanced) this.campaign.completeLevel(levelId, report.stars)
         const unlocks = this.unlocks.technologies
             .filter((tech) => !before.has(tech.id))
@@ -155,7 +158,7 @@ export class CampaignService {
         // The finale closes the story either way: a defeat there is an ending too.
         const ending =
             levelId === CAMPAIGN.finale ? resolveEnding(report.outcome, this.campaign.flags) : null
-        return { advanced, unlocks, ending }
+        return { advanced, firstVictory, unlocks, ending }
     }
 
     reset(): void {

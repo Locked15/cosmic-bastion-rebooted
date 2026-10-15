@@ -9,6 +9,7 @@ import {
     barricadeRepairCost,
     TOWER_MAX_LEVEL,
     TowerSlot,
+    NO_BONUSES,
     distance,
     generateWave,
     lineIntersectsRect,
@@ -18,6 +19,7 @@ import {
     type DifficultyId,
     type Enemy,
     type EnemyAbility,
+    type MetaBonuses,
     type EventEffect,
     type Level,
     type PersonType,
@@ -59,6 +61,8 @@ export interface SessionOptions {
     startEffects?: readonly { effect: EventEffect; message?: string }[]
     // Enemy abilities that never appear in this run.
     excludedAbilities?: readonly EnemyAbility[]
+    // Permanent upgrades of the profile, bought with requisitions.
+    bonuses?: MetaBonuses
 }
 
 export const DEFAULT_TOWERS: readonly TowerType[] = ['cannon', 'machinegun', 'rocket']
@@ -100,6 +104,7 @@ export class GameSession implements Scene {
     readonly unlockedTowers: readonly TowerType[]
     readonly unlockedBarricades: readonly BarricadeType[]
     readonly excludedAbilities: readonly EnemyAbility[]
+    readonly bonuses: MetaBonuses
 
     resources: number
     resourceRate = 0
@@ -142,10 +147,19 @@ export class GameSession implements Scene {
         this.unlockedTowers = options.unlockedTowers ?? DEFAULT_TOWERS
         this.unlockedBarricades = options.unlockedBarricades ?? DEFAULT_BARRICADES
         this.excludedAbilities = options.excludedAbilities ?? []
+        this.bonuses = options.bonuses ?? NO_BONUSES
         this.objectives = new ObjectiveTracker(level)
-        this.resources = level.startingResources
-        this.personnel = new Personnel(level, rng, level.startingMiners, level.startingMilitary)
-        this.quarters = new LivingQuarters(level, this.personnel, rng)
+        this.resources = level.startingResources + this.bonuses.startResources
+        this.damageMultiplier = this.bonuses.towerDamage
+        this.barricadeMultiplier = this.bonuses.barricadeHealth
+        this.personnel = new Personnel(
+            level,
+            rng,
+            level.startingMiners,
+            level.startingMilitary + this.bonuses.startMilitary,
+            this.bonuses.conversionSpeed,
+        )
+        this.quarters = new LivingQuarters(level, this.personnel, rng, this.bonuses.soldierDamage)
         this.story = new StoryDirector(
             level.events,
             {
@@ -196,7 +210,7 @@ export class GameSession implements Scene {
 
     // Breakthroughs into the living quarters the player can afford before losing.
     get maxBreakthroughs(): number {
-        return DIFFICULTIES[this.difficulty].maxBreakthroughs
+        return DIFFICULTIES[this.difficulty].maxBreakthroughs + this.bonuses.breakthroughs
     }
 
     get speed(): number {
@@ -529,7 +543,7 @@ export class GameSession implements Scene {
             this.resourceRate = 0
             return
         }
-        this.resourceRate = this.personnel.miners * 0.5
+        this.resourceRate = this.personnel.miners * 0.5 * this.bonuses.mining
         const gain = (this.resourceRate / FPS) * dt
         this.resources += gain
         this.stats.gathered += gain
@@ -537,16 +551,18 @@ export class GameSession implements Scene {
 
     private updateTowers(dt: number, quartersUnderAttack: boolean): void {
         const military = this.personnel.military
+        const buildDt = dt * this.bonuses.buildSpeed
         const towers = this.slots.flatMap((slot) => (slot.tower ? [slot.tower] : []))
         for (const enemy of this.enemies) {
             if (enemy.alive && enemy.spawned) enemy.prepareCombat(towers, this.rng)
         }
         for (const slot of this.slots) {
-            if (slot.updateConstruction(military, dt)) this.notifyObjectives('buildTower')
+            if (slot.updateConstruction(military, buildDt)) this.notifyObjectives('buildTower')
             const tower = slot.tower
             if (!tower) continue
-            tower.updateUpgrade(military, dt)
+            tower.updateUpgrade(military, buildDt)
             tower.damageMultiplier = this.damageMultiplier
+            tower.setRangeMultiplier(this.bonuses.towerRange)
             // Towers hold fire while the living quarters are under attack.
             if (!quartersUnderAttack) tower.update(dt, this.enemies, this.rng)
             else tower.holdFire(dt)
@@ -555,11 +571,12 @@ export class GameSession implements Scene {
 
     private updateBarricades(dt: number): void {
         for (const barricade of this.barricades) {
-            if (barricade.building && barricade.updateBuild(this.personnel.military, dt)) {
+            const buildDt = dt * this.bonuses.buildSpeed
+            if (barricade.building && barricade.updateBuild(this.personnel.military, buildDt)) {
                 this.notifyObjectives('buildBarricade')
             }
             barricade.setHealthMultiplier(this.barricadeMultiplier)
-            barricade.updateUpgrade(this.personnel.military, dt)
+            barricade.updateUpgrade(this.personnel.military, buildDt)
             barricade.update(dt)
             barricade.resetAttackers(
                 this.enemies

@@ -12,6 +12,11 @@ const router = createRouter({
             component: () => import('@/ui/pages/LevelSelectPage.vue'),
         },
         {
+            path: '/quartermaster',
+            name: 'quartermaster',
+            component: () => import('@/ui/pages/QuartermasterPage.vue'),
+        },
+        {
             path: '/game/:levelId',
             name: 'game',
             component: () => import('@/ui/pages/GamePage.vue'),

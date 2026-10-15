@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { MAX_PROFILES, PROFILE_NAME_MAX, type ProfileSummary } from '@/application'
 import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
+import { useRequisitionStore } from './requisitionStore'
 import { useGameStore } from './gameStore'
 import { useServices } from './services'
 import { useUiStore } from './uiStore'
@@ -46,6 +47,7 @@ export const useProfileStore = defineStore('profiles', () => {
         useGameStore().stop()
         useCampaignStore().reload()
         useAchievementsStore().reload()
+        useRequisitionStore().reload()
         refresh()
     }
 

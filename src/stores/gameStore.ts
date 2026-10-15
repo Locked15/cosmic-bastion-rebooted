@@ -18,6 +18,7 @@ import {
 import { createLevel } from '@/domain'
 import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
+import { useRequisitionStore } from './requisitionStore'
 import { useServices } from './services'
 import { useSettingsStore } from './settingsStore'
 import { useUiStore } from './uiStore'
@@ -30,6 +31,7 @@ export const useGameStore = defineStore('game', () => {
     const campaign = useCampaignStore()
     const settings = useSettingsStore()
     const achievements = useAchievementsStore()
+    const requisitions = useRequisitionStore()
     const { sound } = services
 
     const snapshot = shallowRef<GameSnapshot | null>(null)
@@ -40,6 +42,7 @@ export const useGameStore = defineStore('game', () => {
     let viewport: Viewport | null = null
     let reported = false
     let resolution: CampaignResolution | null = null
+    let reward: number | null = null
     // Previous values used to turn state changes into sounds and saves.
     let seen = { wave: 0, inProgress: false, dialog: false, reached: 0 }
     let ticksSinceAchievementCheck = 0
@@ -52,6 +55,7 @@ export const useGameStore = defineStore('game', () => {
         session = new GameSession(level, services.createRandom(), {
             ...campaign.prepareLevel(level),
             difficulty: settings.settings.difficulty,
+            bonuses: requisitions.bonuses(),
         })
         if (!resume || !campaign.restoreCheckpoint(session)) campaign.clearCheckpoint(levelId)
         seen = {
@@ -62,6 +66,7 @@ export const useGameStore = defineStore('game', () => {
         }
         reported = false
         resolution = null
+        reward = null
         scheduler = services.createScheduler()
         scheduler.start((frames) => tick(frames))
         sync()
@@ -125,12 +130,18 @@ export const useGameStore = defineStore('game', () => {
                 objectives: session.objectives.all,
                 survivors: session.personnel.total + session.personnel.inTransit,
             })
+            reward = requisitions.award(
+                session.result.outcome,
+                starsFor(session),
+                resolution.firstVictory,
+            )
         }
         if (!session.pointer.build) selectedBuild.value = null
         const next = presentSession(session)
         if (next.result && resolution) {
             next.result.unlocks = resolution.unlocks
             next.result.ending = resolution.ending
+            next.result.requisitions = reward
         }
         snapshot.value = next
     }

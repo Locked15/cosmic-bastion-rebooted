@@ -25,6 +25,8 @@ export class LivingQuarters {
         private readonly level: Level,
         private readonly personnel: Personnel,
         private readonly rng: Random,
+        // Multiplies the Guard's damage (meta upgrades).
+        private readonly soldierDamage = 1,
     ) {}
 
     get underAttack(): boolean {
@@ -62,7 +64,7 @@ export class LivingQuarters {
         for (const soldier of soldiers) {
             const target = nearest(soldier, this.enemies)
             if (!target) continue
-            target.takeDamage(SOLDIER_DPS * (dt / FPS))
+            target.takeDamage(SOLDIER_DPS * this.soldierDamage * (dt / FPS))
             soldier.isShooting = true
             soldier.shootTimer = Math.max(soldier.shootTimer, 5)
             soldier.shootAngle = Math.atan2(target.y - soldier.y, target.x - soldier.x)

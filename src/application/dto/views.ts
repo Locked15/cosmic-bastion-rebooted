@@ -87,6 +87,8 @@ export interface EndingView {
 
 export interface CampaignResolution {
     advanced: boolean
+    // The level was won for the first time (pays a requisition bonus).
+    firstVictory: boolean
     unlocks: string[]
     // Set after the finale: the campaign's ending.
     ending: EndingView | null
@@ -96,6 +98,8 @@ export interface ResultView {
     objectives: ObjectiveView[]
     unlocks: string[]
     ending: EndingView | null
+    // Requisitions paid for this mission.
+    requisitions: number | null
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]

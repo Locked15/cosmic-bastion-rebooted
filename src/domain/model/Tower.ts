@@ -32,6 +32,8 @@ export abstract class Tower {
     abilities: { name: string; description: string }[]
     showShockEffect = 0
     damageMultiplier = 1
+    // Multiplies the range from the catalog (meta upgrades).
+    rangeMultiplier = 1
     blindTimer = 0
     blindTarget: Point | null = null
     blindEnemy: Enemy | null = null
@@ -116,6 +118,13 @@ export abstract class Tower {
 
     protected applyStats(stats: TowerStats): void {
         Object.assign(this, stats)
+        if (stats.range !== undefined) this.range = stats.range * this.rangeMultiplier
+    }
+
+    setRangeMultiplier(multiplier: number): void {
+        if (multiplier === this.rangeMultiplier) return
+        this.range = (this.range / this.rangeMultiplier) * multiplier
+        this.rangeMultiplier = multiplier
     }
 
     resetAbilities(): void {
