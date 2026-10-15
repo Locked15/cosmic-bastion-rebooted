@@ -1,5 +1,7 @@
 import { levelDefinition } from '../levels/registry'
+import { DIFFICULTY_IDS, isDifficultyId, type DifficultyId } from '../rules/difficulty'
 import { CAMPAIGN } from '../story/campaign'
+import type { DifficultyRecords } from '../story/conditions'
 import type { StoryFlags } from './Level'
 export interface LevelSummary {
     id: string
@@ -9,14 +11,24 @@ export interface LevelSummary {
     completed: boolean
     stars: number
     locked: boolean
+    // Hardest rank this level was won on.
+    difficulty?: DifficultyId
 }
 export interface CampaignProgress {
     flags?: StoryFlags
     completedLevels: string[]
     totalStars: number
     currentLevelIndex: number
-    levels: { id: string; completed: boolean; stars: number; locked: boolean }[]
+    levels: {
+        id: string
+        completed: boolean
+        stars: number
+        locked: boolean
+        difficulty?: DifficultyId
+    }[]
 }
+
+const rankOf = (id: DifficultyId) => DIFFICULTY_IDS.indexOf(id)
 export class Campaign {
     levels: LevelSummary[] = []
     currentLevelIndex = 0
@@ -26,11 +38,16 @@ export class Campaign {
     constructor() {
         this.reset()
     }
-    completeLevel(id: string, stars: number): void {
+    completeLevel(id: string, stars: number, difficulty?: DifficultyId): void {
         const index = this.levels.findIndex((level) => level.id === id)
         const level = this.levels[index]
         if (!level) return
         level.completed = true
+        if (
+            isDifficultyId(difficulty) &&
+            (!level.difficulty || rankOf(difficulty) > rankOf(level.difficulty))
+        )
+            level.difficulty = difficulty
         level.stars = Math.max(
             level.stars,
             Number.isFinite(stars) ? Math.max(0, Math.min(3, Math.floor(stars))) : 0,
@@ -56,6 +73,14 @@ export class Campaign {
     getCurrentLevel(): LevelSummary {
         return this.levels[this.currentLevelIndex]!
     }
+    get difficultyRecords(): DifficultyRecords {
+        return Object.fromEntries(
+            this.levels.flatMap((level) =>
+                level.difficulty ? [[level.id, level.difficulty]] : [],
+            ),
+        )
+    }
+
     getLevelProgress(): { completed: number; total: number; stars: number; maxStars: number } {
         return {
             completed: this.completedLevels.length,
@@ -70,18 +95,19 @@ export class Campaign {
             completedLevels: [...this.completedLevels],
             totalStars: this.totalStars,
             currentLevelIndex: this.currentLevelIndex,
-            levels: this.levels.map(({ id, completed, stars, locked }) => ({
+            levels: this.levels.map(({ id, completed, stars, locked, difficulty }) => ({
                 id,
                 completed,
                 stars,
                 locked,
+                ...(difficulty ? { difficulty } : {}),
             })),
         }
     }
     static fromProgress(progress?: CampaignProgress): Campaign {
         const campaign = new Campaign()
         for (const level of progress?.levels ?? []) {
-            if (level.completed) campaign.completeLevel(level.id, level.stars)
+            if (level.completed) campaign.completeLevel(level.id, level.stars, level.difficulty)
         }
         for (const [key, value] of Object.entries(progress?.flags ?? {})) {
             if (Number.isFinite(value)) campaign.flags[key] = value

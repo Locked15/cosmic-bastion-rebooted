@@ -42,6 +42,11 @@ export class Enemy {
     path: Point[] = []
     distanceOnSegment = 0
     alive = true
+    // Positive tower damage bypasses defenses while exposed.
+    exposed = false
+    // Only a killing blow records a source; environmental/quarters deaths have no tower.
+    lastHitBy: string | null = null
+    towerDamageMultipliers: ReadonlyMap<string, number> = new Map()
     reached = false
     spawned = true
     spawnDelay = 0
@@ -136,6 +141,12 @@ export class Enemy {
 
     takeDamage(damage: number, sourceId?: string): void {
         if (!this.alive) return
+        if (this.exposed && sourceId !== undefined && damage > 0) {
+            this.currentHealth = 0
+            this.lastHitBy = sourceId
+            this.die()
+            return
+        }
 
         if (
             this.hasAbility('adaptation') &&
@@ -145,6 +156,8 @@ export class Enemy {
             sourceId !== this.abilityStates.adaptedTower
         )
             return
+
+        damage *= sourceId ? (this.towerDamageMultipliers.get(sourceId) ?? 1) : 1
 
         if (this.hasAbility('weakImmunity')) {
             const threshold = this.maxHealth * 0.005
@@ -158,15 +171,21 @@ export class Enemy {
         this.flashTimer = 5
 
         if (this.currentHealth <= 0) {
+            this.lastHitBy = sourceId ?? null
             this.die()
         }
     }
 
-    die(): void {
+    die(options: { suppressOffspring?: boolean } = {}): void {
+        if (options.suppressOffspring) {
+            this.splitPending = false
+            for (const child of this.spawnedEnemies) child.die(options)
+            this.spawnedEnemies = []
+        }
         if (!this.alive) return
         this.alive = false
 
-        if (this.hasAbility('split')) {
+        if (this.hasAbility('split') && !options.suppressOffspring) {
             this.splitPending = true
         }
     }

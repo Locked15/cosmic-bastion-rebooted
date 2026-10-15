@@ -15,7 +15,7 @@ import { useServices } from './services'
 import { useSettingsStore } from './settingsStore'
 
 export const useCampaignStore = defineStore('campaign', () => {
-    const { storage } = useServices()
+    const { storage, profiles } = useServices()
     const settingsStore = useSettingsStore()
     // Romance needs the scenes it is built in; either switch turns it off.
     const createService = () =>
@@ -24,7 +24,7 @@ export const useCampaignStore = defineStore('campaign', () => {
         })
     let service = createService()
     const checkpoints = new CheckpointService(storage)
-    const levels = ref<LevelSummary[]>(service.listLevels())
+    const levels = ref<LevelSummary[]>(service.listLevels(profiles.difficulty))
     const hasProgress = ref(service.hasProgress)
     // Wave each level can be resumed after (between-wave checkpoint), or null.
     const savedWaves = ref<Record<string, number | null>>({})
@@ -37,7 +37,7 @@ export const useCampaignStore = defineStore('campaign', () => {
     let sceneDone: (() => void) | null = null
 
     function refresh() {
-        levels.value = service.listLevels()
+        levels.value = service.listLevels(profiles.difficulty)
         hasProgress.value = service.hasProgress
         crew.value = service.crew()
         pendingScenes.value = settingsStore.settings.crewScenes ? service.scenesAfterMissions() : []

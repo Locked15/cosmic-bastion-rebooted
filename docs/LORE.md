@@ -221,7 +221,7 @@ Existing beats remain: energy to weapons or shields, the «Отречение» 
 
 ## 8. Endings
 
-Shown in the result window after level 5 and chosen by conditions (`src/content/endings.json`): story flags plus the relationship and record kinds of `domain/story/conditions.ts`. The golden ending is checked first. Its `allLevelsAtDifficulty` condition reads the per-level highest completed difficulty from the profile; until the difficulty system provides those records, it never holds. The hidden ending needs the final choice event «РАСЧЁТ СИЛЬВЫ», which sets `ending_renunciation`.
+Shown in the result window after level 5 and chosen by conditions (`src/content/endings.json`): story flags plus the relationship and record kinds of `domain/story/conditions.ts`. The golden ending is checked first. Its `allLevelsAtDifficulty` condition reads the hardest rank each mission was won on; every mission must be won as a General. Without the relationship conditions, such a run ends in «Железный Обет» instead. The hidden ending needs the final choice event «РАСЧЁТ СИЛЬВЫ», which sets `ending_renunciation`.
 
 | Ending                                 | Conditions                                                                                                                                                             | Outcome                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -253,6 +253,8 @@ The Synod pays its Bastions in **requisitions**: quartermaster orders that relea
 | absorb                 | «Сгущение»                    | The Swarm eats its own forms to gain weight     |
 
 Weapons, in lore: **shock** works because charge holds the Swarm together. The **«Фильтр»** barricade sifts out loose dust. The **laser shield** is Synod technology that was "heretically light", allowed only by the captain's dispensation.
+
+«Память Сонма»: Сонм учится на уничтоженных формах. На старших офицерских рангах он запоминает тип орудия, уничтоживший больше всего форм за волну, и в следующей волне ослабляет его урон; равный счёт или менее трёх уничтожений стирают урок. Средоточия появляются лишь в достаточно глубоких отсеках: на учебном ранге — только в последней волне глубокого сектора, на старших рангах — раньше и чаще; на генеральском ранге каждое несёт два разных урока.
 
 ## 10. Tone and writing rules for event texts
 

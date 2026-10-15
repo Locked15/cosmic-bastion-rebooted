@@ -30,6 +30,30 @@ describe('ProfileService', () => {
         expect((await service.create('ирена восс')).ok).toBe(false)
     })
 
+    it('fixes the rank chosen at registration; old records read as the default rank', async () => {
+        const repository = new MemoryProfileRepository()
+        await repository.putProfile({ id: 'old', name: 'Старый', createdAt: 1, lastPlayedAt: 1 })
+        const service = await ProfileService.open(repository, ids())
+        expect(service.difficulty).toBe('modest')
+        expect(service.list()[0]!.difficulty).toBe('modest')
+
+        expect((await service.create('Генерал', 'nope' as never)).ok).toBe(false)
+        expect(await service.create('Генерал', 'xhard')).toEqual({ ok: true })
+        expect(service.difficulty).toBe('xhard')
+
+        const reopened = await ProfileService.open(repository, ids())
+        expect(reopened.list().map((profile) => profile.difficulty)).toEqual(['modest', 'xhard'])
+    })
+
+    it('re-ranks the active profile only through the console override', async () => {
+        const repository = new MemoryProfileRepository()
+        const service = await ProfileService.open(repository, ids())
+        expect((await service.overrideDifficulty('xhard')).ok).toBe(false)
+        await service.create('Кирх', 'simple')
+        expect(await service.overrideDifficulty('complex')).toEqual({ ok: true })
+        expect((await ProfileService.open(repository, ids())).difficulty).toBe('complex')
+    })
+
     it('keeps at most three profiles, each with its own saves', async () => {
         const service = await ProfileService.open(new MemoryProfileRepository(), ids())
         for (const name of ['Альфа', 'Бета', 'Гамма']) await service.create(name)

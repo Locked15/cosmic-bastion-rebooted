@@ -34,6 +34,7 @@
                     <StatItem label="⚔ Военные" :value="level.startingMilitary" />
                     <StatItem label="💎 Ресурсы" :value="level.startingResources" />
                     <StatItem label="🌊 Волн" :value="level.totalWaves" />
+                    <StatItem v-if="level.rank" label="🎖 Удержан в звании" :value="level.rank" />
                 </div>
             </div>
         </div>

@@ -22,12 +22,12 @@ import {
 // Conditions of scenes and endings. A plain flag condition still works; the `kind` forms
 // test relationships and campaign records, and compose with `anyOf`. Every list is "all of".
 
-// Highest completed difficulty per level id, kept in the profile by the difficulty system.
+// Highest completed difficulty per level id, kept in the campaign (`Campaign.difficultyRecords`).
 export type DifficultyRecords = Readonly<Record<string, DifficultyId>>
 
 export interface ConditionContext {
     flags: Readonly<StoryFlags>
-    // Absent until the profile records difficulties: `allLevelsAtDifficulty` then never holds.
+    // Absent: `allLevelsAtDifficulty` never holds.
     difficultyRecords?: DifficultyRecords
     // The player's romance setting (default on). Off: `romance` never holds, `noRomance` does.
     romance?: boolean
@@ -45,7 +45,7 @@ export type StoryCondition =
     | { kind: 'present'; character: string }
     // At least `count` present characters have disposition of `atLeast` or more (cast allyAt).
     | { kind: 'allies'; count: number; atLeast?: number }
-    // Hook for the difficulty system: every campaign mission (training excluded) was won on
+    // Every campaign mission (training excluded) was won on
     // this difficulty or a harder one. `highest` is the last entry of DIFFICULTY_IDS.
     | { kind: 'allLevelsAtDifficulty'; difficulty: DifficultyId | 'highest' }
     | { kind: 'anyOf'; conditions: StoryCondition[] }

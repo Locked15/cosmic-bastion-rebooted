@@ -215,8 +215,9 @@ describe('endings with relationships', () => {
 
     it('needs allies and the captain for the golden ending, not a partner', () => {
         const records = { difficultyRecords: everyMission() }
-        expect(resolveEnding('victory', { ...golden, rep_renn: 0 }, records).id).toBe('ascent')
-        expect(resolveEnding('victory', { ...golden, rep_voss: 4 }, records).id).toBe('ascent')
+        // Without the allies a general's run still earns «Железный Обет».
+        expect(resolveEnding('victory', { ...golden, rep_renn: 0 }, records).id).toBe('iron')
+        expect(resolveEnding('victory', { ...golden, rep_voss: 4 }, records).id).toBe('iron')
         expect(resolveEnding('victory', golden, { ...records, romance: false }).id).toBe('golden')
     })
 

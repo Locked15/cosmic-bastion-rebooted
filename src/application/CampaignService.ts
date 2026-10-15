@@ -14,6 +14,8 @@ import {
     type DifficultyRecords,
     type SceneProgress,
     type StoryScene,
+    DEFAULT_DIFFICULTY,
+    DIFFICULTIES,
     campaignSector,
     createLevel,
     flagsMatch,
@@ -21,6 +23,7 @@ import {
     resolveEnding,
     type CampaignProgress,
     type CampaignSector,
+    type DifficultyId,
     type EnemyAbility,
     type EventEffect,
     type Level,
@@ -57,12 +60,11 @@ export interface MissionReport {
     objectives: readonly ObjectiveView[]
     flags: Readonly<StoryFlags>
     survivors: number
+    // Rank the mission was played on; a victory raises the level's record.
+    difficulty?: DifficultyId
 }
 
 export interface CampaignOptions {
-    // Highest completed difficulty per level, for the golden ending. Supplied by the
-    // difficulty system once it records it in the profile; until then nothing qualifies.
-    difficultyRecords?: () => DifficultyRecords
     // The player's romance setting (on by default).
     romance?: () => boolean
 }
@@ -99,6 +101,10 @@ export class CampaignService {
         return { ...this.campaign.flags }
     }
 
+    get difficultyRecords(): DifficultyRecords {
+        return this.campaign.difficultyRecords
+    }
+
     get unlocks(): TechnologyUnlocks {
         const count = this.campaign.levels.filter(
             (level) => level.type === 'story' && level.completed,
@@ -106,7 +112,9 @@ export class CampaignService {
         return technologyUnlocks(count, this.campaign.flags)
     }
 
-    listLevels(): LevelSummary[] {
+    // Levels as the given rank will play them.
+    listLevels(difficulty: DifficultyId = DEFAULT_DIFFICULTY): LevelSummary[] {
+        const rank = DIFFICULTIES[difficulty]
         return this.campaign.levels.map((entry) => {
             const level = createLevel(entry.id)!
             this.applyStartingConditions(level)
@@ -119,6 +127,7 @@ export class CampaignService {
                 locked: entry.locked,
                 completed: entry.completed,
                 stars: entry.stars,
+                rank: entry.difficulty ? DIFFICULTIES[entry.difficulty].label : null,
                 objectives: level.objectives.map((objective) => objective.text),
                 sector: sector.name,
                 code: sector.code,
@@ -133,7 +142,7 @@ export class CampaignService {
                 ),
                 startingMiners: level.startingMiners,
                 startingMilitary: level.startingMilitary,
-                startingResources: level.startingResources,
+                startingResources: Math.round(level.startingResources * rank.startResources),
                 totalWaves: level.totalWaves,
             }
         })
@@ -190,7 +199,7 @@ export class CampaignService {
         const firstVictory =
             advanced &&
             !this.campaign.levels.some((entry) => entry.id === levelId && entry.completed)
-        if (advanced) this.campaign.completeLevel(levelId, report.stars)
+        if (advanced) this.campaign.completeLevel(levelId, report.stars, report.difficulty)
         const unlocks = this.unlocks.technologies
             .filter((tech) => !before.has(tech.id))
             .map((tech) => tech.name)
@@ -199,7 +208,7 @@ export class CampaignService {
         const ending =
             levelId === CAMPAIGN.finale
                 ? resolveEnding(report.outcome, this.campaign.flags, {
-                      difficultyRecords: this.options.difficultyRecords?.(),
+                      difficultyRecords: this.difficultyRecords,
                       romance: this.romance,
                   })
                 : null
@@ -277,7 +286,7 @@ export class CampaignService {
         return {
             flags: this.campaign.flags,
             completedLevels: this.campaign.completedLevels,
-            difficultyRecords: this.options.difficultyRecords?.(),
+            difficultyRecords: this.difficultyRecords,
             romance: this.romance,
         }
     }

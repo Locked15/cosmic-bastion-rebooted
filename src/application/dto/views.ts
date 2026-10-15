@@ -1,5 +1,3 @@
-import { DEFAULT_DIFFICULTY, type DifficultyId } from '@/domain'
-
 // Plain view models handed from the application layer to the UI.
 // They hold no references to domain objects.
 
@@ -131,6 +129,7 @@ export interface ResultView {
 }
 
 export interface GameSnapshot {
+    swarmMemory: { tower: string; percent: number } | null
     levelId: string
     levelName: string
     status: GameStatus
@@ -158,6 +157,8 @@ export interface MapRect {
 }
 
 export interface LevelSummary {
+    // Hardest rank the level was won on, if any.
+    rank: string | null
     sector: string
     // Deck code on the ship map (A-7…).
     code: string
@@ -193,8 +194,6 @@ export interface Settings {
     // Sound effects and music, 0..100.
     volume: number
     music: number
-    // Applied when a level starts.
-    difficulty: DifficultyId
     // Character scenes between missions on the ship map; off hides them all.
     crewScenes: boolean
     // Romantic lines, the partner choice and the partner's epilogue.
@@ -205,7 +204,6 @@ export const DEFAULT_SETTINGS: Settings = {
     brightness: 100,
     volume: 50,
     music: 40,
-    difficulty: DEFAULT_DIFFICULTY,
     crewScenes: true,
     romance: true,
 }

@@ -13,36 +13,20 @@ beforeEach(async () => {
 })
 
 describe('settingsStore', () => {
-    it('drops the removed enemy speed setting and unknown difficulties from old saves', () => {
+    it('drops removed settings (enemy speed, difficulty) from old saves', () => {
         storage.write('settings', {
             brightness: 80,
             volume: 20,
             enemySpeed: 1.3,
-            difficulty: 'nope',
+            difficulty: 'xhard',
         })
         const { settings } = useSettingsStore()
         expect(settings).toEqual({
             brightness: 80,
             volume: 20,
             music: 40,
-            difficulty: 'modest',
             crewScenes: true,
             romance: true,
         })
-    })
-
-    it('describes the selected difficulty with its effects', () => {
-        const store = useSettingsStore()
-        store.settings.difficulty = 'xhard'
-        expect(store.difficultyDetails.description).toContain('Последний рубеж')
-        expect(store.difficultyDetails.effects).toBe(
-            'Здоровье врагов ×1.8 · Скорость ×1.3 · Прорывов до поражения: 3',
-        )
-        expect(store.difficultyOptions.map((option) => option.text)).toEqual([
-            'Младший лейтенант',
-            'Лейтенант',
-            'Майор',
-            'Генерал',
-        ])
     })
 })

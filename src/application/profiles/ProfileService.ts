@@ -1,4 +1,11 @@
-import { LEVEL_IDS, briefingLine, type CampaignProgress } from '@/domain'
+import {
+    DEFAULT_DIFFICULTY,
+    LEVEL_IDS,
+    briefingLine,
+    isDifficultyId,
+    type CampaignProgress,
+    type DifficultyId,
+} from '@/domain'
 import type { LegacySaves, ProfileRecord, ProfileRepository } from '../ports/ProfileRepository'
 import type { CommandResult } from '../session/GameSession'
 import { CachedStore, SwitchingStore } from './CachedStore'
@@ -17,6 +24,7 @@ export interface ProfileSummary {
     totalLevels: number
     stars: number
     active: boolean
+    difficulty: DifficultyId
 }
 
 export interface ProfileServiceOptions {
@@ -104,6 +112,7 @@ export class ProfileService {
                 totalLevels: LEVEL_IDS.length,
                 stars: campaign?.totalStars ?? 0,
                 active: profile.id === this.activeId,
+                difficulty: rankOf(profile),
             }
         })
     }
@@ -119,7 +128,15 @@ export class ProfileService {
         })
     }
 
-    async create(rawName: string): Promise<CommandResult> {
+    // Difficulty of the active profile, fixed when it was registered.
+    get difficulty(): DifficultyId {
+        return this.active ? rankOf(this.active) : DEFAULT_DIFFICULTY
+    }
+
+    async create(
+        rawName: string,
+        difficulty: DifficultyId = DEFAULT_DIFFICULTY,
+    ): Promise<CommandResult> {
         const name = rawName.trim().replace(/\s+/g, ' ')
         if (!name) return { ok: false, error: 'Введите имя офицера' }
         if (name.length > PROFILE_NAME_MAX)
@@ -128,12 +145,14 @@ export class ProfileService {
             return { ok: false, error: `Доступно не более ${MAX_PROFILES} профилей` }
         if (this.profiles.some((profile) => profile.name.toLowerCase() === name.toLowerCase()))
             return { ok: false, error: 'Профиль с таким именем уже есть' }
+        if (!isDifficultyId(difficulty)) return { ok: false, error: 'Неизвестное звание' }
         const now = this.now()
         const profile: ProfileRecord = {
             id: this.createId(),
             name,
             createdAt: now,
             lastPlayedAt: now,
+            difficulty,
         }
         const imported = this.profiles.length === 0 ? this.legacyProfileSaves() : {}
         await this.repository.putProfile(profile)
@@ -155,6 +174,16 @@ export class ProfileService {
         this.storage.use(store)
         profile.lastPlayedAt = this.now()
         this.device.write(ACTIVE_KEY, id)
+        await this.repository.putProfile({ ...profile })
+        return { ok: true }
+    }
+
+    // Re-ranks the active profile. Not offered by the game itself: only the dev console uses it.
+    async overrideDifficulty(difficulty: DifficultyId): Promise<CommandResult> {
+        const profile = this.active
+        if (!profile) return { ok: false, error: 'Нет активного профиля' }
+        if (!isDifficultyId(difficulty)) return { ok: false, error: 'Неизвестное звание' }
+        profile.difficulty = difficulty
         await this.repository.putProfile({ ...profile })
         return { ok: true }
     }
@@ -209,4 +238,8 @@ export class ProfileService {
         if (this.profiles.length > 0 || !Object.keys(this.legacyProfileSaves()).length)
             this.legacy?.clear()
     }
+}
+
+function rankOf(profile: ProfileRecord): DifficultyId {
+    return isDifficultyId(profile.difficulty) ? profile.difficulty : DEFAULT_DIFFICULTY
 }

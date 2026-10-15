@@ -1,3 +1,4 @@
+import { DIFFICULTIES, TOWER_CATALOG } from '@/domain'
 import type { GameSnapshot } from '../dto/views'
 import type { GameSession } from './GameSession'
 import { presentBuildOptions } from './presenters/buildOptions'
@@ -10,6 +11,12 @@ export { starsFor } from './presenters/result'
 // Turns the live session into plain view data for the UI.
 export function presentSession(session: GameSession): GameSnapshot {
     return {
+        swarmMemory: session.remembered
+            ? {
+                  tower: TOWER_CATALOG[session.remembered].name,
+                  percent: Math.round(DIFFICULTIES[session.difficulty].swarmMemory * 100),
+              }
+            : null,
         levelId: session.level.id,
         levelName: session.level.name,
         status: session.status,

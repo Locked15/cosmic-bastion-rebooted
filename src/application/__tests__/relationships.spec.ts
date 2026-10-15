@@ -22,6 +22,8 @@ function serviceWith(
     flags: Record<string, number>,
     completed: string[] = [],
     options: CampaignOptions = {},
+    // Hardest rank each completed level was won on.
+    records: Record<string, string> = {},
 ) {
     const storage = new MemoryStore()
     storage.write('campaign', {
@@ -29,7 +31,13 @@ function serviceWith(
         completedLevels: completed,
         totalStars: 0,
         currentLevelIndex: 0,
-        levels: completed.map((id) => ({ id, completed: true, stars: 1, locked: false })),
+        levels: completed.map((id) => ({
+            id,
+            completed: true,
+            stars: 1,
+            locked: false,
+            ...(records[id] ? { difficulty: records[id] } : {}),
+        })),
     })
     return { storage, service: new CampaignService(storage, options) }
 }
@@ -98,8 +106,13 @@ describe('CampaignService relationships', () => {
         const plainEnding = plain.recordResult(CAMPAIGN.finale, { ...report, outcome: 'victory' })
         expect(plainEnding.ending).toMatchObject({ id: 'ascent', partner: 'Командор Маркус Хейл' })
 
-        const { service } = serviceWith(golden, completed, { difficultyRecords: () => records })
-        const ending = service.recordResult(CAMPAIGN.finale, { ...report, outcome: 'victory' })
+        // The finale's own record comes from the report of that very mission.
+        const { service } = serviceWith(golden, completed, {}, records)
+        const ending = service.recordResult(CAMPAIGN.finale, {
+            ...report,
+            outcome: 'victory',
+            difficulty: DIFFICULTY_IDS[DIFFICULTY_IDS.length - 1]!,
+        })
         expect(ending.ending?.id).toBe('golden')
         expect(ending.ending?.epilogue.length).toBeGreaterThan(0)
     })

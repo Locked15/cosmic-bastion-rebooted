@@ -31,9 +31,15 @@ async function bootstrap() {
     })
 
     const app = createApp(App)
-    app.use(createPinia())
+    const pinia = createPinia()
+    app.use(pinia)
     app.use(router)
     app.mount('#app')
+
+    if (import.meta.env.DEV) {
+        const { installUplink } = await import('./devtools/uplink')
+        installUplink(pinia)
+    }
 }
 
 void bootstrap()

@@ -78,8 +78,13 @@ export const useRequisitionStore = defineStore('requisitions', () => {
         sound.play('waveClear')
     }
 
-    function award(outcome: 'victory' | 'defeat', stars: number, firstVictory: boolean): number {
-        const amount = service.award(outcome, stars, firstVictory)
+    function award(
+        outcome: 'victory' | 'defeat',
+        stars: number,
+        firstVictory: boolean,
+        multiplier = 1,
+    ): number {
+        const amount = service.award(outcome, stars, firstVictory, multiplier)
         refresh()
         return amount
     }

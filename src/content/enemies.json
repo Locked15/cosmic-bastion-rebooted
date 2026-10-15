@@ -35,7 +35,6 @@
         "abilityFromWave": 1,
         "miniBossChance": { "base": 0.08, "perWave": 0.03, "max": 0.3 },
         "miniBossFromWave": 2,
-        "bossEvery": 4,
         "bossDelay": 50,
         "regularAbilities": ["split", "accelerate", "teleport", "adaptation", "sabotage"],
         "bossAbilities": ["absorb", "ambush", "dodge", "confuse", "blind", "destroy", "spawn"]

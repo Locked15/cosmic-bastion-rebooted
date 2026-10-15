@@ -105,7 +105,9 @@ describe('combat enemy abilities', () => {
 
     it('rolls exclusive adaptation/sabotage and one unique boss ability across seeds', () => {
         const wave = Array.from({ length: 50 }, (_, seed) =>
-            generateWave(8, 1, createSeededRandom(seed)),
+            generateWave(8, 1, createSeededRandom(seed), {
+                boss: { onThisWave: true, abilities: 1, banned: [] },
+            }),
         ).flat()
         for (const value of wave.filter((candidate) => candidate.type === 'boss')) {
             expect(value.abilities).toHaveLength(1)

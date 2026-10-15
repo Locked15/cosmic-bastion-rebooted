@@ -56,18 +56,18 @@ src/
 
 Key rules:
 
-- **Time is in frames at 60 fps.** `update(dt)` gets frames. `GameSession.advance(realFrames)` applies speed (×0.5…×8), pause and the ×0.5 slow-down while a dialog is open.
+- **Time is in frames at 60 fps.** `update(dt)` gets frames. `GameSession.advance(realFrames)` applies speed (×0.5…×8), pause and the rank’s battle speed while a dialog is open.
 - **Randomness is injected.** Gameplay uses `Random` (`rng.next()`, `rng.id(prefix)`). Pass `createSeededRandom(seed)` in tests for reproducible runs. Renderers may use `Math.random` for cosmetics only.
 - **Entities are never reactive.** `gameStore` keeps the `GameSession` in a plain variable and publishes `snapshot` (a `GameSnapshot` DTO) via `shallowRef` after each tick. Canvas renderers read the session through the read-only `Scene` interface.
 - **Commands return `CommandResult`** (`{ok}` or `{ok:false, error}`). The store turns errors into toasts. Domain and application code never show UI.
 - **Level layout rules** (tested in `domain/__tests__/layout.spec.ts`): tower foundations stay ≥45 px from every enemy route and ≥50 px from each other. Barricades can only be placed via `Level.barricadePlacement` (snapped onto a route); an intact barricade stops enemies until destroyed. Enemies enter the living quarters only at the end of their route.
-- **Difficulty** (`domain/rules/difficulty.ts`) scales enemy health and speed and sets how many breakthroughs lose the level. It is read from settings when a level starts and stored in checkpoints.
-- **Campaign progression:** a level is completed — and the sectors that require it unlock — only on victory. Defeats keep story flags but never advance the map.
+- **Difficulty** (`domain/rules/difficulty.ts`) controls enemy health/speed, breakthroughs, dialog speed, refunds, starting resources and requisition rewards; it is the profile's rank (`ProfileRecord.difficulty`, chosen once at registration and never changed by settings), fixed for a run and stored in checkpoints. Higher ranks enable Swarm memory (resistance to the previous wave’s leading tower type) and bring bosses earlier by campaign depth, with rank-specific cadence, abilities and bans.
+- **Campaign progression:** a level is completed — and the sectors that require it unlock — only on victory. Each level keeps the hardest rank it was won on (`Campaign.difficultyRecords`); endings test it with the `allLevelsAtDifficulty` condition. Defeats keep story flags but never advance the map.
 - **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
 - **New story effect:** extend `EventEffect` and `effectSchema` (`domain/levels/schema.ts`), then handle it in `applyEffect` and `canAfford` (`application/session/effects.ts`).
 - **New objective kind:** add it to `OBJECTIVE_KINDS` (`domain/levels/schema.ts`) and handle it in `ObjectiveTracker` (`application/session/objectives.ts`).
 - **Persistence:** services use the synchronous `KeyValueStore` port. In the app it is the active profile's `CachedStore`: `ProfileService.open` (in `main.ts`) loads every profile from IndexedDB (`IdbProfileRepository`, via `idb`) before the app mounts; writes update memory at once and reach IndexedDB in order. Settings are device-wide (`AppServices.deviceStorage`); campaign, checkpoints and achievements belong to a profile. Old `cosmicBastion:` localStorage saves move into the first profile.
-- **Profiles:** at most three. Without an active profile the security dialog (`ProfilesModal`) cannot be closed and mission routes redirect to the menu. After a switch, `profileStore` reloads the campaign and achievement stores. The menu greeting comes from `content/briefings.json` by story progress.
+- **Profiles:** at most three. Without an active profile the security dialog (`ProfilesModal`) cannot be closed and mission routes redirect to the menu. After a switch, `profileStore` reloads the campaign and achievement stores. The menu greeting comes from `content/briefings.json` by story progress. Registration picks the rank (difficulty); only the dev console can re-rank a profile (`ProfileService.overrideDifficulty`).
 
 ## UI rules
 
@@ -100,7 +100,7 @@ Game content is data in `src/content/*.json`; code only interprets it. Each file
 | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
 | `levels/level_N.json`                                         | One level: geometry, tower slots, start, waves, objectives, events, carry-over            | `domain/levels/schema.ts`                             |
 | `campaign.json`                                               | Sector order, prerequisites, ship-map rooms and conduits, finale, `contentVersion`        | `domain/story/campaign.ts`                            |
-| `endings.json`                                                | Endings after the finale, chosen by outcome and story flags                               | `domain/story/endings.ts`                             |
+| `endings.json`                                                | Endings after the finale, chosen by outcome, story flags and difficulty records           | `domain/story/endings.ts`                             |
 | `events/refugees.json`                                        | Texts and prices of the refugee event template                                            | `domain/story/events.ts`                              |
 | `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                             | `domain/rules/*Catalog.ts`                            |
 | `enemies.json`                                                | Enemy stats, ability texts, wave generation                                               | `domain/rules/enemyRules.ts`                          |
@@ -110,7 +110,7 @@ Game content is data in `src/content/*.json`; code only interprets it. Each file
 | `cast.json`                                                   | Characters, who is romanceable, presence flags, value range and thresholds, standings     | `domain/story/cast.ts`                                |
 | `scenes.json`                                                 | Visual-novel scenes between missions and the partner-commitment scene                     | `domain/story/scenes.ts`                              |
 | `epilogues.json`                                              | Fates of allies, enemies and the partner after each ending                                | `domain/story/endings.ts`                             |
-| `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                                  | `domain/rules`, `domain/story`, `domain/achievements` |
+| `difficulties.json`, `technologies.json`, `achievements.json` | Ranks (difficulty), tech tree, achievements                                               | `domain/rules`, `domain/story`, `domain/achievements` |
 
 - **New level:** add `src/content/levels/level_N.json` (the `id` must match the file name) and a sector for it in `campaign.json`. A sector may only require sectors listed before it. The layout and content tests run on every level automatically.
 - **Level events:** `when` lists story-flag conditions (`atLeast` / `below`). Pairs of events with opposite conditions give branches. At most 3 events per wave and 10 per level; timers 7–15 s.
@@ -119,7 +119,7 @@ Game content is data in `src/content/*.json`; code only interprets it. Each file
 - **Music:** every level has its own track (`music` in its file); the menu and ship map play `music.json#menu`. `HtmlMusicPlayer` loops and crossfades tracks and starts after the first user gesture when autoplay is blocked. New tracks must allow redistribution (CC0/CC BY); add the file as Opus WebM to `public/audio/music/`, list it in `music.json` and credit it in `CREDITS.md`.
 - **Relationships:** disposition and affection are story flags (`rep_<id>`, `aff_<id>`), so level `when` conditions test them like any flag. Level events change them with the `relationship` effect (`affection` only for romanceable characters; it follows `disposition` when omitted). Scenes and endings use `StoryCondition` (`domain/story/conditions.ts`): flag conditions plus `disposition`, `affection`, `romance`, `noRomance`, `present`, `allies`, `allLevelsAtDifficulty` and `anyOf`. A new condition kind goes into `storyConditionSchema` and `conditionHolds`.
 - **Scenes** play from the ship map (`after` a won level, or `before` a level starts) and are always optional: skip, later, or off in the settings (`crewScenes`, `romance`). Each needs two choices that are always available; a choice that needs affection is `romantic`.
-- **Golden ending hook:** `allLevelsAtDifficulty` reads `CampaignOptions.difficultyRecords` (highest completed difficulty per level id). Until a provider is passed to `CampaignService`, the golden ending never resolves.
+- **Golden ending:** `allLevelsAtDifficulty` reads the campaign's difficulty records (`CampaignService.difficultyRecords`, hardest rank per level id); «Железный Обет» is the fallback for an all-General run without the relationship conditions.
 - **Changing an existing level's layout:** bump `contentVersion` in `campaign.json`, so old between-wave checkpoints of that content are discarded.
 
 ## Story
