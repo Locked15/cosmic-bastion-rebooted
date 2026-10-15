@@ -35,7 +35,7 @@ describe('difficulty', () => {
     it('has the four levels with their labels in order', () => {
         expect(DIFFICULTY_IDS).toEqual(['simple', 'modest', 'complex', 'xhard'])
         expect(DIFFICULTY_IDS.map((id) => DIFFICULTIES[id].label)).toEqual([
-            'Рядовой',
+            'Младший лейтенант',
             'Лейтенант',
             'Майор',
             'Генерал',

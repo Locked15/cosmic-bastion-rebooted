@@ -32,7 +32,7 @@ describe('settingsStore', () => {
             'Здоровье врагов ×1.8 · Скорость ×1.3 · Прорывов до поражения: 3',
         )
         expect(store.difficultyOptions.map((option) => option.text)).toEqual([
-            'Рядовой',
+            'Младший лейтенант',
             'Лейтенант',
             'Майор',
             'Генерал',
