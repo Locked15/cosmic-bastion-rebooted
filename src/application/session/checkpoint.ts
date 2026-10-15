@@ -12,6 +12,7 @@ export interface LevelCheckpoint {
     content?: number
     levelId: string
     wave: number
+    overridesUsed?: boolean
     difficulty?: DifficultyId
     resources: number
     miners: number
@@ -55,6 +56,7 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
         levelId: session.level.id,
         wave: session.currentWave,
         difficulty: session.difficulty,
+        overridesUsed: session.overrides.used,
         resources: session.resources,
         miners: session.miners + transit.miner,
         military: session.military + transit.military,
@@ -86,6 +88,7 @@ export function createCheckpoint(session: GameSession): LevelCheckpoint {
 // Apply a checkpoint to a freshly created session of the same level.
 export function restoreCheckpoint(session: GameSession, checkpoint: LevelCheckpoint): void {
     if (checkpoint.levelId !== session.level.id) throw new Error('Checkpoint is for another level')
+    session.overrides.used ||= checkpoint.overridesUsed ?? false
     session.story.restore(checkpoint.story)
     session.currentWave = checkpoint.wave
     // Resume at the difficulty the run started with, whatever the settings say now.

@@ -33,6 +33,7 @@ import { applyEffect, canAfford } from './effects'
 import { LivingQuarters } from './livingQuarters'
 import { ObjectiveTracker, type ObjectiveEvent } from './objectives'
 import { Personnel } from './personnel'
+import { SessionOverrides } from './overrides'
 import type { Scene, ScenePointer } from './scene'
 import { StoryDirector, type ActiveDialog } from './story'
 
@@ -95,6 +96,7 @@ interface MoveState {
 
 // One running level: owns all entities and advances the simulation frame by frame.
 export class GameSession implements Scene {
+    readonly overrides = new SessionOverrides()
     readonly level: Level
     readonly rng: Random
     readonly personnel: Personnel
@@ -277,12 +279,57 @@ export class GameSession implements Scene {
         this.updateBarricades(dt)
         this.updateEnemies(dt)
         this.updateQuarters(dt)
+        if (this.waveInProgress && this.enemies.length === 0 && !this.quarters.underAttack) {
+            this.completeWave()
+        }
         for (const text of this.objectives.update(this))
             this.messages.push(`Задача выполнена: ${text}`)
         this.checkDefeat()
     }
 
     // ----- Commands -----
+
+    toggleOverride(kind: 'lethal' | 'fortified'): boolean {
+        this.overrides.used = true
+        this.overrides[kind] = !this.overrides[kind]
+        return this.overrides[kind]
+    }
+
+    grantResources(amount: number): CommandResult {
+        this.overrides.used = true
+        if (this.ended) return fail('Уровень завершён')
+        if (!Number.isFinite(amount) || amount < 0 || !Number.isFinite(this.resources + amount))
+            return fail('Некорректное количество ресурсов')
+        this.resources += amount
+        return ok
+    }
+
+    eliminateEnemies(): CommandResult {
+        this.overrides.used = true
+        if (this.ended) return fail('Уровень завершён')
+        for (const enemy of [...this.enemies, ...this.quarters.enemies]) {
+            enemy.die({ suppressOffspring: true })
+        }
+        return ok
+    }
+
+    clearWave(): CommandResult {
+        this.overrides.used = true
+        if (this.ended) return fail('Уровень завершён')
+        if (!this.waveInProgress) return fail('Волна не идёт')
+        return this.eliminateEnemies()
+    }
+
+    forceVictory(): CommandResult {
+        this.overrides.used = true
+        if (this.ended) return fail('Уровень завершён')
+        this.eliminateEnemies()
+        // Settle normal kill accounting before ending further simulation updates.
+        this.updateEnemies(0)
+        this.updateQuarters(0)
+        this.finish('victory', '')
+        return ok
+    }
 
     togglePause(): void {
         if (this.ended) return
@@ -554,6 +601,7 @@ export class GameSession implements Scene {
         const buildDt = dt * this.bonuses.buildSpeed
         const towers = this.slots.flatMap((slot) => (slot.tower ? [slot.tower] : []))
         for (const enemy of this.enemies) {
+            enemy.exposed = this.overrides.lethal
             if (enemy.alive && enemy.spawned) enemy.prepareCombat(towers, this.rng)
         }
         for (const slot of this.slots) {
@@ -604,7 +652,7 @@ export class GameSession implements Scene {
         const survivors: Enemy[] = []
 
         for (const enemy of this.enemies) {
-            if (!enemy.spawned) {
+            if (enemy.alive && !enemy.spawned) {
                 enemy.spawnDelay -= dt
                 if (enemy.spawnDelay > 0) {
                     survivors.push(enemy)
@@ -652,10 +700,6 @@ export class GameSession implements Scene {
         }
 
         this.enemies = [...survivors, ...spawned]
-
-        if (this.waveInProgress && this.enemies.length === 0 && !this.quarters.underAttack) {
-            this.completeWave()
-        }
     }
 
     // Barricades stop an enemy in front of them until they are destroyed.
@@ -681,7 +725,7 @@ export class GameSession implements Scene {
             // Shields limit how many enemies can damage them at once.
             if (barricade.canAcceptAttacker(enemy.id)) {
                 barricade.registerAttacker(enemy.id)
-                barricade.takeDamage(enemy.mass * dt * 0.1)
+                if (!this.overrides.fortified) barricade.takeDamage(enemy.mass * dt * 0.1)
             }
             if (barricade.damageToEnemies > 0) {
                 enemy.takeDamage((barricade.damageToEnemies * dt) / FPS)

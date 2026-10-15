@@ -42,6 +42,8 @@ export class Enemy {
     path: Point[] = []
     distanceOnSegment = 0
     alive = true
+    // Positive tower damage bypasses defenses while exposed.
+    exposed = false
     reached = false
     spawned = true
     spawnDelay = 0
@@ -136,6 +138,11 @@ export class Enemy {
 
     takeDamage(damage: number, sourceId?: string): void {
         if (!this.alive) return
+        if (this.exposed && sourceId !== undefined && damage > 0) {
+            this.currentHealth = 0
+            this.die()
+            return
+        }
 
         if (
             this.hasAbility('adaptation') &&
@@ -162,11 +169,16 @@ export class Enemy {
         }
     }
 
-    die(): void {
+    die(options: { suppressOffspring?: boolean } = {}): void {
+        if (options.suppressOffspring) {
+            this.splitPending = false
+            for (const child of this.spawnedEnemies) child.die(options)
+            this.spawnedEnemies = []
+        }
         if (!this.alive) return
         this.alive = false
 
-        if (this.hasAbility('split')) {
+        if (this.hasAbility('split') && !options.suppressOffspring) {
             this.splitPending = true
         }
     }

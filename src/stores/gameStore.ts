@@ -15,6 +15,7 @@ import {
     type PersonType,
     type Viewport,
 } from '@/application'
+import { findDirective } from '@/application/session/directives'
 import { createLevel } from '@/domain'
 import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
@@ -102,7 +103,7 @@ export const useGameStore = defineStore('game', () => {
         }
         if (++ticksSinceAchievementCheck >= 60) {
             ticksSinceAchievementCheck = 0
-            achievements.check(current)
+            if (!current.overrides.used) achievements.check(current)
         }
     }
 
@@ -120,7 +121,7 @@ export const useGameStore = defineStore('game', () => {
         if (session.result && !reported) {
             reported = true
             sound.play(session.result.outcome)
-            achievements.check(session)
+            if (!session.overrides.used) achievements.check(session)
             campaign.clearCheckpoint(session.level.id)
             session.objectives.update(session)
             resolution = campaign.recordResult(session.level.id, {
@@ -130,11 +131,13 @@ export const useGameStore = defineStore('game', () => {
                 objectives: session.objectives.all,
                 survivors: session.personnel.total + session.personnel.inTransit,
             })
-            reward = requisitions.award(
-                session.result.outcome,
-                starsFor(session),
-                resolution.firstVictory,
-            )
+            if (!session.overrides.used) {
+                reward = requisitions.award(
+                    session.result.outcome,
+                    starsFor(session),
+                    resolution.firstVictory,
+                )
+            }
         }
         if (!session.pointer.build) selectedBuild.value = null
         const next = presentSession(session)
@@ -152,6 +155,20 @@ export const useGameStore = defineStore('game', () => {
         if (result && !result.ok) ui.notify(result.error)
         sync()
         return result
+    }
+
+    // Dev console directives; compiled out of production builds.
+    function enter(input: string): string {
+        if (!import.meta.env.DEV) return ''
+        if (!session) return 'Нет активной миссии'
+        const directive = findDirective(input)
+        if (!directive) return 'Неизвестная команда'
+        const result = run(directive)
+        if (!result?.ok) return result?.error ?? ''
+        const state = 'state' in result ? result.state : undefined
+        const text = state === undefined ? 'Код принят' : `Код принят: ${state ? 'вкл' : 'выкл'}`
+        ui.notify(text)
+        return text
     }
 
     function upgradeSelection() {
@@ -233,6 +250,7 @@ export const useGameStore = defineStore('game', () => {
         pointerMove,
         pointerDown,
         handleKey,
+        enter,
         selectBuild,
         startWave: () => run((current) => current.startWave()),
         togglePause: () => run((current) => current.togglePause()),
