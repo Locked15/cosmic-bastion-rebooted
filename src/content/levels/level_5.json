@@ -1,7 +1,7 @@
 {
     "id": "level_5",
-    "name": "ЦЕНТРАЛЬНЫЙ РЕАКТОР: РЕШАЮЩАЯ БИТВА",
-    "description": "Главное существо-улей у реактора. Последний бой.",
+    "name": "ЦЕНТРАЛЬНЫЙ РЕАКТОР: СРЕДОТОЧИЕ",
+    "description": "Сонм собрался в Средоточие и обвил реактор. Здесь решится судьба корабля.",
     "type": "story",
     "width": 2000,
     "height": 1100,
@@ -46,7 +46,7 @@
     "start": { "miners": 25, "military": 15, "resources": 500 },
     "waves": { "total": 5, "difficulty": 1.5 },
     "objectives": [
-        { "id": "survive", "text": "Победить главное существо", "kind": "survive" },
+        { "id": "survive", "text": "Уничтожить Средоточие", "kind": "survive" },
         {
             "id": "save_reactor",
             "text": "Не допустить ни одного прорыва в жилой отсек",
@@ -61,7 +61,7 @@
         },
         {
             "id": "save_archive",
-            "text": "Передать архив корабля спасательному судну",
+            "text": "Передать архив на судно-свидетель «Безмолвие»",
             "kind": "flag",
             "flag": "archive_saved"
         }
@@ -72,13 +72,13 @@
             "trigger": "start",
             "dialog": {
                 "kind": "unknown",
-                "title": "КАПИТАН НА МОСТИКЕ",
-                "text": "Главное существо у реактора. Судьба корабля решится здесь.",
+                "title": "КАПИТАН-НОСИТЕЛЬ ИРЕНА ВОСС",
+                "text": "Средоточие у реактора. Это самое тяжёлое, что есть на световые годы вокруг, и Сонм хочет его. Судьба корабля решится здесь.",
                 "choices": [
                     {
-                        "text": "Мы готовы к бою!",
+                        "text": "Стража на позициях",
                         "effect": null,
-                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                        "consequence": "Стража заняла позиции."
                     }
                 ],
                 "timed": false
@@ -89,8 +89,8 @@
             "trigger": "start",
             "dialog": {
                 "kind": "full",
-                "title": "УСИЛЕНИЕ",
-                "text": "Все системы корабля в вашем распоряжении!",
+                "title": "РАСПРЕДЕЛЕНИЕ ЭНЕРГИИ",
+                "text": "Реактор отдаёт всё, что у него есть. Куда направить мощность?",
                 "choices": [
                     {
                         "text": "Энергия в оружие",
@@ -114,7 +114,7 @@
             "dialog": {
                 "kind": "partial",
                 "title": "КРИТИЧЕСКИЙ МОМЕНТ",
-                "text": "Существа адаптируются быстрее. Нужно действовать.",
+                "text": "Средоточие учится быстрее, чем мы перестраиваемся. Нужно действовать.",
                 "choices": [
                     {
                         "text": "Активировать резервы",
@@ -132,18 +132,41 @@
             }
         },
         {
+            "wave": 2,
+            "trigger": "start",
+            "dialog": {
+                "kind": "partial",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Вес — это верность. Останьтесь.» Архив предлагает открыть аварийные резервы реактора.",
+                "choices": [
+                    {
+                        "text": "Принять резервы",
+                        "consequence": "Архив открыл резервы. Получено 150 ресурсов. Ему нужен реактор целым.",
+                        "effect": { "type": "resources", "value": 150 }
+                    },
+                    {
+                        "text": "Заглушить канал",
+                        "consequence": "Канал заглушён. Архив замолчал.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
             "wave": 3,
             "trigger": "delay",
             "delay": 60,
             "dialog": {
                 "kind": "full",
-                "title": "СПАСЕНИЕ АРХИВА",
-                "text": "Спасательное судно готово принять архив и координаты выживших.",
+                "title": "СУДНО-СВИДЕТЕЛЬ «БЕЗМОЛВИЕ»",
+                "text": "«Безмолвие» на высокой орбите. Принимает архив и координаты выживших. Посадку не обещает.",
                 "choices": [
                     {
                         "text": "Передать архив",
                         "effect": { "type": "flag", "name": "archive_saved", "value": 1 },
-                        "consequence": "Архив сохранён. Сюжет завершится даже при потере реактора.",
+                        "consequence": "Архив передан. Правда уйдёт к Синоду, даже если реактор падёт.",
                         "cost": { "resources": 100 }
                     },
                     {
@@ -159,24 +182,49 @@
         {
             "wave": 3,
             "trigger": "start",
+            "when": [{ "flag": "relic_secured", "below": 1 }],
             "dialog": {
                 "kind": "full",
-                "title": "ПОСЛЕДНИЙ ШАНС",
-                "text": "Экспериментальное оружие реактора требует военный расчёт.",
+                "title": "КОПЬЁ «ОТРЕЧЕНИЕ»",
+                "text": "Реакторное копьё «Отречение» можно запустить. Оно выпивает свой расчёт досуха.",
                 "choices": [
                     {
-                        "text": "Активировать оружие",
-                        "effect": { "type": "superWeapon", "military": -7, "killPercent": 0.6 },
-                        "consequence": "7 военных отданы расчёту. Уничтожено 60% активных врагов."
+                        "text": "Запустить копьё",
+                        "consequence": "7 военных отданы расчёту. Уничтожено 60% активных врагов.",
+                        "effect": { "type": "superWeapon", "military": -7, "killPercent": 0.6 }
                     },
                     {
                         "text": "Сражаться обычными силами",
-                        "effect": null,
-                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
                     }
                 ],
                 "timed": true,
-                "timeLimit": 7
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "when": [{ "flag": "relic_secured", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "КОПЬЁ «ОТРЕЧЕНИЕ»",
+                "text": "Копьё из Ризницы подключено к реактору. Расчёт подготовлен заранее.",
+                "choices": [
+                    {
+                        "text": "Запустить копьё",
+                        "consequence": "4 военных отданы расчёту. Уничтожено 80% активных врагов.",
+                        "effect": { "type": "superWeapon", "military": -4, "killPercent": 0.8 }
+                    },
+                    {
+                        "text": "Сражаться обычными силами",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
             }
         },
         {
@@ -201,6 +249,34 @@
                 "timed": true,
                 "timeLimit": 15
             }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "when": [
+                { "flag": "scientist_saved", "atLeast": 1 },
+                { "flag": "relic_secured", "atLeast": 1 },
+                { "flag": "archive_saved", "atLeast": 1 }
+            ],
+            "dialog": {
+                "kind": "full",
+                "title": "РАСЧЁТ СИЛЬВЫ",
+                "text": "Сильва: «Если направить „Отречение“ сквозь реактор — в сердце Колодца, Тризна разучится держаться вместе. Корабль уйдёт вместе с ней».",
+                "choices": [
+                    {
+                        "text": "Направить копьё в Колодец",
+                        "consequence": "Копьё перенацелено. Пути назад нет.",
+                        "effect": { "type": "flag", "name": "ending_renunciation", "value": 1 }
+                    },
+                    {
+                        "text": "Нет. Мы будем жить",
+                        "consequence": "Копьё осталось на прежнем прицеле.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
         }
     ],
     "carryOver": [
@@ -212,8 +288,25 @@
         {
             "type": "start",
             "stat": "military",
-            "flags": ["survivors_level_4"],
+            "flags": ["survivors_level_4", "survivors_level_9"],
             "divide": 10
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "engines_stripped", "atLeast": 1 }],
+            "effect": { "type": "buffBarricades", "value": 1.5 },
+            "message": "Броня из разобранных двигателей: прочность баррикад +50%"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "surgeon_saved", "atLeast": 1 }],
+            "effect": { "type": "addMilitary", "count": 4 },
+            "message": "Сестра Ренн вернула в строй 4 бойцов"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
         }
     ]
 }

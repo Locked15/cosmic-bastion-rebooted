@@ -59,7 +59,7 @@ describe('story and campaign UI', () => {
         const game = useGameStore()
         game.start('level_1')
         wrapper = mount(StoryDialog)
-        expect(wrapper.text()).toContain('КОМАНДИР МАРКУС')
+        expect(wrapper.text()).toContain('КОМАНДОР МАРКУС ХЕЙЛ')
         expect(wrapper.find('.choice-button__hint').exists()).toBe(false) // Unknown intro.
         await wrapper.find('.choice-button').trigger('click')
         expect(wrapper.find('.story-dialog').exists()).toBe(false)
@@ -107,21 +107,28 @@ describe('story and campaign UI', () => {
         choice.unmount()
     })
 
-    it('renders ship-sector coordinates with both branch missions available and navigates the existing start flow', async () => {
+    it('draws sectors on the deck plan, opens conduits by victories and starts a mission', async () => {
         const campaign = useCampaignStore()
         campaign.completeLevel('level_1', 2)
         const navigation = router()
         await navigation.push('/levels')
         wrapper = mount(LevelSelectPage, { global: { plugins: [navigation] } })
-        const nodes = wrapper.findAll('.level-node')
-        expect(nodes).toHaveLength(5)
-        expect(wrapper.find('svg.ship-map-frame').exists()).toBe(true)
-        expect(nodes[1]?.attributes('disabled')).toBeUndefined()
-        expect(nodes[2]?.attributes('disabled')).toBeUndefined()
-        expect(nodes[3]?.attributes('disabled')).toBeDefined()
-        expect(nodes[1]?.attributes('style')).toContain('left: 48%')
-        expect(nodes[2]?.attributes('style')).toContain('left: 48%')
-        await nodes[0]!.trigger('click')
+        const rooms = wrapper.findAll('.deck-map__room')
+        expect(rooms).toHaveLength(campaign.levels.length)
+        const room = (code: string) =>
+            rooms.find((candidate) => candidate.attributes('aria-label')?.startsWith(code))!
+        expect(room('A-7').classes()).toContain('deck-map__room--completed')
+        expect(room('B-3').attributes('aria-disabled')).toBe('false')
+        expect(room('H-2').attributes('aria-disabled')).toBe('false')
+        expect(room('D-1').attributes('aria-disabled')).toBe('true')
+        expect(room('R-0').classes()).toContain('deck-map__room--finale')
+        // Conduits from the won hull sector are open; the rest stay dashed.
+        expect(wrapper.findAll('.deck-map__link--open')).toHaveLength(3)
+
+        await room('D-1').trigger('click')
+        expect(wrapper.find('.deck-map__room--active').exists()).toBe(false)
+        await room('A-7').trigger('keydown', { key: 'Enter' })
+        expect(room('A-7').attributes('aria-pressed')).toBe('true')
         const start = wrapper.findAll('button').find((button) => button.text() === 'НАЧАТЬ ЗАЩИТУ')!
         await start.trigger('click')
         await vi.waitFor(() => expect(navigation.currentRoute.value.fullPath).toBe('/game/level_1'))

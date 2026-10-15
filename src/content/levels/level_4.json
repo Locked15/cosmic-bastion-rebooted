@@ -1,7 +1,7 @@
 {
     "id": "level_4",
     "name": "СЕКТОР D-1: МАССОВАЯ АТАКА",
-    "description": "Огромные силы врага. Это испытание на прочность.",
+    "description": "Сонм бросает на стены массу — единственное, что он ценит. Испытание на прочность.",
     "type": "normal",
     "width": 1800,
     "height": 1000,
@@ -62,8 +62,8 @@
             "trigger": "start",
             "dialog": {
                 "kind": "full",
-                "title": "РАЗВЕДКА",
-                "text": "Волны становятся сильнее. Нужна стратегия!",
+                "title": "ЛЕЙТЕНАНТ ОДА КИРХ",
+                "text": "Волны тяжелеют. Сонм больше не обходит — он давит. Нужна стратегия.",
                 "choices": [
                     {
                         "text": "Фокус на урон",
@@ -155,23 +155,42 @@
             "trigger": "delay",
             "delay": 120,
             "dialog": {
-                "kind": "full",
-                "title": "ИНЖЕНЕР ПЕТРОВ",
-                "text": "Оборудование перегружено.",
+                "kind": "partial",
+                "title": "ИНЖЕНЕР ГЛЕБ ПЕТРОВ",
+                "text": "Перекидывая линии, я вскрыл запечатанный раздел Архива. Там приказ Внутреннего Круга. Падение было запланировано.",
                 "choices": [
                     {
-                        "text": "Подключить запасные линии",
-                        "effect": { "type": "resources", "value": 80 },
-                        "consequence": "Получено 80 ресурсов."
+                        "text": "Доложить капитану",
+                        "consequence": "Капитан Восс узнает правду до двигательного отсека.",
+                        "effect": { "type": "flag", "name": "truth_told", "value": 1 }
                     },
                     {
-                        "text": "Продолжить",
-                        "effect": null,
-                        "consequence": "Решение принято. Состояние сектора не изменилось."
+                        "text": "Молчать до двигателей",
+                        "consequence": "Петров молча подключил запасные линии. Получено 80 ресурсов.",
+                        "effect": { "type": "resources", "value": 80 }
                     }
                 ],
                 "timed": true,
-                "timeLimit": 10
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "delay",
+            "delay": 300,
+            "when": [{ "flag": "wreck_found", "atLeast": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "СПИСОК ПРИНОШЕНИЙ",
+                "text": "В приказе Внутреннего Круга есть список Бастионов. Третьей строкой — «Неусыпный», чью обшивку нашли в ангаре.",
+                "choices": [
+                    {
+                        "text": "Запомнить",
+                        "consequence": "Список скопирован.",
+                        "effect": { "type": "flag", "name": "offerings_known", "value": 1 }
+                    }
+                ],
+                "timed": false
             }
         },
         {
@@ -209,6 +228,11 @@
             "stat": "miners",
             "flags": ["survivors_level_2", "survivors_level_3"],
             "divide": 10
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
         }
     ]
 }

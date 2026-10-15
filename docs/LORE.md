@@ -77,7 +77,7 @@ All existing names are kept and expanded.
 
 ## 7. Campaign: acts and sectors
 
-Codes and names of existing sectors are kept (A-7, B-3, C-9, D-1, reactor). Sectors 6–9 are planned and not implemented yet; levels 6–8 are optional side branches that add carry-over bonuses.
+Codes and names of existing sectors are kept (A-7, B-3, C-9, D-1, reactor). Sectors 6–9 are levels 6–9; levels 6–8 are optional side branches that add carry-over bonuses. The reactor's map code is R-0.
 
 ```
                 A-7 Внешний корпус (1)
@@ -148,7 +148,7 @@ Existing beats remain: energy to weapons or shields, the «Отречение» 
 
 ## 8. Endings
 
-Shown after level 5 and chosen from flags. The ending screen is not implemented yet.
+Shown in the result window after level 5 and chosen from flags (`src/content/endings.json`). The hidden ending needs the final choice event «РАСЧЁТ СИЛЬВЫ», which sets `ending_renunciation`.
 
 | Ending                                 | Conditions                                                                                                           | Outcome                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -193,4 +193,4 @@ Planned revisions to existing texts:
 ## 11. Story flags (canonical list)
 
 Existing: `engineer_saved`, `scientist_saved`, `archive_saved`, `archive_signal`, `supply_cache`, `lab_supplies`, `refugees_*`, `survivors_<level>`.
-New: `wreck_found`, `shuttle_salvage`, `ward_purged`, `ward_treated`, `surgeon_saved`, `relic_secured`, `truth_told`, `engines_restored`, `engines_stripped`, `ending`.
+New: `wreck_found`, `offerings_known`, `shuttle_salvage`, `ward_purged`, `ward_treated`, `surgeon_saved`, `relic_secured`, `truth_told`, `archive_isolated`, `draft_told`, `engines_restored`, `engines_stripped`, `engines_decided`, `ending_renunciation`.

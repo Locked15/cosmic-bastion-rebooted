@@ -62,7 +62,7 @@ describe('campaign story progression', () => {
     ])('does not advance %s after a defeat, even with %s completed', (id, key) => {
         const storage = new MemoryStore()
         const campaign = new CampaignService(storage)
-        for (const previous of ['level_1', 'level_2', 'level_3', 'level_4']) {
+        for (const previous of ['level_1', 'level_2', 'level_3', 'level_4', 'level_9']) {
             if (previous === id) break
             campaign.completeLevel(previous, 2)
         }
@@ -114,7 +114,7 @@ describe('campaign story progression', () => {
         campaign.recordResult('level_4', report({ survivors: 29 }))
         const fifth = createLevel('level_5')!
         campaign.prepareLevel(fifth)
-        expect(fifth.startingMilitary).toBe(17)
+        expect(fifth.startingMilitary).toBe(17) // 15 + (29 + 0) / 10
         expect(campaign.listLevels().find((level) => level.id === fifth.id)?.startingMilitary).toBe(
             fifth.startingMilitary,
         )

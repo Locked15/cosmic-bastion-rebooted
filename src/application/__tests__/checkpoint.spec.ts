@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createLevel, createSeededRandom } from '@/domain'
+import { CONTENT_VERSION, createLevel, createSeededRandom } from '@/domain'
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
 import { CheckpointService } from '../CheckpointService'
 import { GameSession } from '../session/GameSession'
@@ -100,9 +100,8 @@ describe('CheckpointService content version', () => {
         expect(service.save(session)).toBe(true)
         expect(service.savedWave('level_1')).toBe(0)
         const saved = storage.read<{ content?: number }>('checkpoint:level_1')!
-        storage.write('checkpoint:level_1', { ...saved, content: undefined })
-        expect(service.savedWave('level_1')).toBe(0)
-        storage.write('checkpoint:level_1', { ...saved, content: 999 })
+        expect(saved.content).toBe(CONTENT_VERSION)
+        storage.write('checkpoint:level_1', { ...saved, content: CONTENT_VERSION + 1 })
         expect(service.savedWave('level_1')).toBeNull()
         expect(service.restore(newSession())).toBe(false)
     })

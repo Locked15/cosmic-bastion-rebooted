@@ -22,12 +22,14 @@ Dependencies point inward only. ESLint (`no-restricted-imports` in `eslint.confi
 src/
   domain/          entities + rules. Pure TS: no Vue, DOM, storage, timers or Math.random
     model/         Enemy, Tower (+5 kinds), TowerSlot, Barricade, Projectile, Person, Conversion, Level, Campaign
-    rules/         balance catalogs (towers, barricades, enemy stats, abilities)
-    levels/        level1..5 + registry (LEVEL_IDS, createLevel)
-    story/         event templates (refugees), technology tree / unlocks
+    content/       parseContent + shared Valibot schema pieces
+    rules/         typed catalogs parsed from content (towers, barricades, enemies, waves, difficulty)
+    levels/        level schema (LevelDefinition, effects, objectives, carry-over) + registry
+    story/         campaign graph, endings, event templates (refugees), technology tree / unlocks
     achievements/  achievement definitions
     services/      waveGenerator
     random.ts      Random port + seeded (mulberry32) and Math.random implementations
+  content/         game data as JSON, validated at startup (see "Content" below)
   application/     use cases. Depends on domain only
     session/       GameSession (combat, building, waves, pointer) composed of:
                    personnel.ts, livingQuarters.ts, story.ts (StoryDirector), effects.ts,
@@ -59,8 +61,8 @@ Key rules:
 - **Difficulty** (`domain/rules/difficulty.ts`) scales enemy health and speed and sets how many breakthroughs lose the level. It is read from settings when a level starts and stored in checkpoints.
 - **Campaign progression:** a level is completed — and the sectors that require it unlock — only on victory. Defeats keep story flags but never advance the map.
 - **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
-- **New level:** add `src/domain/levels/levelN.ts` and register it in `levels/registry.ts`.
-- **New story effect:** extend `EventEffect` (`domain/model/Level.ts`), then handle it in `GameSession.applyEffect` and `canAfford`.
+- **New story effect:** extend `EventEffect` and `effectSchema` (`domain/levels/schema.ts`), then handle it in `applyEffect` and `canAfford` (`application/session/effects.ts`).
+- **New objective kind:** add it to `OBJECTIVE_KINDS` (`domain/levels/schema.ts`) and handle it in `ObjectiveTracker` (`application/session/objectives.ts`).
 - **Persistence** goes through the `KeyValueStore` port (keys are prefixed `cosmicBastion:` in localStorage).
 
 ## UI rules
@@ -81,9 +83,28 @@ Key rules:
 ## Code style
 
 - 4-space indent. oxfmt also indents the contents of `<script>`, `<template>` and `<style>` (`vueIndentScriptAndStyle`). No semicolons, single quotes, 100 columns.
-- Keep dependencies small. Runtime deps are only `vue`, `vue-router` and `pinia`; ask before adding any.
+- Keep dependencies small. Runtime deps are only `vue`, `vue-router`, `pinia` and `valibot`; ask before adding any.
 - Tests: Vitest specs live next to the code in `__tests__/`; e2e specs live in `e2e/`.
 - Commits follow Conventional Commits: `feat(scope): …`, `fix: …`, `refactor: …`, `test: …`, `docs: …`, `chore: …`.
+
+## Content
+
+Game content is data in `src/content/*.json`; code only interprets it. Each file is parsed by a Valibot schema when its module loads, so a mistake fails the app and `npm test` with the path to the bad value. Kinds of things (tower types, effect types, objective kinds) stay in code; numbers and texts are data.
+
+| File                                                          | What it holds                                                                      | Schema                                                |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `levels/level_N.json`                                         | One level: geometry, tower slots, start, waves, objectives, events, carry-over     | `domain/levels/schema.ts`                             |
+| `campaign.json`                                               | Sector order, prerequisites, ship-map rooms and conduits, finale, `contentVersion` | `domain/story/campaign.ts`                            |
+| `endings.json`                                                | Endings after the finale, chosen by outcome and story flags                        | `domain/story/endings.ts`                             |
+| `events/refugees.json`                                        | Texts and prices of the refugee event template                                     | `domain/story/events.ts`                              |
+| `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                      | `domain/rules/*Catalog.ts`                            |
+| `enemies.json`                                                | Enemy stats, ability texts, wave generation                                        | `domain/rules/enemyRules.ts`                          |
+| `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                           | `domain/rules`, `domain/story`, `domain/achievements` |
+
+- **New level:** add `src/content/levels/level_N.json` (the `id` must match the file name) and a sector for it in `campaign.json`. A sector may only require sectors listed before it. The layout and content tests run on every level automatically.
+- **Level events:** `when` lists story-flag conditions (`atLeast` / `below`). Pairs of events with opposite conditions give branches. At most 3 events per wave and 10 per level; timers 7–15 s.
+- **Carry-over** (`carryOver` in a level): `start` adds flag sums to the starting stats, `effect` applies an effect at the start when flags hold, `excludeAbility` removes an enemy ability from the level's waves.
+- **Changing an existing level's layout:** bump `contentVersion` in `campaign.json`, so old between-wave checkpoints of that content are discarded.
 
 ## Story
 

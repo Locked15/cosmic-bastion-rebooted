@@ -1,0 +1,314 @@
+{
+    "id": "level_9",
+    "name": "ДВИГАТЕЛЬНЫЙ ОТСЕК E-0: ПРИЧИНА",
+    "description": "Журналы двигателей помнят 41 секунду до удара. Здесь решится, улетит ли корабль.",
+    "type": "story",
+    "width": 1700,
+    "height": 950,
+    "livingQuartersY": 620,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 140 },
+            { "x": 1500, "y": 140 },
+            { "x": 1500, "y": 300 },
+            { "x": 200, "y": 300 },
+            { "x": 200, "y": 460 },
+            { "x": 1600, "y": 460 },
+            { "x": 1600, "y": 700 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 30, "y": 100, "width": 1620, "height": 400 }],
+    "towerSlots": [
+        { "x": 300, "y": 220, "type": "cannon" },
+        { "x": 550, "y": 220, "type": "laser" },
+        { "x": 800, "y": 220, "type": "rocket" },
+        { "x": 1050, "y": 220, "type": "machinegun" },
+        { "x": 1300, "y": 220, "type": "shock" },
+        { "x": 420, "y": 380, "type": "machinegun" },
+        { "x": 670, "y": 380, "type": "cannon" },
+        { "x": 920, "y": 380, "type": "laser" },
+        { "x": 1170, "y": 380, "type": "rocket" },
+        { "x": 1420, "y": 380, "type": "cannon" }
+    ],
+    "start": { "miners": 20, "military": 12, "resources": 420 },
+    "waves": { "total": 7, "difficulty": 1.3 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "decide_engines",
+            "text": "Решить судьбу двигателей",
+            "kind": "flag",
+            "flag": "engines_decided"
+        },
+        {
+            "id": "save_reactor",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "КАПИТАН-НОСИТЕЛЬ ИРЕНА ВОСС",
+                "text": "Двигательный отсек E-0. Если корабль когда-нибудь поднимется — то отсюда.",
+                "choices": [
+                    {
+                        "text": "Стража на позициях",
+                        "consequence": "Стража заняла позиции у сопел.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "when": [{ "flag": "truth_told", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ИНЖЕНЕР ГЛЕБ ПЕТРОВ",
+                "text": "Капитан знает. Журналы двигателей подтверждают: щиты сняты командой Архива. Сорок одна секунда.",
+                "choices": [
+                    {
+                        "text": "Отключить Архив от двигателей",
+                        "cost": { "resources": 80 },
+                        "consequence": "Архив больше не управляет двигательным контуром. Потрачено 80 ресурсов.",
+                        "effect": { "type": "flag", "name": "archive_isolated", "value": 1 }
+                    },
+                    {
+                        "text": "Оставить как есть",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "when": [{ "flag": "truth_told", "below": 1 }],
+            "dialog": {
+                "kind": "partial",
+                "title": "ЖУРНАЛ ДВИГАТЕЛЕЙ",
+                "text": "Восс сама читает журналы. Щиты сняты командой Архива за 41 секунду до удара. Это не сбой.",
+                "choices": [
+                    {
+                        "text": "Отключить Архив от двигателей",
+                        "cost": { "resources": 80 },
+                        "consequence": "Архив больше не управляет двигательным контуром. Потрачено 80 ресурсов.",
+                        "effect": { "type": "flag", "name": "archive_isolated", "value": 1 }
+                    },
+                    {
+                        "text": "Молчать",
+                        "consequence": "Капитан закрыла журнал и никому ничего не сказала.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "when": [{ "flag": "scientist_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ДОКТОР МИРЕЯ СИЛЬВА",
+                "text": "Я проверила руду. То, что добывает Тягло, — это Сонм. Спящий. Каждая тонна будит его сильнее.",
+                "choices": [
+                    {
+                        "text": "Сказать шахтёрам правду",
+                        "consequence": "Горбань выслушал. Трое шахтёров взяли оружие: «Копать мы больше не будем».",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "draft_told", "value": 1 },
+                                { "type": "convert", "count": 3 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Скрыть",
+                        "consequence": "Добыча продолжается. Получено 100 ресурсов.",
+                        "effect": { "type": "resources", "value": 100 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "when": [{ "flag": "engineer_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "СТАРШИЙ ИНЖЕНЕР ЧЕН ЛО",
+                "text": "Двигатели можно поднять — по моим тетрадям. Или разобрать на броню, которую Сонм не прогрызёт. Третьего не дано.",
+                "choices": [
+                    {
+                        "text": "Восстановить двигатели",
+                        "cost": { "resources": 200 },
+                        "consequence": "Чен ведёт ремонт. Путь к взлёту открыт — если реактор устоит. Потрачено 200 ресурсов.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "engines_restored", "value": 1 },
+                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Разобрать на броню",
+                        "consequence": "Двигатели разобраны. В реакторном секторе баррикады станут прочнее на 50%. Корабль останется на Тризне.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "engines_stripped", "value": 1 },
+                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                            ]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "when": [{ "flag": "engineer_saved", "below": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ДВИГАТЕЛИ БЕЗ ЧЕНА",
+                "text": "Без тетрадей Чена двигатели не поднять. Остаётся разобрать их на броню.",
+                "choices": [
+                    {
+                        "text": "Разобрать на броню",
+                        "consequence": "Двигатели разобраны. В реакторном секторе баррикады станут прочнее на 50%. Корабль останется на Тризне.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "engines_stripped", "value": 1 },
+                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Оставить как есть",
+                        "consequence": "Двигатели остались грудой металла. Корабль останется на Тризне.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [{ "type": "flag", "name": "engines_decided", "value": 1 }]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Обет не взлетает. Обет ложится в основание».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "БРИГАДИР ЯСЬ ГОРБАНЬ",
+                "text": "Тягло держит линию у сопел. Нужны люди или металл.",
+                "choices": [
+                    {
+                        "text": "Перевести шахтёров в Стражу",
+                        "consequence": "Пятеро шахтёров переобучаются в Стражу.",
+                        "effect": { "type": "convert", "count": 5 }
+                    },
+                    {
+                        "text": "Выдать металл",
+                        "consequence": "Получено 150 ресурсов.",
+                        "effect": { "type": "resources", "value": 150 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 6,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНЯЯ ВОЛНА У СОПЕЛ",
+                "text": "Сонм бросает на сопла всё, что у него есть.",
+                "choices": [
+                    {
+                        "text": "Задействовать резерв",
+                        "consequence": "Получено 200 ресурсов.",
+                        "effect": { "type": "resources", "value": 200 }
+                    },
+                    {
+                        "text": "Довериться обороне",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["shuttle_salvage"]
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "surgeon_saved", "atLeast": 1 }],
+            "effect": { "type": "addMilitary", "count": 4 },
+            "message": "Сестра Ренн вернула в строй 4 бойцов"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        }
+    ]
+}

@@ -38,6 +38,13 @@
 <template>
     <div v-if="visible" class="game-menu">
         <h3 class="game-menu__title">{{ title }}</h3>
+        <section v-if="result?.ending" class="game-menu__ending" aria-label="Финал кампании">
+            <p class="game-menu__ending-label">ФИНАЛ КАМПАНИИ</p>
+            <h4 class="game-menu__ending-title">{{ result.ending.title }}</h4>
+            <p v-for="(paragraph, index) in result.ending.paragraphs" :key="index">
+                {{ paragraph }}
+            </p>
+        </section>
         <div v-if="result" class="game-menu__stats">
             <p v-if="result.outcome === 'defeat'" class="game-menu__reason">{{ result.reason }}</p>
             <StatItem
@@ -126,6 +133,30 @@
         &__advance,
         &__unlocks {
             color: $color-success;
+        }
+
+        &__ending {
+            margin-bottom: $spacing-md;
+            padding: $spacing-md;
+            border: 1px solid $color-accent;
+            font-size: 14px;
+            line-height: 1.5;
+
+            p + p {
+                margin-top: $spacing-sm;
+            }
+        }
+
+        &__ending-label {
+            color: $color-accent;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        &__ending-title {
+            margin: $spacing-xs 0 $spacing-sm;
+            font-size: 18px;
+            letter-spacing: 2px;
         }
 
         &__stars {

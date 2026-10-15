@@ -62,7 +62,7 @@ describe('CampaignService carry-over and endings', () => {
     })
 
     it('reports an ending only for the finale', () => {
-        const service = serviceWith({}, ['level_1', 'level_2', 'level_3', 'level_4'])
+        const service = serviceWith({}, ['level_1', 'level_2', 'level_3', 'level_4', 'level_9'])
         const report = { stars: 1, objectives: [], flags: {}, survivors: 10 }
         expect(service.recordResult('level_1', { ...report, outcome: 'victory' }).ending).toBeNull()
         const finale = CAMPAIGN.finale

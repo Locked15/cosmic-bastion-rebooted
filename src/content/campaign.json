@@ -1,5 +1,5 @@
 {
-    "contentVersion": 1,
+    "contentVersion": 2,
     "finale": "level_5",
     "sectors": [
         {
@@ -8,7 +8,23 @@
             "name": "Внешний корпус",
             "layer": "outer",
             "requires": [],
-            "map": { "x": 640, "y": 40, "width": 200, "height": 70 }
+            "map": { "x": 640, "y": 50, "width": 170, "height": 54 }
+        },
+        {
+            "level": "level_6",
+            "code": "H-2",
+            "name": "Ангар шаттлов",
+            "layer": "outer",
+            "requires": ["level_1"],
+            "map": { "x": 640, "y": 456, "width": 170, "height": 54 },
+            "routes": {
+                "level_1": [
+                    [810, 77],
+                    [852, 77],
+                    [852, 483],
+                    [810, 483]
+                ]
+            }
         },
         {
             "level": "level_2",
@@ -16,7 +32,14 @@
             "name": "Жилые отсеки",
             "layer": "living",
             "requires": ["level_1"],
-            "map": { "x": 380, "y": 120, "width": 200, "height": 70 }
+            "map": { "x": 450, "y": 122, "width": 170, "height": 64 },
+            "routes": {
+                "level_1": [
+                    [640, 77],
+                    [535, 77],
+                    [535, 122]
+                ]
+            }
         },
         {
             "level": "level_3",
@@ -24,7 +47,42 @@
             "name": "Лаборатории",
             "layer": "living",
             "requires": ["level_1"],
-            "map": { "x": 380, "y": 410, "width": 200, "height": 70 }
+            "map": { "x": 450, "y": 374, "width": 170, "height": 64 },
+            "routes": {
+                "level_1": [
+                    [770, 104],
+                    [770, 406],
+                    [620, 406]
+                ]
+            }
+        },
+        {
+            "level": "level_7",
+            "code": "M-5",
+            "name": "Медотсек",
+            "layer": "living",
+            "requires": ["level_2"],
+            "map": { "x": 210, "y": 122, "width": 170, "height": 64 },
+            "routes": {
+                "level_2": [
+                    [450, 154],
+                    [380, 154]
+                ]
+            }
+        },
+        {
+            "level": "level_8",
+            "code": "R-1",
+            "name": "Ризница",
+            "layer": "living",
+            "requires": ["level_3"],
+            "map": { "x": 210, "y": 374, "width": 170, "height": 64 },
+            "routes": {
+                "level_3": [
+                    [450, 406],
+                    [380, 406]
+                ]
+            }
         },
         {
             "level": "level_4",
@@ -32,15 +90,51 @@
             "name": "Техническое ядро",
             "layer": "core",
             "requires": ["level_2", "level_3"],
-            "map": { "x": 470, "y": 250, "width": 190, "height": 100 }
+            "map": { "x": 540, "y": 236, "width": 160, "height": 88 },
+            "routes": {
+                "level_2": [
+                    [580, 186],
+                    [580, 236]
+                ],
+                "level_3": [
+                    [580, 374],
+                    [580, 324]
+                ]
+            }
+        },
+        {
+            "level": "level_9",
+            "code": "E-0",
+            "name": "Двигательный отсек",
+            "layer": "core",
+            "requires": ["level_4"],
+            "map": { "x": 80, "y": 236, "width": 150, "height": 88 },
+            "routes": {
+                "level_4": [
+                    [660, 236],
+                    [660, 212],
+                    [155, 212],
+                    [155, 236]
+                ]
+            }
         },
         {
             "level": "level_5",
             "code": "R-0",
             "name": "Центральный реактор",
             "layer": "core",
-            "requires": ["level_4"],
-            "map": { "x": 320, "y": 245, "width": 120, "height": 110 }
+            "requires": ["level_4", "level_9"],
+            "map": { "x": 320, "y": 230, "width": 150, "height": 100 },
+            "routes": {
+                "level_4": [
+                    [540, 280],
+                    [470, 280]
+                ],
+                "level_9": [
+                    [230, 280],
+                    [320, 280]
+                ]
+            }
         }
     ]
 }

@@ -138,6 +138,12 @@ export interface LevelSummary {
     map: MapRect
     // Ids of the levels whose victory opens this one.
     requires: string[]
+    // Conduits drawn on the map from each required level: [x, y] points.
+    routes: { from: string; points: [number, number][] }[]
+    // Enemy pressure 1–5, from the level's wave difficulty.
+    threat: number
+    // The last mission of the campaign.
+    finale: boolean
     // Their names, for the mission panel.
     prerequisites: string[]
     id: string

@@ -1,0 +1,177 @@
+{
+    "id": "level_6",
+    "name": "АНГАР H-2: МЁРТВЫЕ КРЫЛЬЯ",
+    "description": "Челноки целы — на вид. Сонм идёт через пустые причалы.",
+    "type": "normal",
+    "width": 1400,
+    "height": 800,
+    "livingQuartersY": 520,
+    "paths": {
+        "base": [
+            { "x": 40, "y": 120 },
+            { "x": 560, "y": 120 },
+            { "x": 560, "y": 260 },
+            { "x": 160, "y": 260 },
+            { "x": 160, "y": 400 },
+            { "x": 900, "y": 400 },
+            { "x": 900, "y": 160 },
+            { "x": 1250, "y": 160 },
+            { "x": 1250, "y": 600 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 20, "y": 80, "width": 1270, "height": 360 }],
+    "towerSlots": [
+        { "x": 250, "y": 190, "type": "cannon" },
+        { "x": 400, "y": 190, "type": "machinegun" },
+        { "x": 700, "y": 190, "type": "laser" },
+        { "x": 300, "y": 330, "type": "rocket" },
+        { "x": 480, "y": 330, "type": "laser" },
+        { "x": 660, "y": 330, "type": "cannon" },
+        { "x": 820, "y": 330, "type": "machinegun" },
+        { "x": 1000, "y": 260, "type": "shock" },
+        { "x": 1160, "y": 260, "type": "rocket" },
+        { "x": 1080, "y": 400, "type": "cannon" }
+    ],
+    "start": { "miners": 14, "military": 7, "resources": 300 },
+    "waves": { "total": 5, "difficulty": 0.85 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "max_towers",
+            "text": "Иметь минимум 6 активных башен",
+            "kind": "activeTowers",
+            "target": 6
+        },
+        {
+            "id": "no_personnel_loss",
+            "text": "Потерять не более 4 человек",
+            "kind": "maxLosses",
+            "target": 4
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "КОМАНДОР МАРКУС ХЕЙЛ",
+                "text": "Ангар H-2. Челноки целы — на вид. Если хоть один поднимется, мы вывезем людей.",
+                "choices": [
+                    {
+                        "text": "Проверить челноки",
+                        "consequence": "Техники ушли к причалам.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "full",
+                "title": "ТЕХНИК АНГАРА",
+                "text": "Челноки не взлетят: Тризна тянет сильнее, чем рассчитаны их двигатели. Можно снять с них реакторы.",
+                "choices": [
+                    {
+                        "text": "Разобрать челноки",
+                        "consequence": "Получено 150 ресурсов. Реакторы челноков ушли в двигательный отсек: там они дадут ещё 120.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "resources", "value": 150 },
+                                { "type": "flag", "name": "shuttle_salvage", "value": 120 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Оставить челноки",
+                        "consequence": "Челноки остались у причалов. Надежда — тоже ресурс.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "dialog": {
+                "kind": "partial",
+                "title": "ОБЛОМКИ В АНГАРЕ",
+                "text": "Среди мусора — обшивка с чужим бортовым номером. Это не наш корабль.",
+                "choices": [
+                    {
+                        "text": "Изучить обломки",
+                        "cost": { "resources": 40 },
+                        "consequence": "Это обшивка Бастиона «Неусыпный», пропавшего 93 года назад. Мы здесь не первые. Потрачено 40 ресурсов.",
+                        "effect": { "type": "flag", "name": "wreck_found", "value": 1 }
+                    },
+                    {
+                        "text": "Пустить на баррикады",
+                        "consequence": "Обшивка ушла на баррикады. Получено 60 ресурсов.",
+                        "effect": { "type": "resources", "value": 60 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "БРИГАДИР ЯСЬ ГОРБАНЬ",
+                "text": "Тягло просит оружие. «Лучше умереть облегчёнными, чем в долгу».",
+                "choices": [
+                    {
+                        "text": "Выдать оружие",
+                        "consequence": "Четверо шахтёров переобучаются в Стражу.",
+                        "effect": { "type": "convert", "count": 4 }
+                    },
+                    {
+                        "text": "Отказать",
+                        "consequence": "Горбань промолчал. Шахтёры вернулись к работе.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "ЧУЖОЙ МАЯК",
+                "text": "Из обломков «Неусыпного» идёт слабый сигнал на частоте Архива.",
+                "choices": [
+                    {
+                        "text": "Записать сигнал",
+                        "consequence": "Сигнал записан.",
+                        "effect": { "type": "flag", "name": "archive_signal", "value": 1 }
+                    },
+                    { "text": "Заглушить", "consequence": "Маяк замолчал.", "effect": null }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        }
+    ]
+}

@@ -16,8 +16,14 @@ const sectorSchema = v.strictObject({
     layer: v.picklist(SHIP_LAYERS),
     // Sectors whose victory opens this one.
     requires: v.array(levelId),
-    // Room outline on the ship map (viewBox units).
+    // Room outline on the ship deck plan (viewBox units, see ui/components/ShipDeckMap.vue).
     map: rect,
+    // Conduit drawn from each required sector to this one: [x, y] points; a straight line
+    // between room centres when omitted.
+    routes: v.optional(
+        v.record(levelId, v.pipe(v.array(v.tuple([v.number(), v.number()])), v.minLength(2))),
+        {},
+    ),
 })
 export type CampaignSector = v.InferOutput<typeof sectorSchema>
 
@@ -44,6 +50,13 @@ const campaignSchema = v.pipe(
                 ),
             ),
         'A sector may only require sectors listed before it',
+    ),
+    v.check(
+        (campaign) =>
+            campaign.sectors.every((sector) =>
+                Object.keys(sector.routes).every((id) => sector.requires.includes(id)),
+            ),
+        'Routes may only lead from required sectors',
     ),
     v.check(
         (campaign) => campaign.sectors[0]!.requires.length === 0,

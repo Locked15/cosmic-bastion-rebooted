@@ -256,3 +256,41 @@ describe('refugees', () => {
         expect([next.resources, next.miners, next.military]).toEqual(before)
     })
 })
+
+describe('branching story content', () => {
+    const target = { canAfford: () => true, applyEffect: () => {} }
+
+    function titlesAt(levelId: string, wave: number, flags: Record<string, number>) {
+        const story = new StoryDirector(createLevel(levelId)!.events, target, flags)
+        story.onWaveStart(wave)
+        story.tick(600)
+        const titles: string[] = []
+        while (story.active) {
+            titles.push(story.active.dialog.title)
+            story.choose(story.active.dialog.choices.length - 1)
+            if (story.active?.phase === 'consequence') story.acknowledge()
+        }
+        return titles
+    }
+
+    it('always offers the engine decision, with or without Chen', () => {
+        expect(titlesAt('level_9', 3, { engineer_saved: 1 })).toContain('СТАРШИЙ ИНЖЕНЕР ЧЕН ЛО')
+        expect(titlesAt('level_9', 3, {})).toContain('ДВИГАТЕЛИ БЕЗ ЧЕНА')
+        expect(titlesAt('level_9', 3, {})).not.toContain('СТАРШИЙ ИНЖЕНЕР ЧЕН ЛО')
+    })
+
+    it('arms the reactor lance from the reliquary and hides the renunciation unless earned', () => {
+        expect(titlesAt('level_5', 3, {})).toEqual(
+            expect.arrayContaining(['КОПЬЁ «ОТРЕЧЕНИЕ»', 'СУДНО-СВИДЕТЕЛЬ «БЕЗМОЛВИЕ»']),
+        )
+        expect(titlesAt('level_5', 3, { relic_secured: 1 })).toHaveLength(2)
+        const earned = { scientist_saved: 1, relic_secured: 1, archive_saved: 1 }
+        expect(titlesAt('level_5', 5, earned)).toEqual(['РАСЧЁТ СИЛЬВЫ'])
+        expect(titlesAt('level_5', 5, { ...earned, archive_saved: 0 })).toEqual([])
+    })
+
+    it('lets the medbay surgeon leave after either ward decision', () => {
+        expect(titlesAt('level_7', 3, { ward_treated: 1 })).toEqual(['ЭВАКУАЦИЯ РЕНН'])
+        expect(titlesAt('level_7', 3, { ward_purged: 1 })).toEqual(['СЕСТРА-ХИРУРГ АГАТА РЕНН'])
+    })
+})

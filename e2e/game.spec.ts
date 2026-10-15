@@ -35,7 +35,7 @@ test('plays the first wave of level 1 from the main menu', async ({ page }) => {
     await page.getByRole('button', { name: 'НАЧАТЬ ЗАЩИТУ' }).click()
     await expect(page).toHaveURL(/\/game\/level_1$/)
 
-    await expect(page.locator('.story-dialog')).toContainText('КОМАНДИР МАРКУС')
+    await expect(page.locator('.story-dialog')).toContainText('КОМАНДОР МАРКУС ХЕЙЛ')
     await answerDialog(page)
 
     await page.getByRole('button', { name: /Пушка/ }).click()

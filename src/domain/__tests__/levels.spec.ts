@@ -60,11 +60,15 @@ describe('campaign', () => {
         campaign.completeLevel('level_2', 3)
         expect(campaign.isUnlocked('level_4')).toBe(true)
         campaign.completeLevel('level_4', 3)
+        // The reactor also needs the engine sector, which opens after the core.
+        expect(campaign.isUnlocked('level_5')).toBe(false)
+        expect(campaign.isUnlocked('level_9')).toBe(true)
+        campaign.completeLevel('level_9', 3)
         expect(campaign.isUnlocked('level_5')).toBe(true)
         campaign.completeLevel('level_1', 1)
         expect(campaign.levels[0]!.stars).toBe(3)
-        expect(campaign.totalStars).toBe(12)
-        expect(campaign.completedLevels).toHaveLength(4)
+        expect(campaign.totalStars).toBe(15)
+        expect(campaign.completedLevels).toHaveLength(5)
     })
     it('round-trips plain JSON progress and resets without storage', () => {
         const campaign = new Campaign()
@@ -86,8 +90,9 @@ describe('campaign', () => {
         expect(campaign.levels[0]!.stars).toBe(3)
         const progress = campaign.toProgress()
         progress.totalStars = 999
-        progress.levels[4]!.locked = false
-        progress.currentLevelIndex = 4
+        const finale = progress.levels.findIndex((level) => level.id === 'level_5')
+        progress.levels[finale]!.locked = false
+        progress.currentLevelIndex = finale
         const restored = Campaign.fromProgress(progress)
         expect(restored.totalStars).toBe(3)
         expect(restored.isUnlocked('level_5')).toBe(false)

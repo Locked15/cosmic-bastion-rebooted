@@ -1,0 +1,216 @@
+{
+    "id": "level_8",
+    "name": "РИЗНИЦА R-1: РЕЛИКВАРИЙ",
+    "description": "Оружие Синода, которое не чинят, а отмаливают. Два нефа — два пути для Сонма.",
+    "type": "normal",
+    "width": 1300,
+    "height": 750,
+    "livingQuartersY": 500,
+    "paths": {
+        "base": [
+            { "x": 40, "y": 200 },
+            { "x": 400, "y": 200 },
+            { "x": 400, "y": 120 },
+            { "x": 800, "y": 120 },
+            { "x": 800, "y": 320 },
+            { "x": 1200, "y": 320 },
+            { "x": 1200, "y": 600 }
+        ],
+        "alternatives": [
+            [
+                { "x": 40, "y": 200 },
+                { "x": 250, "y": 200 },
+                { "x": 250, "y": 420 },
+                { "x": 1100, "y": 420 },
+                { "x": 1100, "y": 600 }
+            ]
+        ]
+    },
+    "corridors": [{ "x": 20, "y": 80, "width": 1220, "height": 380 }],
+    "towerSlots": [
+        { "x": 150, "y": 140, "type": "cannon" },
+        { "x": 320, "y": 140, "type": "machinegun" },
+        { "x": 330, "y": 300, "type": "rocket" },
+        { "x": 520, "y": 200, "type": "laser" },
+        { "x": 680, "y": 220, "type": "cannon" },
+        { "x": 600, "y": 330, "type": "machinegun" },
+        { "x": 900, "y": 230, "type": "rocket" },
+        { "x": 1050, "y": 240, "type": "laser" },
+        { "x": 900, "y": 370, "type": "shock" }
+    ],
+    "start": { "miners": 16, "military": 9, "resources": 350 },
+    "waves": { "total": 6, "difficulty": 1 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "upgrade_tower",
+            "text": "Улучшить башню до 3 уровня",
+            "kind": "towerLevel",
+            "target": 2
+        },
+        {
+            "id": "secure_relic",
+            "text": "Вынести копьё «Отречение»",
+            "kind": "flag",
+            "flag": "relic_secured"
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "КАПИТАН-НОСИТЕЛЬ ИРЕНА ВОСС",
+                "text": "Ризница R-1. Здесь Синод хранит оружие, которое не чинят, а отмаливают. Не дайте Сонму добраться до ковчегов.",
+                "choices": [
+                    {
+                        "text": "Стража на позициях",
+                        "consequence": "Стража заняла нефы.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ДВА НЕФА",
+                "text": "У Ризницы два прохода. Если перекрыть главный неф, пыль пойдёт боковым.",
+                "choices": [
+                    {
+                        "text": "Укрепить баррикады",
+                        "consequence": "Прочность баррикад увеличена на 30%.",
+                        "effect": { "type": "buffBarricades", "value": 1.3 }
+                    },
+                    {
+                        "text": "Вскрыть оружейные ящики",
+                        "consequence": "Получено 120 ресурсов.",
+                        "effect": { "type": "resources", "value": 120 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "partial",
+                "title": "КОПЬЁ «ОТРЕЧЕНИЕ»",
+                "text": "В центральном ковчеге — гравитационное копьё. Оно «развешивает» материю вокруг себя и выпивает свой расчёт досуха.",
+                "choices": [
+                    {
+                        "text": "Вынести копьё",
+                        "cost": { "resources": 120 },
+                        "consequence": "Копьё вынесено. В реакторном секторе его удар будет сильнее и дешевле. Потрачено 120 ресурсов.",
+                        "effect": { "type": "flag", "name": "relic_secured", "value": 1 }
+                    },
+                    {
+                        "text": "Не трогать реликвию",
+                        "consequence": "Копьё осталось в ковчеге.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "when": [{ "flag": "scientist_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ДОКТОР МИРЕЯ СИЛЬВА",
+                "text": "Сонм держится на заряде. Реликварные катушки можно перенастроить на разряд.",
+                "choices": [
+                    {
+                        "text": "Перенастроить катушки",
+                        "cost": { "resources": 100 },
+                        "consequence": "Электрошоковая установка открыта для следующих миссий раньше срока. Потрачено 100 ресурсов.",
+                        "effect": { "type": "unlockTower", "tower": "shock" }
+                    },
+                    {
+                        "text": "Не тратить время",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Реликвии принадлежат Обету. Верните их на место».",
+                "choices": [
+                    {
+                        "text": "Игнорировать",
+                        "consequence": "Архив замолчал.",
+                        "effect": null
+                    },
+                    {
+                        "text": "Подчиниться",
+                        "consequence": "Копьё вернули в ковчег. Архив открыл склад Ризницы.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "relic_secured", "value": 0 },
+                                { "type": "resources", "value": 150 }
+                            ]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНИЙ НЕФ",
+                "text": "Пыль прорывается к ковчегам.",
+                "choices": [
+                    {
+                        "text": "Поднять резерв Стражи",
+                        "consequence": "Прибыли 4 военных.",
+                        "effect": { "type": "addMilitary", "count": 4 }
+                    },
+                    {
+                        "text": "Пустить реликвии в переплавку",
+                        "consequence": "Получено 200 ресурсов. Синод этого не простит.",
+                        "effect": { "type": "resources", "value": 200 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        }
+    ]
+}

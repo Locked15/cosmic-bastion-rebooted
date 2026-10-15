@@ -3,8 +3,7 @@
     import { computed, nextTick, ref, useTemplateRef } from 'vue'
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
-    import ShipMapFrame from '@/ui/components/ShipMapFrame.vue'
-    import LevelNodeCard from '@/ui/components/LevelNodeCard.vue'
+    import ShipDeckMap from '@/ui/components/ShipDeckMap.vue'
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
     const router = useRouter()
@@ -39,27 +38,9 @@
 <template>
     <main class="level-select">
         <h2 class="level-select__title">СХЕМА КОРАБЛЯ - ВЫБОР СЕКТОРА</h2>
-        <div class="level-select__map" aria-label="Схема секторов корабля">
-            <ShipMapFrame />
-            <LevelNodeCard
-                v-for="level in levels"
-                :key="level.id"
-                class="level-select__node"
-                :style="{
-                    left: `${(level.map.x + level.map.width / 2) / 10}%`,
-                    top: `${(level.map.y + level.map.height / 2) / 6}%`,
-                }"
-                :sector="level.sector"
-                :name="level.name"
-                :description="level.description"
-                :locked="level.locked"
-                :completed="level.completed"
-                :stars="level.stars"
-                :story="level.story"
-                :active="level.id === selectedId"
-                @select="select(level.id)"
-            />
-        </div>
+        <section class="level-select__map">
+            <ShipDeckMap :levels="levels" :selected-id="selectedId" @select="select" />
+        </section>
         <MissionInfo
             ref="info"
             class="level-select__info"
@@ -74,7 +55,7 @@
 <style scoped lang="scss">
     .level-select {
         display: grid;
-        grid-template-rows: auto minmax(680px, 1fr);
+        grid-template-rows: auto 1fr;
         grid-template-columns: 2fr 1fr;
         gap: $spacing-lg;
         // The page scrolls itself: body has overflow hidden for the game screen.
@@ -91,10 +72,9 @@
         }
 
         &__map {
-            @include blueprint-grid(30px);
+            @include blueprint-grid(25px, rgba($color-border, 0.35));
 
-            position: relative;
-            min-height: 680px;
+            align-self: start;
             padding: $spacing-md;
             border: 2px solid $color-primary;
         }
@@ -105,12 +85,6 @@
             top: 0;
             align-self: start;
             max-height: calc(100vh - #{$spacing-lg * 2});
-        }
-
-        &__node {
-            position: absolute;
-            width: 42%;
-            transform: translate(-50%, -50%);
         }
 
         @media (max-width: 1200px) {

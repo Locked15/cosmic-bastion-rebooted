@@ -1,0 +1,201 @@
+{
+    "id": "level_7",
+    "name": "МЕДОТСЕК M-5: ОТЯЖЕЛЕВШИЕ",
+    "description": "Пыль в крови экипажа. Сонм тянется к палате, как к маяку.",
+    "type": "story",
+    "width": 1200,
+    "height": 750,
+    "livingQuartersY": 480,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 60 },
+            { "x": 60, "y": 380 },
+            { "x": 260, "y": 380 },
+            { "x": 260, "y": 100 },
+            { "x": 460, "y": 100 },
+            { "x": 460, "y": 380 },
+            { "x": 660, "y": 380 },
+            { "x": 660, "y": 100 },
+            { "x": 860, "y": 100 },
+            { "x": 860, "y": 380 },
+            { "x": 1060, "y": 380 },
+            { "x": 1060, "y": 600 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 20, "y": 40, "width": 1080, "height": 380 }],
+    "towerSlots": [
+        { "x": 160, "y": 180, "type": "cannon" },
+        { "x": 160, "y": 300, "type": "machinegun" },
+        { "x": 360, "y": 200, "type": "rocket" },
+        { "x": 360, "y": 320, "type": "laser" },
+        { "x": 560, "y": 180, "type": "cannon" },
+        { "x": 560, "y": 300, "type": "shock" },
+        { "x": 760, "y": 200, "type": "machinegun" },
+        { "x": 760, "y": 320, "type": "rocket" },
+        { "x": 960, "y": 200, "type": "laser" }
+    ],
+    "start": { "miners": 16, "military": 8, "resources": 320 },
+    "waves": { "total": 5, "difficulty": 0.9 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "save_surgeon",
+            "text": "Эвакуировать сестру Ренн",
+            "kind": "flag",
+            "flag": "surgeon_saved"
+        },
+        {
+            "id": "save_ward",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "СЕСТРА-ХИРУРГ АГАТА РЕНН",
+                "text": "Палата полна Отяжелевших. В их крови — пыль. Они тяжелеют, молчат и однажды встают и идут к Сонму.",
+                "choices": [
+                    {
+                        "text": "Держать палату",
+                        "consequence": "Стража встала у дверей палаты.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "partial",
+                "title": "ПЫЛЬ В КРОВИ",
+                "text": "Сонм тянется к палате. Ренн просит время и энергию, Стража — приказ.",
+                "choices": [
+                    {
+                        "text": "Продолжить лечение",
+                        "cost": { "resources": 60 },
+                        "consequence": "Ренн продолжает лечение. Потрачено 60 ресурсов. Сонм не отступит от палаты.",
+                        "effect": { "type": "flag", "name": "ward_treated", "value": 1 }
+                    },
+                    {
+                        "text": "Очистить палату",
+                        "cost": { "miners": 4 },
+                        "consequence": "Палата очищена. Четверо Отяжелевших больше не встанут. «Пыль в контурах» исчезнет из следующих секторов.",
+                        "effect": { "type": "flag", "name": "ward_purged", "value": 1 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ОТЯЖЕЛЕВШИЙ У ПЕРЕБОРКИ",
+                "text": "Один из больных встал и идёт к коридору. За ним — ещё двое.",
+                "choices": [
+                    {
+                        "text": "Вернуть в палату",
+                        "cost": { "resources": 40 },
+                        "consequence": "Больных вернули. Потрачено 40 ресурсов.",
+                        "effect": null
+                    },
+                    {
+                        "text": "Отпустить",
+                        "cost": { "miners": 3 },
+                        "consequence": "Трое ушли к Сонму. Никто их не остановил.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "delay",
+            "delay": 180,
+            "when": [{ "flag": "ward_treated", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ЭВАКУАЦИЯ РЕНН",
+                "text": "Ренн готова уйти с записями о болезни. Без неё лечить Отяжелевших некому.",
+                "choices": [
+                    {
+                        "text": "Обеспечить эвакуацию",
+                        "cost": { "resources": 80 },
+                        "consequence": "Ренн спасена. В следующих секторах она вернёт в строй четырёх бойцов. Сюжет продолжится даже при потере отсека.",
+                        "effect": { "type": "flag", "name": "surgeon_saved", "value": 1 }
+                    },
+                    {
+                        "text": "Оставить с больными",
+                        "consequence": "Ренн осталась в палате.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "delay",
+            "delay": 180,
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "СЕСТРА-ХИРУРГ АГАТА РЕНН",
+                "text": "«Я лечила их. Вы их списали». Ренн собирает инструменты и уйдёт — если её отпустят.",
+                "choices": [
+                    {
+                        "text": "Отпустить в эвакуацию",
+                        "cost": { "resources": 80 },
+                        "consequence": "Ренн ушла в тыл. В следующих секторах она вернёт в строй четырёх бойцов. Сюжет продолжится даже при потере отсека.",
+                        "effect": { "type": "flag", "name": "surgeon_saved", "value": 1 }
+                    },
+                    {
+                        "text": "Удержать в секторе",
+                        "consequence": "Ренн осталась. Она больше не говорит с командованием.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Отяжелевшие ближе к Обету, чем вы. Не держите их».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        }
+    ]
+}

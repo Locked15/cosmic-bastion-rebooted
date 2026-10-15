@@ -47,12 +47,12 @@ function playLevel(seed: number) {
 describe('GameSession', () => {
     it('opens the level intro dialog and applies choice effects', () => {
         const session = newSession()
-        expect(session.activeDialog?.dialog.title).toBe('КОМАНДИР МАРКУС')
+        expect(session.activeDialog?.dialog.title).toBe('КОМАНДОР МАРКУС ХЕЙЛ')
         session.chooseDialog(0)
         expect(session.activeDialog).toBeNull()
 
         session.startWave()
-        expect(session.activeDialog?.dialog.title).toBe('ИНЖЕНЕР CHEN')
+        expect(session.activeDialog?.dialog.title).toBe('СТАРШИЙ ИНЖЕНЕР ЧЕН ЛО')
         const before = session.resources
         session.chooseDialog(0)
         expect(session.resources).toBeCloseTo(before + 40)

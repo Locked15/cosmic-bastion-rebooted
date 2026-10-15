@@ -7,6 +7,7 @@ import {
     missionIndex,
     resolveEnding,
     type CampaignProgress,
+    type CampaignSector,
     type EnemyAbility,
     type EventEffect,
     type Level,
@@ -18,6 +19,18 @@ import type { KeyValueStore } from './ports/KeyValueStore'
 import type { SessionOptions } from './session/GameSession'
 
 const CAMPAIGN_KEY = 'campaign'
+
+// Conduit from a required sector to `sector`: its drawn route or a line between room centres.
+function route(from: string, sector: CampaignSector): [number, number][] {
+    const drawn = sector.routes[from]
+    if (drawn) return drawn.map(([x, y]) => [x, y])
+    const source = campaignSector(from)!.map
+    const target = sector.map
+    return [
+        [source.x + source.width / 2, source.y + source.height / 2],
+        [target.x + target.width / 2, target.y + target.height / 2],
+    ]
+}
 
 export interface MissionReport {
     outcome: 'victory' | 'defeat'
@@ -72,6 +85,9 @@ export class CampaignService {
                 layer: sector.layer,
                 map: { ...sector.map },
                 requires: [...sector.requires],
+                routes: sector.requires.map((from) => ({ from, points: route(from, sector) })),
+                threat: Math.min(5, Math.max(1, Math.round((level.waveDifficulty * 10) / 3))),
+                finale: entry.id === CAMPAIGN.finale,
                 prerequisites: sector.requires.map(
                     (id) => this.campaign.levels.find((candidate) => candidate.id === id)!.name,
                 ),
