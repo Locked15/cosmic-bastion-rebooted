@@ -133,7 +133,7 @@ export interface LevelSummary {
     sector: string
     // Deck code on the ship map (A-7…).
     code: string
-    layer: 'outer' | 'living' | 'core'
+    layer: 'outer' | 'living' | 'core' | 'training'
     // Room outline on the ship map.
     map: MapRect
     // Ids of the levels whose victory opens this one.

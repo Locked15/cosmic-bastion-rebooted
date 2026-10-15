@@ -9,7 +9,10 @@
     const router = useRouter()
     const { levels, savedWaves } = storeToRefs(useCampaignStore())
 
-    const selectedId = ref<string | null>(null)
+    // Start on the first open sector not won yet: the training briefing for a new officer.
+    const selectedId = ref<string | null>(
+        levels.value.find((level) => !level.locked && !level.completed)?.id ?? null,
+    )
     const selected = computed(
         () => levels.value.find((level) => level.id === selectedId.value) ?? null,
     )
@@ -56,7 +59,7 @@
     .level-select {
         display: grid;
         grid-template-rows: auto 1fr;
-        grid-template-columns: 2fr 1fr;
+        grid-template-columns: 5fr 2fr;
         gap: $spacing-lg;
         // The page scrolls itself: body has overflow hidden for the game screen.
         height: 100vh;

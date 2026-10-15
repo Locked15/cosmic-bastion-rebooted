@@ -152,7 +152,8 @@
                 ],
                 "timed": true,
                 "timeLimit": 10
-            }
+            },
+            "when": [{ "flag": "archive_silenced", "below": 1 }]
         },
         {
             "wave": 3,
@@ -307,6 +308,53 @@
             "type": "excludeAbility",
             "when": [{ "flag": "ward_purged", "atLeast": 1 }],
             "ability": "sabotage"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "shaft_open", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 100 },
+            "message": "Руда из ствола Ш-2: +100 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "gardens_saved", "atLeast": 1 }],
+            "effect": { "type": "addMiners", "count": 5 },
+            "message": "Оранжерея Г-6 кормит людей: +5 шахтёров"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "archive_pact", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 200 },
+            "message": "Договор с Архивом: резервы реактора открыты, +200 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "cult_broken", "atLeast": 1 }],
+            "effect": { "type": "addMilitary", "count": 3 },
+            "message": "Бывшая охрана Причастников: +3 бойца"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "cult_spared", "atLeast": 1 }],
+            "effect": { "type": "removeMilitary", "count": 3, "resources": 0 },
+            "message": "Причастники увели троих бойцов молиться у Средоточия"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "serum_made", "atLeast": 1 }],
+            "effect": { "type": "addMilitary", "count": 3 },
+            "message": "Сыворотка Ренн: +3 бойца в строю"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "ballast_kept", "atLeast": 1 }],
+            "effect": { "type": "buffBarricades", "value": 1.25 },
+            "message": "Свинцовые переборки: прочность баррикад +25%"
         }
     ]
 }

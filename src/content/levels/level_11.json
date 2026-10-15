@@ -1,0 +1,205 @@
+{
+    "id": "level_11",
+    "name": "ШАХТНЫЙ СТВОЛ Ш-2: ДОЛГ В КИЛОГРАММАХ",
+    "description": "Через проломленное дно Тягло копает Тризну. Сонм поднимается тем же путём.",
+    "type": "normal",
+    "width": 1200,
+    "height": 900,
+    "livingQuartersY": 640,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 80 },
+            { "x": 1100, "y": 80 },
+            { "x": 1100, "y": 200 },
+            { "x": 100, "y": 200 },
+            { "x": 100, "y": 320 },
+            { "x": 1100, "y": 320 },
+            { "x": 1100, "y": 440 },
+            { "x": 100, "y": 440 },
+            { "x": 100, "y": 720 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 30, "y": 50, "width": 1110, "height": 420 }],
+    "towerSlots": [
+        { "x": 300, "y": 140, "type": "cannon" },
+        { "x": 600, "y": 140, "type": "machinegun" },
+        { "x": 900, "y": 140, "type": "rocket" },
+        { "x": 450, "y": 260, "type": "laser" },
+        { "x": 750, "y": 260, "type": "shock" },
+        { "x": 300, "y": 380, "type": "machinegun" },
+        { "x": 600, "y": 380, "type": "cannon" },
+        { "x": 900, "y": 380, "type": "laser" }
+    ],
+    "start": { "miners": 24, "military": 8, "resources": 300 },
+    "waves": { "total": 6, "difficulty": 1.05 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "save_foreman",
+            "text": "Вывести бригадира Горбаня",
+            "kind": "flag",
+            "flag": "foreman_saved"
+        },
+        {
+            "id": "no_personnel_loss",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "БРИГАДИР ЯСЬ ГОРБАНЬ",
+                "text": "Шахтный ствол Ш-2. Через проломленное дно мы копаем Тризну. Тягло спустилось первым — как всегда.",
+                "choices": [
+                    {
+                        "text": "Держать ствол",
+                        "consequence": "Стража встала у подъёмников.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "partial",
+                "title": "РУДА ШЕВЕЛИТСЯ",
+                "text": "Забойщики клянутся: руда в отвалах сама сползается в кучи. Доктор Сильва просит образцы.",
+                "choices": [
+                    {
+                        "text": "Отправить образцы в лабораторию",
+                        "cost": { "resources": 40 },
+                        "consequence": "Образцы ушли к Сильве. Потрачено 40 ресурсов.",
+                        "effect": { "type": "flag", "name": "ore_samples", "value": 1 }
+                    },
+                    {
+                        "text": "Копать дальше",
+                        "consequence": "Добыча продолжается. Получено 120 ресурсов.",
+                        "effect": { "type": "resources", "value": 120 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ДОЛГ В КИЛОГРАММАХ",
+                "text": "Горбань: «Каждый спуск списывает с нас сорок килограммов долга. Сегодня спустились все».",
+                "choices": [
+                    {
+                        "text": "Списать долг смены",
+                        "cost": { "resources": 60 },
+                        "consequence": "Долг смены списан. Тягло это запомнит. Потрачено 60 ресурсов.",
+                        "effect": { "type": "flag", "name": "debt_forgiven", "value": 1 }
+                    },
+                    {
+                        "text": "Устав есть устав",
+                        "consequence": "Смена отработала долг. Получено 80 ресурсов.",
+                        "effect": { "type": "resources", "value": 80 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "ОБВАЛ В ЗАБОЕ",
+                "text": "Пыль подточила крепь. В забое восемь шахтёров.",
+                "choices": [
+                    {
+                        "text": "Поднимать людей",
+                        "cost": { "resources": 100 },
+                        "consequence": "Восемь шахтёров подняты. Потрачено 100 ресурсов.",
+                        "effect": null
+                    },
+                    {
+                        "text": "Запечатать забой",
+                        "cost": { "miners": 8 },
+                        "consequence": "Забой запечатан вместе с людьми.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 10
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "СУДЬБА СТВОЛА",
+                "text": "Ствол — единственный источник руды. И единственная дорога, по которой Сонм поднимается из глубины.",
+                "choices": [
+                    {
+                        "text": "Запечатать ствол",
+                        "consequence": "Ствол запечатан. В следующих секторах Средоточия не смогут порождать новых тварей — но и руды не будет.",
+                        "effect": { "type": "flag", "name": "shaft_sealed", "value": 1 }
+                    },
+                    {
+                        "text": "Продолжать добычу",
+                        "consequence": "Добыча продолжается. Следующие сектора начнутся со 100 дополнительными ресурсами.",
+                        "effect": { "type": "flag", "name": "shaft_open", "value": 1 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "ЭВАКУАЦИЯ БРИГАДИРА",
+                "text": "Горбань уходит из забоя последним — так велит его собственный устав.",
+                "choices": [
+                    {
+                        "text": "Поднять Горбаня",
+                        "cost": { "resources": 80 },
+                        "consequence": "Горбань поднят. Тягло не осталось без голоса. Потрачено 80 ресурсов.",
+                        "effect": { "type": "flag", "name": "foreman_saved", "value": 1 }
+                    },
+                    {
+                        "text": "Оставить бригадира",
+                        "consequence": "Горбань остался с забоем.",
+                        "effect": { "type": "flag", "name": "foreman_lost", "value": 1 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        }
+    ]
+}

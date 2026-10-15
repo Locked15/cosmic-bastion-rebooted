@@ -176,17 +176,17 @@ export const carryOverSchema = v.variant('type', [
         flags: v.pipe(v.array(flagName), v.nonEmpty()),
         divide: v.optional(v.pipe(v.number(), v.minValue(1)), 1),
     }),
-    // Applies an effect when the level starts, if the flags hold.
+    // Applies an effect when the level starts, if the flags hold (always when `when` is empty).
     v.strictObject({
         type: v.literal('effect'),
-        when: v.pipe(v.array(flagConditionSchema), v.nonEmpty()),
+        when: v.optional(v.array(flagConditionSchema), []),
         effect: effectSchema,
         message: v.optional(text),
     }),
-    // Enemies of this level never get the ability, if the flags hold.
+    // Enemies of this level never get the ability, if the flags hold (always when empty).
     v.strictObject({
         type: v.literal('excludeAbility'),
-        when: v.pipe(v.array(flagConditionSchema), v.nonEmpty()),
+        when: v.optional(v.array(flagConditionSchema), []),
         ability: enemyAbilitySchema,
     }),
 ])

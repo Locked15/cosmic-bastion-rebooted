@@ -46,7 +46,16 @@ describe('levels', () => {
     })
 })
 
+const hull = (campaign: Campaign) => campaign.levels.find((level) => level.id === 'level_1')!
+
 describe('campaign', () => {
+    it('opens the training and the hull sector from the start', () => {
+        const campaign = new Campaign()
+        expect(campaign.levels[0]!.id).toBe('level_0')
+        expect(campaign.isUnlocked('level_0')).toBe(true)
+        expect(campaign.isUnlocked('level_1')).toBe(true)
+        expect(campaign.levels.filter((level) => !level.locked)).toHaveLength(2)
+    })
     it('opens both branches, requires both for the core, and preserves best stars', () => {
         const campaign = new Campaign()
         expect(campaign.selectLevel('level_2')).toBeNull()
@@ -64,11 +73,19 @@ describe('campaign', () => {
         expect(campaign.isUnlocked('level_5')).toBe(false)
         expect(campaign.isUnlocked('level_9')).toBe(true)
         campaign.completeLevel('level_9', 3)
+        // The finale also needs the Archive core (after the bridge) and the ballast tanks.
+        expect(campaign.isUnlocked('level_15')).toBe(true)
+        expect(campaign.isUnlocked('level_14')).toBe(false)
+        campaign.completeLevel('level_10', 3)
+        expect(campaign.isUnlocked('level_14')).toBe(true)
+        campaign.completeLevel('level_14', 3)
+        expect(campaign.isUnlocked('level_5')).toBe(false)
+        campaign.completeLevel('level_15', 3)
         expect(campaign.isUnlocked('level_5')).toBe(true)
         campaign.completeLevel('level_1', 1)
-        expect(campaign.levels[0]!.stars).toBe(3)
-        expect(campaign.totalStars).toBe(15)
-        expect(campaign.completedLevels).toHaveLength(5)
+        expect(hull(campaign).stars).toBe(3)
+        expect(campaign.totalStars).toBe(24)
+        expect(campaign.completedLevels).toHaveLength(8)
     })
     it('round-trips plain JSON progress and resets without storage', () => {
         const campaign = new Campaign()
@@ -78,8 +95,8 @@ describe('campaign', () => {
         const progress = campaign.toProgress()
         const restored = Campaign.fromProgress(JSON.parse(JSON.stringify(progress)))
         expect(restored.toProgress()).toEqual(progress)
-        progress.levels[0]!.stars = 0
-        expect(campaign.levels[0]!.stars).toBe(2)
+        progress.levels.find((level) => level.id === 'level_1')!.stars = 0
+        expect(hull(campaign).stars).toBe(2)
         restored.reset()
         expect(restored.toProgress()).toEqual(new Campaign().toProgress())
         expect(Campaign.fromProgress().toProgress()).toEqual(new Campaign().toProgress())
@@ -87,7 +104,7 @@ describe('campaign', () => {
     it('normalizes loaded star counts and derives unlocks from completions', () => {
         const campaign = new Campaign()
         campaign.completeLevel('level_1', 9)
-        expect(campaign.levels[0]!.stars).toBe(3)
+        expect(hull(campaign).stars).toBe(3)
         const progress = campaign.toProgress()
         progress.totalStars = 999
         const finale = progress.levels.findIndex((level) => level.id === 'level_5')

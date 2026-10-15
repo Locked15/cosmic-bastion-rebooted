@@ -92,9 +92,17 @@ describe('flag conditions and endings', () => {
             archive_saved: 1,
         })
         expect(ascent.id).toBe('ascent')
+        // Without dumped ballast the living layer is shed; the archive note follows.
         expect(ascent.paragraphs.length).toBe(
-            ENDINGS.find((e) => e.id === 'ascent')!.text.length + 1,
+            ENDINGS.find((e) => e.id === 'ascent')!.text.length + 2,
         )
+        expect(ascent.paragraphs.join(' ')).toContain('жилой слой')
+        const light = resolveEnding('victory', {
+            engines_restored: 1,
+            engineer_saved: 1,
+            ballast_dumped: 1,
+        })
+        expect(light.paragraphs.join(' ')).toContain('Сонм получил свинец вместо людей')
         expect(resolveEnding('victory', { ending_renunciation: 1, engines_restored: 1 }).id).toBe(
             'renunciation',
         )

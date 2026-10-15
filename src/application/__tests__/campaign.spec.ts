@@ -62,7 +62,16 @@ describe('campaign story progression', () => {
     ])('does not advance %s after a defeat, even with %s completed', (id, key) => {
         const storage = new MemoryStore()
         const campaign = new CampaignService(storage)
-        for (const previous of ['level_1', 'level_2', 'level_3', 'level_4', 'level_9']) {
+        for (const previous of [
+            'level_1',
+            'level_2',
+            'level_3',
+            'level_4',
+            'level_9',
+            'level_10',
+            'level_14',
+            'level_15',
+        ]) {
             if (previous === id) break
             campaign.completeLevel(previous, 2)
         }

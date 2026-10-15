@@ -1,0 +1,270 @@
+{
+    "id": "level_15",
+    "name": "БАЛЛАСТНЫЕ ЦИСТЕРНЫ К-8: СВЯТОЙ СВИНЕЦ",
+    "description": "Девять тысяч тонн освящённого свинца. Нигде на корабле нет столько веса в одном месте.",
+    "type": "story",
+    "width": 1300,
+    "height": 780,
+    "livingQuartersY": 540,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 120 },
+            { "x": 260, "y": 380 },
+            { "x": 460, "y": 120 },
+            { "x": 660, "y": 380 },
+            { "x": 860, "y": 120 },
+            { "x": 1060, "y": 380 },
+            { "x": 1200, "y": 250 },
+            { "x": 1200, "y": 640 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 20, "y": 80, "width": 1220, "height": 420 }],
+    "towerSlots": [
+        { "x": 260, "y": 170, "type": "cannon" },
+        { "x": 460, "y": 330, "type": "laser" },
+        { "x": 660, "y": 170, "type": "rocket" },
+        { "x": 860, "y": 330, "type": "shock" },
+        { "x": 1060, "y": 170, "type": "cannon" },
+        { "x": 460, "y": 460, "type": "machinegun" },
+        { "x": 860, "y": 460, "type": "machinegun" },
+        { "x": 660, "y": 470, "type": "rocket" }
+    ],
+    "start": { "miners": 22, "military": 13, "resources": 440 },
+    "waves": { "total": 7, "difficulty": 1.35 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "decide_ballast",
+            "text": "Решить судьбу святого балласта",
+            "kind": "flag",
+            "flag": "ballast_decided"
+        },
+        {
+            "id": "no_personnel_loss",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "КАПИТАН-НОСИТЕЛЬ ИРЕНА ВОСС",
+                "text": "Балластные цистерны К-8. Девять тысяч тонн освящённого свинца — вес, который Синод вложил в каждый Бастион как молитву.",
+                "choices": [
+                    {
+                        "text": "Стража на позициях",
+                        "consequence": "Стража заняла галереи над цистернами.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 180,
+            "when": [{ "flag": "engineer_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "СТАРШИЙ ИНЖЕНЕР ЧЕН ЛО",
+                "text": "«Двигатели не поднимут нас со свинцом в брюхе. Сбросить придётся либо балласт, либо жилой слой».",
+                "choices": [
+                    {
+                        "text": "Принять к сведению",
+                        "consequence": "Решение придётся принять до реактора.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 180,
+            "when": [{ "flag": "engineer_saved", "below": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "РАСЧЁТ ТЯГИ",
+                "text": "Без Чена тягу считают по старым таблицам: со святым балластом корабль не взлетит ни при каких двигателях.",
+                "choices": [
+                    {
+                        "text": "Принять к сведению",
+                        "consequence": "Решение придётся принять до реактора.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "when": [{ "flag": "cult_spared", "atLeast": 1 }],
+            "dialog": {
+                "kind": "partial",
+                "title": "СТАРШИЙ НОСИТЕЛЬ ТАДЕУШ МОР",
+                "text": "Мор приводит Причастников к клапанам: «Сбросить святой вес — значит отречься от Обета».",
+                "choices": [
+                    {
+                        "text": "Оттеснить Причастников",
+                        "cost": { "military": 2 },
+                        "consequence": "Клапаны свободны. Двое стражников ранены.",
+                        "effect": null
+                    },
+                    {
+                        "text": "Уступить клапаны",
+                        "consequence": "Причастники молятся у клапанов. Решение всё равно за вами.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "СВИНЕЦ И ПЫЛЬ",
+                "text": "Сонм тянется к цистернам: здесь его главная добыча.",
+                "choices": [
+                    {
+                        "text": "Укрепить цистерны",
+                        "consequence": "Прочность баррикад увеличена на 30%.",
+                        "effect": { "type": "buffBarricades", "value": 1.3 }
+                    },
+                    {
+                        "text": "Перегреть контур",
+                        "consequence": "Урон башен увеличен на 30%.",
+                        "effect": { "type": "buffDamage", "value": 1.3 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "СВЯТОЙ БАЛЛАСТ",
+                "text": "Свинец можно слить в Колодец — корабль станет легче на девять тысяч тонн. Или оставить и залить им переборки у реактора.",
+                "choices": [
+                    {
+                        "text": "Слить балласт",
+                        "cost": { "resources": 150 },
+                        "consequence": "Святой свинец ушёл в Колодец. Синод назвал бы это отречением. Если корабль взлетит, жилой слой останется с ним. Потрачено 150 ресурсов.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ballast_dumped", "value": 1 },
+                                { "type": "flag", "name": "ballast_decided", "value": 1 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Залить переборки",
+                        "consequence": "Свинец пошёл на переборки: у реактора баррикады станут прочнее на 25%.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ballast_kept", "value": 1 },
+                                { "type": "flag", "name": "ballast_decided", "value": 1 }
+                            ]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "when": [{ "flag": "archive_silenced", "below": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Вы сбрасываете молитву, офицер. Колодец примет и её».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 6,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНЯЯ ВОЛНА У ЦИСТЕРН",
+                "text": "Сонм бросает на цистерны всё, что у него есть.",
+                "choices": [
+                    {
+                        "text": "Поднять Стражу",
+                        "consequence": "Прибыли 5 военных.",
+                        "effect": { "type": "addMilitary", "count": 5 }
+                    },
+                    {
+                        "text": "Задействовать резерв",
+                        "consequence": "Получено 200 ресурсов.",
+                        "effect": { "type": "resources", "value": 200 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "shaft_open", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 100 },
+            "message": "Руда из ствола Ш-2: +100 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "gardens_saved", "atLeast": 1 }],
+            "effect": { "type": "addMiners", "count": 5 },
+            "message": "Оранжерея Г-6 кормит людей: +5 шахтёров"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "surgeon_saved", "atLeast": 1 }],
+            "effect": { "type": "addMilitary", "count": 4 },
+            "message": "Сестра Ренн вернула в строй 4 бойцов"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
+        }
+    ]
+}

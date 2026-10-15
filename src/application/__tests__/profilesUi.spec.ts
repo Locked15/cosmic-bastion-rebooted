@@ -89,7 +89,7 @@ describe('profiles on the main menu', () => {
         await wrapper!.find('.main-menu__security').trigger('click')
         const slots = wrapper!.findAll('.profile-slot')
         expect(slots).toHaveLength(3)
-        expect(slots[0]!.text()).toContain('Секторов: 1/9 · ★ 3')
+        expect(slots[0]!.text()).toContain('Секторов: 1/16 · ★ 3')
         expect(slots[2]!.text()).toContain('Ячейка свободна')
         await slots[0]!.findAll('button')[0]!.trigger('click')
         await flushPromises()

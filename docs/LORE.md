@@ -58,38 +58,67 @@ Every level is a **corridor** (the combat zone) leading into a **жилой от
 
 The campaign moves **from the outer hull inward to the reactor**, as the brief requires.
 
+### Registry
+
+```
+СТ-БЛК·IV-0417 «ТО» / У-12 / 91,4 Мт / КП-41
+```
+
+| Part        | Meaning                                                                                                                                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **СТ**      | Синод Тяготения, the owning polity                                                                                                                                                        |
+| **БЛК**     | Бастион, линейный крейсер: class and role                                                                                                                                                 |
+| **IV**      | Fourth series ("Covenant") of the class; each series is built heavier than the last                                                                                                       |
+| **0417**    | Hull number within the class                                                                                                                                                              |
+| **«ТО»**    | Name code: «Тяжесть Обета»                                                                                                                                                                |
+| **У-12**    | Удел 12, the frontier march that contains Тризна                                                                                                                                          |
+| **91,4 Мт** | Consecrated mass; the Synod ranks ships by weight                                                                                                                                         |
+| **КП-41**   | Read by the crew as «контрольная проверка 41». In the Inner Circle's orders it means **Круг · Причастие · 41**: marked for the Communion, and 41 is the number of seconds without shields |
+
+The lost Bastion «Неусыпный» is `СТ-БЛК·III-0309 «НС» / У-12 / 87,0 Мт / КП-38`: same march, same mark. The clue is found in three places: the wreck in the hangar (H-2), the registry plate on the bridge (S-1), and the register of offerings in the Archive core (АР-1).
+
 ## 6. Characters
 
 All existing names are kept and expanded.
 
-| Name (in game)                  | Role                                                | Arc                                                                                                                                                                                                                                               |
-| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Капитан-Носитель Ирена Восс** | Captain, Bearer of the Synod                        | A true believer who does not know about the sealed orders. Learns the truth in the engine sector (level 9). Her final order sets the tone of the ending she is part of.                                                                           |
-| **Командор Маркус Хейл**        | Commander of the Guard; the opening voice (level 1) | Pragmatic, tired, unfaithful in private. Keeps people alive and asks the player to do the same. Favours the "endless defence" ending.                                                                                                             |
-| **Старший инженер Чен Ло**      | Drive engineer (level 1)                            | The only living person who knows the engines well enough to restore them. _"The repair instructions"_ from the brief are in his head and in his notebooks. Required for the lift-off ending (flag `engineer_saved`).                              |
-| **Доктор Мирея Сильва**         | Xenologist (labs, level 3)                          | Studies the Swarm. Discovers that it learns, that charge holds it together (hence shock weapons and the «Фильтр» barricade), and finally that **the ore is the Swarm**. Her data is what the Archive's message is worth (flag `scientist_saved`). |
-| **Инженер Глеб Петров**         | Tech-core engineer (level 4)                        | A devout Synod engineer who services the Archive's hardware. Finds the sealed orders while he is rerouting power. Breaks down, but keeps working.                                                                                                 |
-| **Лейтенант Ода Кирх**          | Tactical officer (level 2, «ТАКТИЧЕСКИЙ ОФИЦЕР»)    | A voice of cold tactical choices: which corridor gets the reinforcements.                                                                                                                                                                         |
-| **Сестра-хирург Агата Ренн**    | _New_, medbay (level 7)                             | Runs the ward for the **Отяжелевшие** ("the Weighted"): crew with dust in their blood. They grow heavier and quieter, and eventually walk toward the Swarm.                                                                                       |
-| **Бригадир Ясь Горбань**        | _New_, foreman of the Draft (refugee events)        | The voice of the miners. Asks why the indentured dig while the Bearers pray. A moral counterweight to Восс.                                                                                                                                       |
-| **Архив / «Голос Архива»**      | The ship's oracle-intelligence                      | The encrypted signal of level 1, the "archive reserve" of level 3, and the cargo of the finale. Speaks in liturgical formulas. Never lies, but never volunteers anything.                                                                         |
-| **Судно-Свидетель «Безмолвие»** | Synod observer ship in high orbit                   | The "rescue vessel" of level 5. It was sent to _record_ the Communion, not to rescue anyone. It will take the Archive and the survivors' coordinates, but will not land.                                                                          |
+| Name (in game)                  | Role                                                                  | Arc                                                                                                                                                                                                                                               |
+| ------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Капитан-Носитель Ирена Восс** | Captain, Bearer of the Synod                                          | A true believer who does not know about the sealed orders. Learns the truth in the engine sector (level 9). Her final order sets the tone of the ending she is part of.                                                                           |
+| **Командор Маркус Хейл**        | Commander of the Guard; runs the training (level 0) and opens level 1 | Pragmatic, tired, unfaithful in private. Keeps people alive and asks the player to do the same. Favours the "endless defence" ending.                                                                                                             |
+| **Старший инженер Чен Ло**      | Drive engineer (level 1)                                              | The only living person who knows the engines well enough to restore them. _"The repair instructions"_ from the brief are in his head and in his notebooks. Required for the lift-off ending (flag `engineer_saved`).                              |
+| **Доктор Мирея Сильва**         | Xenologist (labs, level 3)                                            | Studies the Swarm. Discovers that it learns, that charge holds it together (hence shock weapons and the «Фильтр» barricade), and finally that **the ore is the Swarm**. Her data is what the Archive's message is worth (flag `scientist_saved`). |
+| **Инженер Глеб Петров**         | Tech-core engineer (level 4)                                          | A devout Synod engineer who services the Archive's hardware. Finds the sealed orders while he is rerouting power. Breaks down, but keeps working.                                                                                                 |
+| **Лейтенант Ода Кирх**          | Tactical officer (level 2, «ТАКТИЧЕСКИЙ ОФИЦЕР»)                      | A voice of cold tactical choices: which corridor gets the reinforcements.                                                                                                                                                                         |
+| **Сестра-хирург Агата Ренн**    | _New_, medbay (level 7)                                               | Runs the ward for the **Отяжелевшие** ("the Weighted"): crew with dust in their blood. They grow heavier and quieter, and eventually walk toward the Swarm.                                                                                       |
+| **Бригадир Ясь Горбань**        | _New_, foreman of the Draft (refugee events)                          | The voice of the miners. Asks why the indentured dig while the Bearers pray. A moral counterweight to Восс.                                                                                                                                       |
+| **Старший Носитель Тадеуш Мор** | _New_, chapel (level 12)                                              | Leader of the **Причастники** (Communicants), Bearers loyal to the Inner Circle. Opens the chapel to the dust and sings it in. Arrested or spared, he decides who stands at the reactor in the finale.                                            |
+| **Агроном Лидия Заремба**       | _New_, hydroponics (level 13)                                         | Keeps the only living, "light" things aboard. Her gardens feed whoever survives, whether the ship lifts off or stays.                                                                                                                             |
+| **Архив / «Голос Архива»**      | The ship's oracle-intelligence                                        | The encrypted signal of level 1, the "archive reserve" of level 3, and the cargo of the finale. Speaks in liturgical formulas. Never lies, but never volunteers anything.                                                                         |
+| **Судно-Свидетель «Безмолвие»** | Synod observer ship in high orbit                                     | The "rescue vessel" of level 5. It was sent to _record_ the Communion, not to rescue anyone. It will take the Archive and the survivors' coordinates, but will not land.                                                                          |
 
 ## 7. Campaign: acts and sectors
 
-Codes and names of existing sectors are kept (A-7, B-3, C-9, D-1, reactor). Sectors 6–9 are levels 6–9; levels 6–8 are optional side branches that add carry-over bonuses. The reactor's map code is R-0.
+Sixteen sectors: the training briefing and fifteen missions. Level numbers are file ids, not story order. Optional side branches (H-2, Ш-2, M-5, Г-6, R-1, Ч-4) add carry-over to later sectors. The required path is T-0 (open, recommended) → A-7 → B-3 + C-9 → D-1 → S-1 → АР-1 and E-0 → К-8 → R-0.
 
 ```
-                A-7 Внешний корпус (1)
-            /           |            \
-   H-2 Ангар (6)   B-3 Жилые (2)   C-9 Лаборатории (3)
-                        |      \     /      |
-               M-5 Медотсек (7)  D-1 Тех. ядро (4)   R-1 Ризница (8)
-                                    |
-                           E-0 Двигательный отсек (9)
-                                    |
-                           Центральный реактор (5)   ← requires 4 + 9
+ T-0 Тренажёр (0)          A-7 Внешний корпус (1)
+                 ┌──────────┬────────┼──────────┐
+            S-1 Мостик (10) H-2 (6) B-3 (2)    C-9 (3)
+                 │           │     │    \     /   │
+                 │      Ш-2 (11)  M-5 (7)  D-1 (4)  R-1 (8)
+                 │                 │      /    \     │
+                 │           Г-6 (13)    /   E-0 (9)  Ч-4 (12)
+                 └──── АР-1 Архивное ядро (14)  │
+                              │          К-8 Балласт (15)
+                              └─── R-0 Центральный реактор (5) ───┘
 ```
+
+The ship map (`src/content/campaign.json`) places every sector in its layer: A-7, S-1, H-2, Ш-2, К-8 in the outer hull; B-3, C-9, M-5, R-1, Г-6, Ч-4 in the living layer; D-1, E-0, АР-1 and the reactor in the technical core. The simulator T-0 is drawn outside the hull.
+
+### Briefing
+
+**0. T-0 Тренажёр Стражи — «Учебная тревога»** (training)
+Before the newly appointed officer is let near living people, Commander Хейл runs them through the Guard simulator. The dust is a hologram, but the Archive records every mistake. The briefing teaches building, barricades, upgrades, personnel, breakthroughs and a timed decision. Its enemies have no abilities. It does not count as a mission in story logic (`missionIndex` skips it).
 
 ### Act I: The Fall (Падение)
 
@@ -100,6 +129,10 @@ _Theme: the ship is broken, the enemy is dust, and the Archive is watching._
 **6. H-2 Ангар шаттлов — «Мёртвые крылья»** (normal, new, optional)
 The obvious way out is the shuttles. All of them are useless, because Тризна's gravity is too strong for anything that small. Among the hangar debris lie hull plates with the markings of **Bastion «Неусыпный», lost 93 years ago**. This is the first hint that the ship is not the first to fall here. Salvaging shuttle reactors gives resources.
 Flags: `wreck_found` (enables a line from Петров in level 4), `shuttle_salvage` (+resources in level 9).
+
+**10. S-1 Мостик — «Пустое кресло»** (story, new; requires 1)
+The bridge has been cut off since the first hours. Восс retakes it, and on a bulkhead the crew finds the registry plate ending in `КП-41`. If `wreck_found` is set, the same kind of suffix on the «Неусыпный» wreck (`КП-38`) is noticed (`kp_pattern`). At the end, Восс either takes manual command (`bridge_manual`) or hands the bridge to the Archive as the regulations require (`bridge_archive`). Either way the bridge codes later open the Archive core.
+_Theme: a ship nobody commands is already wreckage._
 
 ### Act II: The Learning Dust (Учащийся прах)
 
@@ -124,6 +157,18 @@ _Theme: the line between the crew and the Swarm can be crossed from the inside._
 The Synod's sealed armoury, holding relic weapons that are prayed over rather than serviced. It contains **«Отречение»** (Renunciation), a gravitational lance. Once fired, it "un-weighs" the matter around it, but it drains its crew to death. This is the "experimental reactor weapon" of the finale. Securing it makes the finale's last-chance strike stronger and cheaper (`relic_secured`).
 _Theme: the Synod's holiest weapon works by abandoning weight, which is heresy._
 
+**11. Ш-2 Шахтный ствол — «Долг в килограммах»** (normal, new, optional; requires 6)
+Through the broken bottom of the ship, the Draft digs Тризна. The miners swear the ore crawls into heaps by itself (`ore_samples` for Silva). Горбань counts the debt every descent writes off. Key choice: **seal the shaft** (`shaft_sealed`: Foci in later sectors cannot spawn new creatures, but there is no more ore) or **keep digging** (`shaft_open`: +100 resources in later sectors, and the Swarm keeps waking). Горбань is either brought up (`foreman_saved`) or left with the face (`foreman_lost`); E-0 changes accordingly.
+_Theme: the Draft pays for everyone's weight._
+
+**12. Ч-4 Часовня Груза — «Причастники»** (story, new, optional; requires 8)
+Старший Носитель Мор opens the chapel's locks and sings the dust in. If Silva is saved, she recognises the litany as the frequency the Archive used to call «Неусыпный». A sheet with the Inner Circle's seal lists the Bastions marked «КП»; passing it to Восс sets `truth_told` early. The trial: **arrest the Communicants** (`cult_broken`: +3 soldiers at the reactor) or **leave them the chapel** (`cult_spared`: they take three soldiers to pray at the Focus, and they appear again at the ballast valves).
+_Theme: the enemy within wears lead vestments._
+
+**13. Г-6 Гидропоника — «Последний урожай»** (normal, new, optional; requires 7)
+The only living, light thing aboard, kept by Заремба. Dust settles on the beds, and the shoots grow heavy like the Weighted. If Ренн is saved, she brews a serum from the sap (`serum_made`: +3 soldiers at the reactor). Children of the Draft hide among the beds. Defending the greenhouse (`gardens_saved`) adds five miners to later sectors and changes both lasting endings.
+_Theme: lightness is what keeps people alive._
+
 ### Act III: The Weight of the Vow (Тяжесть Обета)
 
 **4. D-1 Техническое ядро — «Массовая атака»** (normal)
@@ -140,9 +185,17 @@ The defining choice of the campaign:
 
 _Theme: either you leave the Vow behind, or you become it._
 
+**14. АР-1 Архивное ядро — «Суд над Обетом»** (story, new; requires 4 + 10)
+The bridge codes open the Archive's heart. Петров (if `truth_told`) or brute force opens the sealed orders. If the Archive was given the bridge, it bargains with the doors. With `registry_seen`, it reads out the register of offerings: «Неусыпный» gave the Well thirty-eight seconds; «Тяжесть Обета», forty-one. The trial: **burn out the Archive's will** (`archive_silenced`: it never speaks again, at the reactor or anywhere) or **make a pact** (`archive_pact`: +200 resources at the reactor in exchange for its record reaching «Безмолвие»).
+_Theme: the Synod built the Archive instead of a conscience._
+
+**15. К-8 Балластные цистерны — «Святой свинец»** (story, new; requires 9)
+Nine thousand tonnes of consecrated lead: the prayer the Synod poured into every Bastion. Чен (or the old thrust tables) confirms that the ship cannot lift with it; something must be shed, either the ballast or the living layer. Spared Communicants hold the valves. The choice: **dump the ballast** (`ballast_dumped`: in the Ascent ending, the living layer stays with the ship) or **pour it into the bulkheads** (`ballast_kept`: +25% barricade durability at the reactor).
+_Theme: the holiest weight is the one you must let go._
+
 ### Finale
 
-**5. Центральный реактор — «Решающая битва»** (story; requires 4 + 9)
+**5. Центральный реактор — «Средоточие»** (story; requires 14 + 15)
 The Swarm gathers itself into its largest form, **Средоточие** (the Focus), a hive-body that wraps around the reactor. The reactor is the heaviest and hottest thing for light-years around, and the Swarm wants it. The Archive now speaks openly. The Communion is offered as a choice, not a threat: _«Вес — это верность. Останьтесь.»_ ("Weight is faithfulness. Stay.") High above, the «Безмолвие» waits to take the Archive.
 Existing beats remain: energy to weapons or shields, the «Отречение» last-chance strike (stronger with `relic_secured`), and the transfer of the Archive (`archive_saved`).
 
@@ -150,12 +203,14 @@ Existing beats remain: energy to weapons or shields, the «Отречение» 
 
 Shown in the result window after level 5 and chosen from flags (`src/content/endings.json`). The hidden ending needs the final choice event «РАСЧЁТ СИЛЬВЫ», which sets `ending_renunciation`.
 
-| Ending                                 | Conditions                                                                                                           | Outcome                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **«Восхождение»** (Ascent)             | Victory + `engines_restored` + `engineer_saved`                                                                      | To lift off, the ship must shed mass. The outer hull and the overrun living layer, the parts covered in Swarm, are blown away. The ship rises on its wounded engines, burning through the graveyard. Survivors are as many as you kept alive. The Draft's debt is written off "to the weight of what was abandoned". If `archive_saved`: the Synod receives the truth, and whether it reads it as a warning or as a gospel is left open. |
-| **«Вечный Бастион»** (Endless Bastion) | Victory + `engines_stripped` (or engines not restored)                                                               | The ship becomes a fortress on Тризна. Generations pass. A society of the Guard and the Draft grows up inside the walls and digs ever more carefully, because it knows what it is digging. The Synod sends pilgrims. Marcus's epilogue: _"We held. That's all holding is."_                                                                                                                                                              |
-| **«Причастие»** (Communion)            | Defeat at the reactor                                                                                                | The ship sinks into the Well. The Archive completes its orders and sends a clean record to «Безмолвие»: _«Обет исполнен.»_ ("The vow is fulfilled.") Somewhere, another Bastion is given its patrol route.                                                                                                                                                                                                                               |
-| **«Отречение»** (hidden)               | Victory + `scientist_saved` + `relic_secured` + `archive_saved` + the final choice "turn «Отречение» on the reactor" | Silva works out that the lance aimed at the reactor will un-weigh the Well itself. The ship and everyone still aboard are lost, and Тризна comes apart. The Archive's last transmission, sent against its own orders, is Silva's data and one line: _«Лёгкое — не грех.»_ ("Lightness is not a sin.")                                                                                                                                    |
+| Ending                                 | Conditions                                                                                                           | Outcome                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **«Восхождение»** (Ascent)             | Victory + `engines_restored` + `engineer_saved`                                                                      | To lift off, the ship must shed mass. With `ballast_dumped`, the consecrated lead goes into the Well and the living layer stays aboard; otherwise the outer hull and the overrun living layer, the parts covered in Swarm, are blown away. The ship rises on its wounded engines, burning through the graveyard. Survivors are as many as you kept alive. The Draft's debt is written off "to the weight of what was abandoned". If `archive_saved`: the Synod receives the truth, and whether it reads it as a warning or as a gospel is left open. |
+| **«Вечный Бастион»** (Endless Bastion) | Victory + `engines_stripped` (or engines not restored)                                                               | The ship becomes a fortress on Тризна. Generations pass. A society of the Guard and the Draft grows up inside the walls and digs ever more carefully, because it knows what it is digging. The Synod sends pilgrims. Marcus's epilogue: _"We held. That's all holding is."_                                                                                                                                                                                                                                                                          |
+| **«Причастие»** (Communion)            | Defeat at the reactor                                                                                                | The ship sinks into the Well. The Archive completes its orders and sends a clean record to «Безмолвие»: _«Обет исполнен.»_ ("The vow is fulfilled.") Somewhere, another Bastion is given its patrol route.                                                                                                                                                                                                                                                                                                                                           |
+| **«Отречение»** (hidden)               | Victory + `scientist_saved` + `relic_secured` + `archive_saved` + the final choice "turn «Отречение» on the reactor" | Silva works out that the lance aimed at the reactor will un-weigh the Well itself. The ship and everyone still aboard are lost, and Тризна comes apart. The Archive's last transmission, sent against its own orders, is Silva's data and one line: _«Лёгкое — не грех.»_ ("Lightness is not a sin.")                                                                                                                                                                                                                                                |
+
+Further notes are added to the endings by `gardens_saved`, `foreman_saved`, `ballast_kept` and `cult_spared` (see `endings.json`). At the reactor, the earlier choices arrive as start effects: the pact's reserves, the Communicants' guard or their desertion, Ренн's serum, the lead bulkheads, the shaft's ore, and the gardens' miners.
 
 Story levels can still move the plot forward after a tactical defeat (brief § 4.2). That is what the existing flags `engineer_saved`, `scientist_saved` and `archive_saved` are for, and the new story flags follow the same rule.
 
@@ -194,3 +249,4 @@ Planned revisions to existing texts:
 
 Existing: `engineer_saved`, `scientist_saved`, `archive_saved`, `archive_signal`, `supply_cache`, `lab_supplies`, `refugees_*`, `survivors_<level>`.
 New: `wreck_found`, `offerings_known`, `shuttle_salvage`, `ward_purged`, `ward_treated`, `surgeon_saved`, `relic_secured`, `truth_told`, `archive_isolated`, `draft_told`, `engines_restored`, `engines_stripped`, `engines_decided`, `ending_renunciation`.
+Acts II–III, added with sectors 10–15: `registry_seen`, `kp_pattern`, `kp_decoded`, `bridge_retaken`, `bridge_manual`, `bridge_archive`, `ore_samples`, `debt_forgiven`, `shaft_sealed`, `shaft_open`, `foreman_saved`, `foreman_lost`, `litany_jammed`, `cult_broken`, `cult_spared`, `cult_decided`, `gardens_burned`, `gardens_washed`, `gardens_saved`, `serum_made`, `sealed_orders`, `archive_silenced`, `archive_pact`, `archive_decided`, `ballast_dumped`, `ballast_kept`, `ballast_decided`.

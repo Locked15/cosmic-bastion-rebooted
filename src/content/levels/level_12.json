@@ -1,0 +1,222 @@
+{
+    "id": "level_12",
+    "name": "ЧАСОВНЯ ГРУЗА Ч-4: ПРИЧАСТНИКИ",
+    "description": "Носители открывают шлюзы и поют. Пыль идёт на голос.",
+    "type": "story",
+    "width": 1200,
+    "height": 760,
+    "livingQuartersY": 520,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 330 },
+            { "x": 420, "y": 330 },
+            { "x": 420, "y": 130 },
+            { "x": 780, "y": 130 },
+            { "x": 780, "y": 330 },
+            { "x": 1140, "y": 330 },
+            { "x": 1140, "y": 620 }
+        ],
+        "alternatives": [
+            [
+                { "x": 60, "y": 330 },
+                { "x": 1140, "y": 330 },
+                { "x": 1140, "y": 620 }
+            ]
+        ]
+    },
+    "corridors": [{ "x": 20, "y": 90, "width": 1160, "height": 380 }],
+    "towerSlots": [
+        { "x": 500, "y": 230, "type": "cannon" },
+        { "x": 600, "y": 230, "type": "shock" },
+        { "x": 700, "y": 230, "type": "cannon" },
+        { "x": 200, "y": 250, "type": "machinegun" },
+        { "x": 960, "y": 250, "type": "machinegun" },
+        { "x": 160, "y": 410, "type": "rocket" },
+        { "x": 330, "y": 410, "type": "laser" },
+        { "x": 600, "y": 410, "type": "rocket" },
+        { "x": 870, "y": 410, "type": "laser" },
+        { "x": 1040, "y": 410, "type": "cannon" }
+    ],
+    "start": { "miners": 18, "military": 11, "resources": 380 },
+    "waves": { "total": 6, "difficulty": 1.1 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "judge_cult",
+            "text": "Решить судьбу Причастников",
+            "kind": "flag",
+            "flag": "cult_decided"
+        },
+        {
+            "id": "upgrade_tower",
+            "text": "Улучшить башню до 3 уровня",
+            "kind": "towerLevel",
+            "target": 2
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "СТАРШИЙ НОСИТЕЛЬ ТАДЕУШ МОР",
+                "text": "«Часовня Груза открыта для молитвы. Вес — это верность. Пусть пыль войдёт: она тоже несёт вес».",
+                "choices": [
+                    {
+                        "text": "Занять часовню",
+                        "consequence": "Стража вошла под своды.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "partial",
+                "title": "ПРИЧАСТНИКИ",
+                "text": "Носители открывают внутренние шлюзы часовни и поют. Пыль идёт на голос.",
+                "choices": [
+                    {
+                        "text": "Закрыть шлюзы силой",
+                        "cost": { "military": 2 },
+                        "consequence": "Шлюзы закрыты, двое стражников ранены. Прочность баррикад увеличена на 20%.",
+                        "effect": { "type": "buffBarricades", "value": 1.2 }
+                    },
+                    {
+                        "text": "Не вмешиваться",
+                        "consequence": "Шлюзы остались открытыми.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "when": [{ "flag": "scientist_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ДОКТОР МИРЕЯ СИЛЬВА",
+                "text": "Их литания совпадает с частотой, на которой Архив звал «Неусыпного». Это не молитва. Это позывной.",
+                "choices": [
+                    {
+                        "text": "Заглушить частоту",
+                        "cost": { "resources": 80 },
+                        "consequence": "Частота заглушена. Потрачено 80 ресурсов.",
+                        "effect": { "type": "flag", "name": "litany_jammed", "value": 1 }
+                    },
+                    {
+                        "text": "Оставить",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ЛИСТ ВНУТРЕННЕГО КРУГА",
+                "text": "У Мора нашли лист с печатью Внутреннего Круга: список Бастионов с суффиксом «КП».",
+                "choices": [
+                    {
+                        "text": "Передать лист капитану",
+                        "consequence": "Восс получила лист. Правда дошла до неё раньше двигательного отсека.",
+                        "effect": { "type": "flag", "name": "truth_told", "value": 1 }
+                    },
+                    {
+                        "text": "Сжечь лист",
+                        "consequence": "Лист сгорел. Мор улыбнулся.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "СУД НАД ПРИЧАСТНИКАМИ",
+                "text": "Мор и его Носители ждут решения. Стража ждёт приказа.",
+                "choices": [
+                    {
+                        "text": "Арестовать Причастников",
+                        "consequence": "Причастники под стражей, их охрана перешла к вам: в реакторном секторе — ещё 3 бойца.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "cult_broken", "value": 1 },
+                                { "type": "flag", "name": "cult_decided", "value": 1 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Оставить им часовню",
+                        "consequence": "Причастники молятся дальше. В реакторном секторе они уведут троих бойцов к Средоточию.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "cult_spared", "value": 1 },
+                                { "type": "flag", "name": "cult_decided", "value": 1 }
+                            ]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "when": [{ "flag": "archive_silenced", "below": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Мор понимает Обет лучше вас».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
+        }
+    ]
+}

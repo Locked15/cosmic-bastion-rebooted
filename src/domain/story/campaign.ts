@@ -2,7 +2,8 @@ import * as v from 'valibot'
 import data from '@/content/campaign.json'
 import { count, parseContent, rect, text } from '../content/parse'
 
-export const SHIP_LAYERS = ['outer', 'living', 'core'] as const
+// `training` is the Guard simulator: on the map, but not part of the ship's story.
+export const SHIP_LAYERS = ['outer', 'living', 'core', 'training'] as const
 export type ShipLayer = (typeof SHIP_LAYERS)[number]
 
 const levelId = v.pipe(v.string(), v.regex(/^level_\d+$/))
@@ -77,9 +78,11 @@ export const CAMPAIGN: CampaignDefinition = parseContent(
 
 export const CONTENT_VERSION = CAMPAIGN.contentVersion
 
-// 1-based position of a level in the campaign (story flags remember where things happened).
+// 1-based position of a mission in the campaign, training excluded (story flags remember
+// where things happened, e.g. which sector redirected refugees came from).
 export function missionIndex(levelId: string): number {
-    return CAMPAIGN.sectors.findIndex((sector) => sector.level === levelId) + 1
+    const missions = CAMPAIGN.sectors.filter((sector) => sector.layer !== 'training')
+    return missions.findIndex((sector) => sector.level === levelId) + 1
 }
 
 export function campaignSector(levelId: string): CampaignSector | null {

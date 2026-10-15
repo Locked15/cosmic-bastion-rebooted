@@ -262,7 +262,32 @@
                 ],
                 "timed": true,
                 "timeLimit": 12
-            }
+            },
+            "when": [{ "flag": "foreman_lost", "below": 1 }]
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ТЯГЛО БЕЗ БРИГАДИРА",
+                "text": "После гибели Горбаня Тягло говорит хором и коротко: нужны люди или металл.",
+                "choices": [
+                    {
+                        "text": "Перевести шахтёров в Стражу",
+                        "consequence": "Пятеро шахтёров переобучаются в Стражу.",
+                        "effect": { "type": "convert", "count": 5 }
+                    },
+                    {
+                        "text": "Выдать металл",
+                        "consequence": "Получено 150 ресурсов.",
+                        "effect": { "type": "resources", "value": 150 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            },
+            "when": [{ "flag": "foreman_lost", "atLeast": 1 }]
         },
         {
             "wave": 6,
@@ -309,6 +334,23 @@
             "type": "excludeAbility",
             "when": [{ "flag": "ward_purged", "atLeast": 1 }],
             "ability": "sabotage"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "shaft_open", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 100 },
+            "message": "Руда из ствола Ш-2: +100 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "gardens_saved", "atLeast": 1 }],
+            "effect": { "type": "addMiners", "count": 5 },
+            "message": "Оранжерея Г-6 кормит людей: +5 шахтёров"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
         }
     ]
 }

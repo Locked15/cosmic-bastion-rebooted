@@ -1,0 +1,200 @@
+{
+    "id": "level_13",
+    "name": "ГИДРОПОНИКА Г-6: ПОСЛЕДНИЙ УРОЖАЙ",
+    "description": "Единственное живое и лёгкое на корабле. Пыль оседает на ростках.",
+    "type": "normal",
+    "width": 1250,
+    "height": 760,
+    "livingQuartersY": 520,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 100 },
+            { "x": 360, "y": 100 },
+            { "x": 560, "y": 300 },
+            { "x": 860, "y": 300 },
+            { "x": 1060, "y": 100 },
+            { "x": 1160, "y": 100 },
+            { "x": 1160, "y": 620 }
+        ],
+        "alternatives": []
+    },
+    "corridors": [{ "x": 20, "y": 60, "width": 1180, "height": 420 }],
+    "towerSlots": [
+        { "x": 200, "y": 180, "type": "cannon" },
+        { "x": 300, "y": 330, "type": "machinegun" },
+        { "x": 460, "y": 400, "type": "rocket" },
+        { "x": 600, "y": 160, "type": "laser" },
+        { "x": 710, "y": 380, "type": "cannon" },
+        { "x": 820, "y": 160, "type": "machinegun" },
+        { "x": 960, "y": 380, "type": "shock" },
+        { "x": 1080, "y": 220, "type": "rocket" }
+    ],
+    "start": { "miners": 18, "military": 9, "resources": 340 },
+    "waves": { "total": 5, "difficulty": 0.95 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "save_gardens",
+            "text": "Сохранить оранжерею",
+            "kind": "flag",
+            "flag": "gardens_saved"
+        },
+        {
+            "id": "max_towers",
+            "text": "Иметь минимум 6 активных башен",
+            "kind": "activeTowers",
+            "target": 6
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "АГРОНОМ ЛИДИЯ ЗАРЕМБА",
+                "text": "Гидропоника Г-6. Синод звал оранжереи ересью: растения легки. Но без них на Тризне не выжить никому.",
+                "choices": [
+                    {
+                        "text": "Держать оранжерею",
+                        "consequence": "Стража встала между грядками.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 180,
+            "dialog": {
+                "kind": "partial",
+                "title": "ПЫЛЬ НА ГРЯДКАХ",
+                "text": "Пыль оседает на посадках, и ростки тяжелеют, как Отяжелевшие.",
+                "choices": [
+                    {
+                        "text": "Сжечь заражённые грядки",
+                        "consequence": "Грядки сожжены. Получено 60 ресурсов из удобрений.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "gardens_burned", "value": 1 },
+                                { "type": "resources", "value": 60 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Промыть грядки",
+                        "cost": { "resources": 60 },
+                        "consequence": "Грядки промыты. Потрачено 60 ресурсов.",
+                        "effect": { "type": "flag", "name": "gardens_washed", "value": 1 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "when": [{ "flag": "surgeon_saved", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "СЕСТРА-ХИРУРГ АГАТА РЕНН",
+                "text": "«В соке этих ростков пыль распадается. Дайте мне теплицу — и Отяжелевшим станет легче».",
+                "choices": [
+                    {
+                        "text": "Отдать теплицу Ренн",
+                        "cost": { "resources": 80 },
+                        "consequence": "Ренн готовит сыворотку: у реактора она вернёт в строй ещё троих. Потрачено 80 ресурсов.",
+                        "effect": { "type": "flag", "name": "serum_made", "value": 1 }
+                    },
+                    { "text": "Еда важнее", "consequence": "Ренн не спорила.", "effect": null }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ДЕТИ ТЯГЛА",
+                "text": "В оранжерее прячутся дети шахтёров. Увести их некуда, кроме жилого отсека.",
+                "choices": [
+                    {
+                        "text": "Увести в жилой отсек",
+                        "cost": { "resources": 40 },
+                        "consequence": "Дети в отсеке. Потрачено 40 ресурсов.",
+                        "effect": null
+                    },
+                    {
+                        "text": "Поставить к насосам",
+                        "consequence": "Четверо подростков встали к насосам. Синод назвал бы это облегчением.",
+                        "effect": { "type": "addMiners", "count": 4 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНИЙ УРОЖАЙ",
+                "text": "Заремба: «Если оранжерея выстоит, её хватит на всех, кто останется на Тризне. Если корабль взлетит — тоже».",
+                "choices": [
+                    {
+                        "text": "Защитить оранжерею",
+                        "cost": { "resources": 100 },
+                        "consequence": "Оранжерея спасена. В следующих секторах шахтёров станет больше на пятерых. Потрачено 100 ресурсов.",
+                        "effect": { "type": "flag", "name": "gardens_saved", "value": 1 }
+                    },
+                    {
+                        "text": "Снять урожай и уйти",
+                        "consequence": "Урожай снят, оранжерея брошена. Получено 150 ресурсов.",
+                        "effect": { "type": "resources", "value": 150 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "when": [{ "flag": "archive_silenced", "below": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Всё, что растёт, — лёгкое. Всё лёгкое будет унесено».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        }
+    ]
+}

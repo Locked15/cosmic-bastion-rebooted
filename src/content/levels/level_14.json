@@ -1,0 +1,279 @@
+{
+    "id": "level_14",
+    "name": "АРХИВНОЕ ЯДРО АР-1: СУД НАД ОБЕТОМ",
+    "description": "Сердце Архива. Здесь хранится Обет — весь, до последней строки.",
+    "type": "story",
+    "width": 1200,
+    "height": 800,
+    "livingQuartersY": 560,
+    "paths": {
+        "base": [
+            { "x": 60, "y": 140 },
+            { "x": 1140, "y": 140 },
+            { "x": 1140, "y": 360 },
+            { "x": 60, "y": 360 },
+            { "x": 60, "y": 640 }
+        ],
+        "alternatives": [
+            [
+                { "x": 60, "y": 140 },
+                { "x": 600, "y": 140 },
+                { "x": 600, "y": 360 },
+                { "x": 60, "y": 360 },
+                { "x": 60, "y": 640 }
+            ]
+        ]
+    },
+    "corridors": [{ "x": 20, "y": 30, "width": 1160, "height": 440 }],
+    "towerSlots": [
+        { "x": 200, "y": 250, "type": "cannon" },
+        { "x": 400, "y": 250, "type": "laser" },
+        { "x": 800, "y": 250, "type": "laser" },
+        { "x": 1000, "y": 250, "type": "cannon" },
+        { "x": 300, "y": 440, "type": "rocket" },
+        { "x": 700, "y": 440, "type": "shock" },
+        { "x": 1000, "y": 440, "type": "machinegun" },
+        { "x": 300, "y": 60, "type": "machinegun" },
+        { "x": 900, "y": 60, "type": "rocket" }
+    ],
+    "start": { "miners": 22, "military": 13, "resources": 420 },
+    "waves": { "total": 7, "difficulty": 1.3 },
+    "objectives": [
+        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "judge_archive",
+            "text": "Решить судьбу Архива",
+            "kind": "flag",
+            "flag": "archive_decided"
+        },
+        {
+            "id": "save_core",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3
+        }
+    ],
+    "events": [
+        {
+            "wave": 0,
+            "trigger": "start",
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Вы пришли в моё сердце, офицер. Здесь хранится Обет — весь, до последней строки».",
+                "choices": [
+                    {
+                        "text": "Войти в ядро",
+                        "consequence": "Стража вошла в ядро.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "when": [{ "flag": "truth_told", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "ИНЖЕНЕР ГЛЕБ ПЕТРОВ",
+                "text": "Петров: «Я обслуживал эти стойки двадцать лет и молился над ними. Теперь я знаю, что в них».",
+                "choices": [
+                    {
+                        "text": "Поручить Петрову журналы",
+                        "cost": { "resources": 60 },
+                        "consequence": "Петров вскрыл журналы приказов: список Бастионов — в руках капитана. Потрачено 60 ресурсов.",
+                        "effect": { "type": "flag", "name": "sealed_orders", "value": 1 }
+                    },
+                    {
+                        "text": "Держать Петрова подальше",
+                        "consequence": "Петров остался у входа.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 1,
+            "trigger": "delay",
+            "delay": 120,
+            "when": [{ "flag": "truth_told", "below": 1 }],
+            "dialog": {
+                "kind": "partial",
+                "title": "ЗАПЕЧАТАННЫЙ РАЗДЕЛ",
+                "text": "Раздел приказов запечатан литургическим ключом. Без Петрова его не открыть.",
+                "choices": [
+                    {
+                        "text": "Взломать силой",
+                        "cost": { "resources": 120 },
+                        "consequence": "Раздел вскрыт: внутри приказ Внутреннего Круга о Причастии. Потрачено 120 ресурсов.",
+                        "effect": { "type": "flag", "name": "sealed_orders", "value": 1 }
+                    },
+                    {
+                        "text": "Отступить",
+                        "consequence": "Раздел остался запечатан.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 2,
+            "trigger": "start",
+            "when": [{ "flag": "bridge_archive", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "КОДЫ МОСТИКА",
+                "text": "Мостиком управляет Архив — по вашему же решению. «Я не закрою двери, пока вы держите мой голос».",
+                "choices": [
+                    {
+                        "text": "Отобрать мостик у Архива",
+                        "cost": { "military": 3 },
+                        "consequence": "Мостик снова под ручным управлением. Трое стражников остались у пультов.",
+                        "effect": { "type": "flag", "name": "bridge_manual", "value": 1 }
+                    },
+                    {
+                        "text": "Оставить как есть",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 3,
+            "trigger": "start",
+            "when": [{ "flag": "registry_seen", "atLeast": 1 }],
+            "dialog": {
+                "kind": "full",
+                "title": "РЕЕСТР ПРИНОШЕНИЙ",
+                "text": "Архив открывает реестр: «СТ-БЛК·III-0309 «НС» — КП-38. СТ-БЛК·IV-0417 «ТО» — КП-41». «Неусыпный» отдал Колодцу тридцать восемь секунд. Вы — сорок одну.",
+                "choices": [
+                    {
+                        "text": "Записать реестр",
+                        "consequence": "Реестр записан. «КП» значит «Круг · Причастие».",
+                        "effect": { "type": "flag", "name": "offerings_known", "value": 1 }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        },
+        {
+            "wave": 4,
+            "trigger": "delay",
+            "delay": 120,
+            "dialog": {
+                "kind": "full",
+                "title": "СУД НАД АРХИВОМ",
+                "text": "Архив можно выжечь — он замолчит навсегда. Или заключить договор: он откроет резервы у реактора, если его запись уйдёт на «Безмолвие».",
+                "choices": [
+                    {
+                        "text": "Выжечь волю Архива",
+                        "consequence": "Воля Архива выжжена. У реактора он больше не заговорит.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "archive_silenced", "value": 1 },
+                                { "type": "flag", "name": "archive_decided", "value": 1 }
+                            ]
+                        }
+                    },
+                    {
+                        "text": "Заключить договор",
+                        "consequence": "Договор заключён. У реактора Архив откроет резервы: ещё 200 ресурсов.",
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "archive_pact", "value": 1 },
+                                { "type": "flag", "name": "archive_decided", "value": 1 }
+                            ]
+                        }
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 15
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "start",
+            "when": [{ "flag": "archive_silenced", "below": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "ГОЛОС АРХИВА",
+                "text": "«Я не враг вам. Я — то, что Синод построил вместо совести».",
+                "choices": [
+                    {
+                        "text": "Отключить динамики",
+                        "consequence": "Динамики отключены.",
+                        "effect": null
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 6,
+            "trigger": "start",
+            "dialog": {
+                "kind": "full",
+                "title": "ПОСЛЕДНЯЯ ВОЛНА В ЯДРЕ",
+                "text": "Сонм тянется к стойкам: в них больше веса, чем кажется.",
+                "choices": [
+                    {
+                        "text": "Задействовать резерв",
+                        "consequence": "Получено 200 ресурсов.",
+                        "effect": { "type": "resources", "value": 200 }
+                    },
+                    {
+                        "text": "Довериться обороне",
+                        "consequence": "Решение принято. Состояние сектора не изменилось.",
+                        "effect": null
+                    }
+                ],
+                "timed": true,
+                "timeLimit": 12
+            }
+        }
+    ],
+    "carryOver": [
+        {
+            "type": "start",
+            "stat": "resources",
+            "flags": ["supply_cache"]
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "shaft_open", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 100 },
+            "message": "Руда из ствола Ш-2: +100 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "gardens_saved", "atLeast": 1 }],
+            "effect": { "type": "addMiners", "count": 5 },
+            "message": "Оранжерея Г-6 кормит людей: +5 шахтёров"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "ward_purged", "atLeast": 1 }],
+            "ability": "sabotage"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
+        }
+    ]
+}

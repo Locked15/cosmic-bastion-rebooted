@@ -123,10 +123,14 @@ describe('story and campaign UI', () => {
         expect(room('D-1').attributes('aria-disabled')).toBe('true')
         expect(room('R-0').classes()).toContain('deck-map__room--finale')
         // Conduits from the won hull sector are open; the rest stay dashed.
-        expect(wrapper.findAll('.deck-map__link--open')).toHaveLength(3)
+        // Hull → hangar, bridge, quarters and labs.
+        expect(wrapper.findAll('.deck-map__link--open')).toHaveLength(4)
+        expect(room('T-0').classes()).toContain('deck-map__room--training')
 
+        // The first open sector not won yet is preselected; locked rooms cannot be chosen.
+        expect(room('T-0').attributes('aria-pressed')).toBe('true')
         await room('D-1').trigger('click')
-        expect(wrapper.find('.deck-map__room--active').exists()).toBe(false)
+        expect(room('D-1').attributes('aria-pressed')).toBe('false')
         await room('A-7').trigger('keydown', { key: 'Enter' })
         expect(room('A-7').attributes('aria-pressed')).toBe('true')
         const start = wrapper.findAll('button').find((button) => button.text() === 'НАЧАТЬ ЗАЩИТУ')!

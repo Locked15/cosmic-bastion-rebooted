@@ -14,7 +14,10 @@ describe('CampaignService', () => {
 
         const reloaded = new CampaignService(storage)
         expect(reloaded.isUnlocked('level_2')).toBe(true)
-        expect(reloaded.listLevels()[0]).toMatchObject({ completed: true, stars: 2 })
+        expect(reloaded.listLevels().find((level) => level.id === 'level_1')).toMatchObject({
+            completed: true,
+            stars: 2,
+        })
         expect(reloaded.hasProgress).toBe(true)
 
         reloaded.reset()
@@ -62,7 +65,16 @@ describe('CampaignService carry-over and endings', () => {
     })
 
     it('reports an ending only for the finale', () => {
-        const service = serviceWith({}, ['level_1', 'level_2', 'level_3', 'level_4', 'level_9'])
+        const service = serviceWith({}, [
+            'level_1',
+            'level_2',
+            'level_3',
+            'level_4',
+            'level_9',
+            'level_10',
+            'level_14',
+            'level_15',
+        ])
         const report = { stars: 1, objectives: [], flags: {}, survivors: 10 }
         expect(service.recordResult('level_1', { ...report, outcome: 'victory' }).ending).toBeNull()
         const finale = CAMPAIGN.finale

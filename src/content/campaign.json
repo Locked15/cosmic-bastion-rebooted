@@ -1,14 +1,22 @@
 {
-    "contentVersion": 2,
+    "contentVersion": 3,
     "finale": "level_5",
     "sectors": [
+        {
+            "level": "level_0",
+            "code": "T-0",
+            "name": "Тренажёр Стражи",
+            "layer": "training",
+            "requires": [],
+            "map": { "x": 980, "y": 16, "width": 160, "height": 56 }
+        },
         {
             "level": "level_1",
             "code": "A-7",
             "name": "Внешний корпус",
             "layer": "outer",
             "requires": [],
-            "map": { "x": 640, "y": 50, "width": 170, "height": 54 }
+            "map": { "x": 760, "y": 116, "width": 160, "height": 56 }
         },
         {
             "level": "level_6",
@@ -16,13 +24,27 @@
             "name": "Ангар шаттлов",
             "layer": "outer",
             "requires": ["level_1"],
-            "map": { "x": 640, "y": 456, "width": 170, "height": 54 },
+            "map": { "x": 760, "y": 608, "width": 160, "height": 56 },
             "routes": {
                 "level_1": [
-                    [810, 77],
-                    [852, 77],
-                    [852, 483],
-                    [810, 483]
+                    [920, 144],
+                    [1000, 144],
+                    [1000, 636],
+                    [920, 636]
+                ]
+            }
+        },
+        {
+            "level": "level_10",
+            "code": "S-1",
+            "name": "Мостик",
+            "layer": "outer",
+            "requires": ["level_1"],
+            "map": { "x": 520, "y": 116, "width": 160, "height": 56 },
+            "routes": {
+                "level_1": [
+                    [760, 144],
+                    [680, 144]
                 ]
             }
         },
@@ -32,12 +54,11 @@
             "name": "Жилые отсеки",
             "layer": "living",
             "requires": ["level_1"],
-            "map": { "x": 450, "y": 122, "width": 170, "height": 64 },
+            "map": { "x": 640, "y": 210, "width": 160, "height": 64 },
             "routes": {
                 "level_1": [
-                    [640, 77],
-                    [535, 77],
-                    [535, 122]
+                    [780, 172],
+                    [780, 210]
                 ]
             }
         },
@@ -47,12 +68,13 @@
             "name": "Лаборатории",
             "layer": "living",
             "requires": ["level_1"],
-            "map": { "x": 450, "y": 374, "width": 170, "height": 64 },
+            "map": { "x": 640, "y": 506, "width": 160, "height": 64 },
             "routes": {
                 "level_1": [
-                    [770, 104],
-                    [770, 406],
-                    [620, 406]
+                    [900, 172],
+                    [950, 172],
+                    [950, 538],
+                    [800, 538]
                 ]
             }
         },
@@ -62,11 +84,11 @@
             "name": "Медотсек",
             "layer": "living",
             "requires": ["level_2"],
-            "map": { "x": 210, "y": 122, "width": 170, "height": 64 },
+            "map": { "x": 400, "y": 210, "width": 160, "height": 64 },
             "routes": {
                 "level_2": [
-                    [450, 154],
-                    [380, 154]
+                    [640, 242],
+                    [560, 242]
                 ]
             }
         },
@@ -76,11 +98,53 @@
             "name": "Ризница",
             "layer": "living",
             "requires": ["level_3"],
-            "map": { "x": 210, "y": 374, "width": 170, "height": 64 },
+            "map": { "x": 400, "y": 506, "width": 160, "height": 64 },
             "routes": {
                 "level_3": [
-                    [450, 406],
-                    [380, 406]
+                    [640, 538],
+                    [560, 538]
+                ]
+            }
+        },
+        {
+            "level": "level_11",
+            "code": "Ш-2",
+            "name": "Шахтный ствол",
+            "layer": "outer",
+            "requires": ["level_6"],
+            "map": { "x": 520, "y": 608, "width": 160, "height": 56 },
+            "routes": {
+                "level_6": [
+                    [760, 636],
+                    [680, 636]
+                ]
+            }
+        },
+        {
+            "level": "level_12",
+            "code": "Ч-4",
+            "name": "Часовня Груза",
+            "layer": "living",
+            "requires": ["level_8"],
+            "map": { "x": 160, "y": 506, "width": 160, "height": 64 },
+            "routes": {
+                "level_8": [
+                    [400, 538],
+                    [320, 538]
+                ]
+            }
+        },
+        {
+            "level": "level_13",
+            "code": "Г-6",
+            "name": "Гидропоника",
+            "layer": "living",
+            "requires": ["level_7"],
+            "map": { "x": 160, "y": 210, "width": 160, "height": 64 },
+            "routes": {
+                "level_7": [
+                    [400, 242],
+                    [320, 242]
                 ]
             }
         },
@@ -90,15 +154,15 @@
             "name": "Техническое ядро",
             "layer": "core",
             "requires": ["level_2", "level_3"],
-            "map": { "x": 540, "y": 236, "width": 160, "height": 88 },
+            "map": { "x": 560, "y": 340, "width": 150, "height": 100 },
             "routes": {
                 "level_2": [
-                    [580, 186],
-                    [580, 236]
+                    [680, 274],
+                    [680, 340]
                 ],
                 "level_3": [
-                    [580, 374],
-                    [580, 324]
+                    [680, 506],
+                    [680, 440]
                 ]
             }
         },
@@ -108,13 +172,47 @@
             "name": "Двигательный отсек",
             "layer": "core",
             "requires": ["level_4"],
-            "map": { "x": 80, "y": 236, "width": 150, "height": 88 },
+            "map": { "x": 110, "y": 340, "width": 170, "height": 100 },
             "routes": {
                 "level_4": [
-                    [660, 236],
-                    [660, 212],
-                    [155, 212],
-                    [155, 236]
+                    [600, 340],
+                    [600, 312],
+                    [185, 312],
+                    [185, 340]
+                ]
+            }
+        },
+        {
+            "level": "level_14",
+            "code": "АР-1",
+            "name": "Архивное ядро",
+            "layer": "core",
+            "requires": ["level_4", "level_10"],
+            "map": { "x": 760, "y": 340, "width": 150, "height": 100 },
+            "routes": {
+                "level_4": [
+                    [710, 390],
+                    [760, 390]
+                ],
+                "level_10": [
+                    [610, 172],
+                    [610, 192],
+                    [835, 192],
+                    [835, 340]
+                ]
+            }
+        },
+        {
+            "level": "level_15",
+            "code": "К-8",
+            "name": "Балластные цистерны",
+            "layer": "outer",
+            "requires": ["level_9"],
+            "map": { "x": 80, "y": 608, "width": 190, "height": 56 },
+            "routes": {
+                "level_9": [
+                    [130, 440],
+                    [130, 608]
                 ]
             }
         },
@@ -123,16 +221,19 @@
             "code": "R-0",
             "name": "Центральный реактор",
             "layer": "core",
-            "requires": ["level_4", "level_9"],
-            "map": { "x": 320, "y": 230, "width": 150, "height": 100 },
+            "requires": ["level_14", "level_15"],
+            "map": { "x": 330, "y": 335, "width": 180, "height": 110 },
             "routes": {
-                "level_4": [
-                    [540, 280],
-                    [470, 280]
+                "level_14": [
+                    [835, 440],
+                    [835, 470],
+                    [410, 470],
+                    [410, 445]
                 ],
-                "level_9": [
-                    [230, 280],
-                    [320, 280]
+                "level_15": [
+                    [270, 636],
+                    [360, 636],
+                    [360, 445]
                 ]
             }
         }

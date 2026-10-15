@@ -177,6 +177,25 @@
         {
             "wave": 5,
             "trigger": "delay",
+            "delay": 240,
+            "when": [{ "flag": "registry_seen", "atLeast": 1 }],
+            "dialog": {
+                "kind": "unknown",
+                "title": "СУФФИКС «КП»",
+                "text": "В приказе Внутреннего Круга расшифрован суффикс из регистра мостика: «КП» — «Круг · Причастие». Число — секунды без щитов.",
+                "choices": [
+                    {
+                        "text": "Запомнить",
+                        "consequence": "Расшифровка сохранена.",
+                        "effect": { "type": "flag", "name": "kp_decoded", "value": 1 }
+                    }
+                ],
+                "timed": false
+            }
+        },
+        {
+            "wave": 5,
+            "trigger": "delay",
             "delay": 300,
             "when": [{ "flag": "wreck_found", "atLeast": 1 }],
             "dialog": {
@@ -233,6 +252,23 @@
             "type": "excludeAbility",
             "when": [{ "flag": "ward_purged", "atLeast": 1 }],
             "ability": "sabotage"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "shaft_open", "atLeast": 1 }],
+            "effect": { "type": "resources", "value": 100 },
+            "message": "Руда из ствола Ш-2: +100 ресурсов"
+        },
+        {
+            "type": "effect",
+            "when": [{ "flag": "gardens_saved", "atLeast": 1 }],
+            "effect": { "type": "addMiners", "count": 5 },
+            "message": "Оранжерея Г-6 кормит людей: +5 шахтёров"
+        },
+        {
+            "type": "excludeAbility",
+            "when": [{ "flag": "shaft_sealed", "atLeast": 1 }],
+            "ability": "spawn"
         }
     ]
 }

@@ -10,23 +10,25 @@
     const emit = defineEmits<{ select: [id: string] }>()
 
     // Hull, bulkheads and engines of the cruiser, top-down, bow to the right (viewBox units).
-    const HULL = 'M40 36 L800 36 L920 110 L978 280 L920 450 L800 524 L40 524 L22 470 L22 90 Z'
-    const LIVING = 'M60 112 L740 112 L820 160 L845 280 L820 400 L740 448 L60 448 Z'
-    const CORE = 'M70 200 L720 200 L760 280 L720 360 L70 360 Z'
-    const NOZZLES = [180, 280, 380].map(
-        (y) => `M22 ${y - 28} L4 ${y - 38} L4 ${y + 38} L22 ${y + 28}`,
+    // Room positions come from content/campaign.json in the same units; the simulator room
+    // (training layer) sits outside the hull, above the bow.
+    const HULL = 'M60 100 L960 100 L1100 180 L1180 390 L1100 600 L960 680 L60 680 L40 620 L40 160 Z'
+    const LIVING = 'M80 188 L940 188 L1040 250 L1070 390 L1040 530 L940 592 L80 592 Z'
+    const CORE = 'M95 296 L900 296 L950 390 L900 484 L95 484 Z'
+    const NOZZLES = [260, 390, 520].map(
+        (y) => `M40 ${y - 30} L18 ${y - 42} L18 ${y + 42} L40 ${y + 30}`,
     )
     // Frame (шпангоут) numbers along the keel.
-    const FRAMES = Array.from({ length: 11 }, (_, index) => ({ x: 40 + index * 76, n: index * 10 }))
-    // Hull breach and the dust outside it: [x, y, radius].
+    const FRAMES = Array.from({ length: 11 }, (_, index) => ({ x: 60 + index * 90, n: index * 10 }))
+    // Hull breach above the outer hull sector and the dust outside it: [x, y, radius].
     const SWARM: [number, number, number][] = [
-        [600, 22, 2],
-        [622, 14, 1.5],
-        [648, 24, 2.5],
-        [676, 12, 1.5],
-        [702, 22, 2],
-        [940, 196, 2],
-        [956, 222, 1.5],
+        [772, 86, 2],
+        [794, 76, 1.5],
+        [818, 88, 2.5],
+        [846, 74, 1.5],
+        [870, 86, 2],
+        [1128, 246, 2],
+        [1146, 276, 1.5],
     ]
 
     const status = (level: LevelSummary) =>
@@ -63,6 +65,22 @@
         ]
     }
 
+    // Monospace sector names are about 8.2 units per character at 12px with 1px spacing.
+    // A name longer than its room is squeezed to fit instead of spilling over the wall.
+    function fitName(level: LevelSummary) {
+        const available = level.map.width - 20
+        return level.sector.length * 8.2 > available
+            ? { textLength: available, lengthAdjust: 'spacingAndGlyphs' }
+            : {}
+    }
+
+    // Diamond after the deck code (monospace: about 12 units per character).
+    function storyMark(level: LevelSummary): string {
+        const x = level.map.x + 20 + level.code.length * 12
+        const y = level.map.y + 14
+        return `${x},${y - 6} ${x + 6},${y} ${x},${y + 6} ${x - 6},${y}`
+    }
+
     function select(level: LevelSummary) {
         if (!level.locked) emit('select', level.id)
     }
@@ -72,7 +90,7 @@
     <figure class="deck-map">
         <svg
             class="deck-map__drawing"
-            viewBox="0 0 1000 560"
+            viewBox="0 0 1200 720"
             role="group"
             aria-label="Схема отсеков крейсера «Тяжесть Обета»"
         >
@@ -101,10 +119,10 @@
 
             <!-- Frame ruler along the keel. -->
             <g class="deck-map__ruler">
-                <line x1="40" y1="548" x2="800" y2="548" />
+                <line x1="60" y1="700" x2="960" y2="700" />
                 <g v-for="frame in FRAMES" :key="frame.n">
-                    <line :x1="frame.x" y1="543" :x2="frame.x" y2="553" />
-                    <text :x="frame.x" y="558">шп.{{ frame.n }}</text>
+                    <line :x1="frame.x" y1="695" :x2="frame.x" y2="705" />
+                    <text :x="frame.x" y="716">шп.{{ frame.n }}</text>
                 </g>
             </g>
 
@@ -120,7 +138,7 @@
             <path class="deck-map__bulkhead deck-map__bulkhead--core" :d="CORE" />
             <polyline
                 class="deck-map__breach"
-                points="596,36 606,46 618,38 630,50 642,40 656,48 664,36"
+                points="772,100 782,110 794,102 806,114 818,104 832,112 840,100"
             />
             <circle
                 v-for="([x, y, r], index) in SWARM"
@@ -131,10 +149,11 @@
                 :r="r"
                 :style="{ animationDelay: `${index * 0.4}s` }"
             />
-            <text class="deck-map__layer" x="48" y="62">ВНЕШНИЙ СЛОЙ // ПОВРЕЖДЁН</text>
-            <text class="deck-map__layer" x="78" y="140">ЖИЛОЙ СЛОЙ</text>
-            <text class="deck-map__layer" x="86" y="350">ТЕХНИЧЕСКИЙ СЛОЙ</text>
-            <text class="deck-map__layer deck-map__layer--bow" x="958" y="284">НОС</text>
+            <text class="deck-map__layer" x="70" y="140">ВНЕШНИЙ СЛОЙ // ПОВРЕЖДЁН</text>
+            <text class="deck-map__layer" x="92" y="204">ЖИЛОЙ СЛОЙ</text>
+            <text class="deck-map__layer" x="268" y="330">ТЕХНИЧЕСКИЙ СЛОЙ</text>
+            <text class="deck-map__layer deck-map__layer--bow" x="1150" y="394">НОС</text>
+            <text class="deck-map__layer deck-map__layer--sim" x="970" y="48">СИМУЛЯТОР ›</text>
 
             <!-- Conduits between sectors: which victory opens which sector. -->
             <polyline
@@ -156,6 +175,7 @@
                     {
                         'deck-map__room--story': level.story,
                         'deck-map__room--finale': level.finale,
+                        'deck-map__room--training': level.layer === 'training',
                         'deck-map__room--active': level.id === selectedId,
                     },
                 ]"
@@ -192,15 +212,16 @@
                     :width="level.map.width"
                     :height="level.map.height"
                 />
-                <text class="deck-map__code" :x="level.map.x + 10" :y="level.map.y + 19">
+                <text class="deck-map__code" :x="level.map.x + 10" :y="level.map.y + 20">
                     {{ level.code }}
                 </text>
-                <polygon
-                    v-if="level.story"
-                    class="deck-map__story"
-                    :points="`${level.map.x + 58},${level.map.y + 8} ${level.map.x + 64},${level.map.y + 14} ${level.map.x + 58},${level.map.y + 20} ${level.map.x + 52},${level.map.y + 14}`"
-                />
-                <text class="deck-map__name" :x="level.map.x + 10" :y="level.map.y + 33">
+                <polygon v-if="level.story" class="deck-map__story" :points="storyMark(level)" />
+                <text
+                    class="deck-map__name"
+                    :x="level.map.x + 10"
+                    :y="level.map.y + 35"
+                    v-bind="fitName(level)"
+                >
                     {{ level.sector }}
                 </text>
                 <text
@@ -290,6 +311,10 @@
             font-size: 10px;
             letter-spacing: 2px;
 
+            &--sim {
+                text-anchor: end;
+            }
+
             &--bow {
                 writing-mode: vertical-rl;
                 text-anchor: middle;
@@ -358,6 +383,10 @@
                 stroke: $color-success;
             }
 
+            .deck-map__room--training & {
+                stroke-dasharray: 6 3;
+            }
+
             .deck-map__room--active & {
                 stroke: $color-primary;
                 stroke-width: 3;
@@ -378,7 +407,7 @@
 
         &__code {
             fill: $color-primary;
-            font-size: 17px;
+            font-size: 19px;
             font-weight: bold;
         }
 
@@ -388,14 +417,14 @@
 
         &__name {
             fill: $color-accent;
-            font-size: 11px;
+            font-size: 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
         &__status {
             fill: $color-secondary;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
 
             .deck-map__room--available & {
