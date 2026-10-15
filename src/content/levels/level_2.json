@@ -3,6 +3,7 @@
     "name": "СЕКТОР B-3: ДВОЙНАЯ УГРОЗА",
     "description": "Сонм заметил, что коридор охраняют, и идёт в обход. Требуется координация.",
     "type": "normal",
+    "music": "shadowlands-2-bridge",
     "width": 1400,
     "height": 800,
     "livingQuartersY": 500,

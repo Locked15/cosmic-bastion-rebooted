@@ -3,6 +3,7 @@
     "name": "АНГАР H-2: МЁРТВЫЕ КРЫЛЬЯ",
     "description": "Челноки целы — на вид. Сонм идёт через пустые причалы.",
     "type": "normal",
+    "music": "spacial-winds",
     "width": 1400,
     "height": 800,
     "livingQuartersY": 520,

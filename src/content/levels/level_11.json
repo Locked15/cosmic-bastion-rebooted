@@ -3,6 +3,7 @@
     "name": "ШАХТНЫЙ СТВОЛ Ш-2: ДОЛГ В КИЛОГРАММАХ",
     "description": "Через проломленное дно Тягло копает Тризну. Сонм поднимается тем же путём.",
     "type": "normal",
+    "music": "heart-of-the-beast",
     "width": 1200,
     "height": 900,
     "livingQuartersY": 640,

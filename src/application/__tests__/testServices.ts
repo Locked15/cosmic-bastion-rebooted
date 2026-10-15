@@ -3,6 +3,7 @@ import { MemoryProfileRepository } from '@/infrastructure/storage/MemoryProfileR
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
 import { provideServices, type AppServices } from '@/stores/services'
 import { ProfileService } from '../profiles/ProfileService'
+import { silentMusicPlayer } from '../ports/MusicPlayer'
 import { silentSoundPlayer } from '../ports/SoundPlayer'
 
 // App services for store and UI tests: memory storage, silent sound, a seeded random.
@@ -14,6 +15,7 @@ export async function provideTestServices(
         deviceStorage: new MemoryStore(),
         profiles: await ProfileService.open(new MemoryProfileRepository()),
         sound: silentSoundPlayer,
+        music: silentMusicPlayer,
         createRandom: () => createSeededRandom(1),
         createScheduler: () => ({ start() {}, stop() {} }),
         renderScene: () => {},

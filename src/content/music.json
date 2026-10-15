@@ -1,0 +1,109 @@
+{
+    "credit": "Music by Kevin MacLeod (incompetech.com), Licensed under Creative Commons: By Attribution 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "menu": "lightless-dawn",
+    "tracks": {
+        "lightless-dawn": {
+            "title": "Lightless Dawn",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Lightless%20Dawn.mp3",
+            "file": "lightless-dawn.webm"
+        },
+        "static-motion": {
+            "title": "Static Motion",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Static%20Motion.mp3",
+            "file": "static-motion.webm"
+        },
+        "shadowlands-1-horizon": {
+            "title": "Shadowlands 1 - Horizon",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%201%20-%20Horizon.mp3",
+            "file": "shadowlands-1-horizon.webm"
+        },
+        "spacial-winds": {
+            "title": "Spacial Winds",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Horror_Spacial%20Winds.mp3",
+            "file": "spacial-winds.webm"
+        },
+        "thunder-dreams": {
+            "title": "Thunder Dreams",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Thunder%20Dreams.mp3",
+            "file": "thunder-dreams.webm"
+        },
+        "shadowlands-2-bridge": {
+            "title": "Shadowlands 2 - Bridge",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%202%20-%20Bridge.mp3",
+            "file": "shadowlands-2-bridge.webm"
+        },
+        "digital-bark": {
+            "title": "Digital Bark",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Digital%20Bark.mp3",
+            "file": "digital-bark.webm"
+        },
+        "land-of-the-dead": {
+            "title": "Land of the Dead",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Land%20of%20the%20Dead.mp3",
+            "file": "land-of-the-dead.webm"
+        },
+        "rites": {
+            "title": "Rites",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Rites.mp3",
+            "file": "rites.webm"
+        },
+        "heart-of-the-beast": {
+            "title": "Heart of the Beast",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Heart%20of%20the%20Beast.mp3",
+            "file": "heart-of-the-beast.webm"
+        },
+        "gregorian-chant": {
+            "title": "Gregorian Chant",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Gregorian%20Chant.mp3",
+            "file": "gregorian-chant.webm"
+        },
+        "it-is-lost": {
+            "title": "It is Lost",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/It%20is%20Lost.mp3",
+            "file": "it-is-lost.webm"
+        },
+        "the-hive": {
+            "title": "The Hive",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/The%20Hive.mp3",
+            "file": "the-hive.webm"
+        },
+        "shadowlands-3-machine": {
+            "title": "Shadowlands 3 - Machine",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Shadowlands%203%20-%20Machine.mp3",
+            "file": "shadowlands-3-machine.webm"
+        },
+        "inner-sanctum": {
+            "title": "Inner Sanctum",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Inner%20Sanctum.mp3",
+            "file": "inner-sanctum.webm"
+        },
+        "ossuary-6-air": {
+            "title": "Ossuary 6 - Air",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Ossuary%206%20-%20Air.mp3",
+            "file": "ossuary-6-air.webm"
+        },
+        "controlled-chaos": {
+            "title": "Controlled Chaos",
+            "author": "Kevin MacLeod",
+            "source": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Controlled%20Chaos.mp3",
+            "file": "controlled-chaos.webm"
+        }
+    }
+}

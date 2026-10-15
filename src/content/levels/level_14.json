@@ -3,6 +3,7 @@
     "name": "АРХИВНОЕ ЯДРО АР-1: СУД НАД ОБЕТОМ",
     "description": "Сердце Архива. Здесь хранится Обет — весь, до последней строки.",
     "type": "story",
+    "music": "inner-sanctum",
     "width": 1200,
     "height": 800,
     "livingQuartersY": 560,

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+    import { useMusicStore } from '@/stores/musicStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
 
     const ui = useUiStore()
+    const music = useMusicStore()
 
     const sections: { title: string; tone?: 'warning' | 'danger'; lines: string[] }[] = [
         {
@@ -43,6 +45,11 @@
                 'V — переключить вид',
                 'U — улучшить выделенное',
             ],
+        },
+        {
+            title: 'МУЗЫКА',
+            // Attribution required by CC BY 4.0.
+            lines: [music.credit, `Треки: ${music.tracks.join(', ')}.`],
         },
     ]
 </script>

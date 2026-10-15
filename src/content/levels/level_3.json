@@ -3,6 +3,7 @@
     "name": "СЕКТОР C-9: УМНАЯ УГРОЗА",
     "description": "Сонм помнит, что его убивало. Требуется новая тактика.",
     "type": "story",
+    "music": "digital-bark",
     "width": 1600,
     "height": 900,
     "livingQuartersY": 550,

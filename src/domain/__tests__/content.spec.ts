@@ -1,9 +1,15 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import * as v from 'valibot'
 import { describe, expect, it } from 'vitest'
 import {
     CAMPAIGN,
     ENDINGS,
     LEVEL_IDS,
+    MUSIC_TRACK_IDS,
+    SOUNDTRACK,
+    menuTrack,
+    musicTrack,
     flagsMatch,
     levelDefinition,
     levelSchema,
@@ -106,5 +112,18 @@ describe('flag conditions and endings', () => {
         expect(resolveEnding('victory', { ending_renunciation: 1, engines_restored: 1 }).id).toBe(
             'renunciation',
         )
+    })
+})
+
+describe('soundtrack', () => {
+    it('gives every level its own existing track and ships every file', () => {
+        const used = LEVEL_IDS.map((id) => levelDefinition(id)!.music)
+        expect(new Set(used).size).toBe(LEVEL_IDS.length)
+        expect(used).not.toContain(menuTrack().id)
+        for (const id of [...used, menuTrack().id]) expect(musicTrack(id)).not.toBeNull()
+        for (const id of MUSIC_TRACK_IDS) {
+            expect(existsSync(resolve('public/audio/music', musicTrack(id)!.file))).toBe(true)
+        }
+        expect(SOUNDTRACK.credit).toContain('Kevin MacLeod (incompetech.com)')
     })
 })

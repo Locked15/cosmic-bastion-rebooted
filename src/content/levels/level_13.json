@@ -3,6 +3,7 @@
     "name": "ГИДРОПОНИКА Г-6: ПОСЛЕДНИЙ УРОЖАЙ",
     "description": "Единственное живое и лёгкое на корабле. Пыль оседает на ростках.",
     "type": "normal",
+    "music": "it-is-lost",
     "width": 1250,
     "height": 760,
     "livingQuartersY": 520,

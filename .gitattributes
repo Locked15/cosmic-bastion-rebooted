@@ -1,1 +1,2 @@
 * text=auto eol=lf
+public/audio/**/*.webm filter=lfs diff=lfs merge=lfs -text

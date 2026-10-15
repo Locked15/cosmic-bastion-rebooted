@@ -162,7 +162,9 @@ export interface LevelSummary {
 
 export interface Settings {
     brightness: number
+    // Sound effects and music, 0..100.
     volume: number
+    music: number
     // Applied when a level starts.
     difficulty: DifficultyId
 }
@@ -170,5 +172,6 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
     brightness: 100,
     volume: 50,
+    music: 40,
     difficulty: DEFAULT_DIFFICULTY,
 }

@@ -3,6 +3,7 @@
     "name": "МЕДОТСЕК M-5: ОТЯЖЕЛЕВШИЕ",
     "description": "Пыль в крови экипажа. Сонм тянется к палате, как к маяку.",
     "type": "story",
+    "music": "land-of-the-dead",
     "width": 1200,
     "height": 750,
     "livingQuartersY": 480,

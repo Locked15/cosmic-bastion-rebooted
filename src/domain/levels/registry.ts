@@ -1,6 +1,7 @@
 import { parseContent } from '../content/parse'
 import { Level } from '../model/Level'
 import { CAMPAIGN } from '../story/campaign'
+import { musicTrack } from '../story/soundtrack'
 import { levelSchema, type LevelDefinition } from './schema'
 
 // Every file in content/levels is bundled and validated at startup.
@@ -17,6 +18,8 @@ for (const [path, data] of Object.entries(files)) {
         .pop()!
         .replace(/\.json$/, '')
     if (definition.id !== fileId) throw new Error(`${path}: id must match the file name`)
+    if (!musicTrack(definition.music))
+        throw new Error(`${path}: unknown music track "${definition.music}"`)
     definitions.set(definition.id, definition)
 }
 

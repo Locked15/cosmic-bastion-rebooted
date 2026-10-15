@@ -3,6 +3,7 @@
     "name": "МОСТИК S-1: ПУСТОЕ КРЕСЛО",
     "description": "Мостик отрезан с первых часов. Корабль, которым никто не командует, — уже обломок.",
     "type": "story",
+    "music": "thunder-dreams",
     "width": 1300,
     "height": 760,
     "livingQuartersY": 500,

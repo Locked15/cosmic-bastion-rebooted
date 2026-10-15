@@ -40,6 +40,8 @@ export class Level {
     objectivesCompleted: Record<string, boolean> = {}
     events: LevelEvent[] = []
     carryOver: CarryOver[] = []
+    // Track id from content/music.json.
+    music = ''
     constructor(
         public id: string,
         public name: string,
@@ -66,6 +68,7 @@ export class Level {
         level.objectives = data.objectives.map((objective) => ({ ...objective, completed: false }))
         level.events = data.events
         level.carryOver = data.carryOver
+        level.music = data.music
         return level
     }
 

@@ -3,6 +3,7 @@
     "name": "СЕКТОР A-7: ПЕРВЫЙ КОНТАКТ",
     "description": "Сонм вскрыл внешний корпус. Орудийная сеть мертва — поднимите оборону.",
     "type": "story",
+    "music": "shadowlands-1-horizon",
     "width": 1200,
     "height": 700,
     "livingQuartersY": 450,

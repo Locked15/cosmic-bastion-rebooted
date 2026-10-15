@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { ProfileService } from '@/application'
 import { createMathRandom } from '@/domain'
 import { renderScene } from '@/infrastructure/canvas'
+import { HtmlMusicPlayer } from '@/infrastructure/audio/HtmlMusicPlayer'
 import { SynthSoundPlayer } from '@/infrastructure/audio/SynthSoundPlayer'
 import { RafScheduler } from '@/infrastructure/clock/RafScheduler'
 import { IdbProfileRepository } from '@/infrastructure/storage/IdbProfileRepository'
@@ -23,6 +24,7 @@ async function bootstrap() {
         deviceStorage: profiles.device,
         profiles,
         sound: new SynthSoundPlayer(),
+        music: new HtmlMusicPlayer(),
         createScheduler: () => new RafScheduler(),
         createRandom: () => createMathRandom(),
         renderScene,

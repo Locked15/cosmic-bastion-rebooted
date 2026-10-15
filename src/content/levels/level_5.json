@@ -3,6 +3,7 @@
     "name": "ЦЕНТРАЛЬНЫЙ РЕАКТОР: СРЕДОТОЧИЕ",
     "description": "Сонм собрался в Средоточие и обвил реактор. Здесь решится судьба корабля.",
     "type": "story",
+    "music": "controlled-chaos",
     "width": 2000,
     "height": 1100,
     "livingQuartersY": 700,

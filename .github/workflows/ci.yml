@@ -7,6 +7,9 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
+              with:
+                  # Music tracks are stored in Git LFS.
+                  lfs: true
             - uses: actions/setup-node@v4
               with:
                   node-version: 24
@@ -20,6 +23,9 @@ jobs:
         needs: verify
         steps:
             - uses: actions/checkout@v4
+              with:
+                  # Music tracks are stored in Git LFS.
+                  lfs: true
             - uses: actions/setup-node@v4
               with:
                   node-version: 24

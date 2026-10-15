@@ -36,13 +36,18 @@ test('plays the first wave of level 1 from the main menu', async ({ page }) => {
         if (message.type() === 'error') errors.push(message.text())
     })
 
+    // The menu theme starts with the app; each level switches to its own track.
+    const menuMusic = page.waitForRequest(/\/audio\/music\/lightless-dawn\.webm$/)
     await register(page)
+    await menuMusic
     await page.getByRole('button', { name: 'НАЧАТЬ МИССИЮ' }).click()
     await expect(page).toHaveURL(/\/levels$/)
 
     await page.getByRole('button', { name: /ПЕРВЫЙ КОНТАКТ/ }).click()
+    const levelMusic = page.waitForRequest(/\/audio\/music\/shadowlands-1-horizon\.webm$/)
     await page.getByRole('button', { name: 'НАЧАТЬ ЗАЩИТУ' }).click()
     await expect(page).toHaveURL(/\/game\/level_1$/)
+    await levelMusic
 
     await expect(page.locator('.story-dialog')).toContainText('КОМАНДОР МАРКУС ХЕЙЛ')
     await answerDialog(page)

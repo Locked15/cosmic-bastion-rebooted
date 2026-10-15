@@ -2,6 +2,7 @@
     import { onMounted } from 'vue'
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
+    import { useMusicStore } from '@/stores/musicStore'
     import { useProfileStore } from '@/stores/profileStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
@@ -11,6 +12,7 @@
     const campaign = useCampaignStore()
     const profiles = useProfileStore()
     const ui = useUiStore()
+    const music = useMusicStore()
 
     // The report line follows story progress made since the menu was last shown.
     onMounted(() => profiles.refresh())
@@ -47,6 +49,10 @@
                     <p>СТАТУС: КРИТИЧЕСКИЙ</p>
                     <p>УГРОЗА: СОНМ</p>
                     <p>ЭКИПАЖ: В ОЖИДАНИИ ПРИКАЗОВ</p>
+                    <p v-if="music.current" class="main-menu__music">
+                        ♪ «{{ music.current.title }}» —
+                        {{ music.current.author }} (incompetech.com), CC BY 4.0
+                    </p>
                 </div>
             </div>
         </div>
@@ -142,6 +148,12 @@
 
         &__buttons {
             margin: $spacing-lg 0;
+        }
+
+        &__music {
+            margin-top: $spacing-sm;
+            color: $color-border;
+            font-size: 11px;
         }
 
         &__status {

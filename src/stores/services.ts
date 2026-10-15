@@ -1,6 +1,7 @@
 import type {
     FrameScheduler,
     KeyValueStore,
+    MusicPlayer,
     ProfileService,
     Scene,
     SoundPlayer,
@@ -15,6 +16,7 @@ export interface AppServices {
     deviceStorage: KeyValueStore
     profiles: ProfileService
     sound: SoundPlayer
+    music: MusicPlayer
     createScheduler: () => FrameScheduler
     createRandom: () => Random
     renderScene: (

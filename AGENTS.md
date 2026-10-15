@@ -14,6 +14,8 @@ A tower-defense / visual-novel hybrid. It is a Vue 3 + Vite + TypeScript single-
 | `npm run lint` / `npm run lint:fix`       | ESLint, which also enforces the layer rules below                                     |
 | `npm run format` / `npm run format:check` | oxfmt                                                                                 |
 
+Music files (`public/audio/music/*.webm`) are stored in **Git LFS**: run `git lfs install` once before cloning, or `git lfs pull` in an existing clone. Without it the files are LFS pointers and the game stays silent.
+
 ## Architecture (Clean Architecture)
 
 Dependencies point inward only. ESLint (`no-restricted-imports` in `eslint.config.ts`) fails the build when a layer imports an outer one.
@@ -36,7 +38,7 @@ src/
                    objectives.ts (ObjectiveTracker), checkpoint.ts; presenter.ts + presenters/
                    turn the session into GameSnapshot; scene.ts is the read model for renderers
     profiles/      ProfileService (≤3 profiles, briefing line), CachedStore/SwitchingStore
-    ports/         KeyValueStore, ProfileRepository, FrameScheduler, SoundPlayer (implemented in infrastructure)
+    ports/         KeyValueStore, ProfileRepository, FrameScheduler, SoundPlayer, MusicPlayer (implemented in infrastructure)
     dto/           plain view models for the UI
     CampaignService, CheckpointService, AchievementService
   infrastructure/  adapters: localStorage/memory stores, requestAnimationFrame scheduler,
@@ -94,20 +96,22 @@ Key rules:
 
 Game content is data in `src/content/*.json`; code only interprets it. Each file is parsed by a Valibot schema when its module loads, so a mistake fails the app and `npm test` with the path to the bad value. Kinds of things (tower types, effect types, objective kinds) stay in code; numbers and texts are data.
 
-| File                                                          | What it holds                                                                      | Schema                                                |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `levels/level_N.json`                                         | One level: geometry, tower slots, start, waves, objectives, events, carry-over     | `domain/levels/schema.ts`                             |
-| `campaign.json`                                               | Sector order, prerequisites, ship-map rooms and conduits, finale, `contentVersion` | `domain/story/campaign.ts`                            |
-| `endings.json`                                                | Endings after the finale, chosen by outcome and story flags                        | `domain/story/endings.ts`                             |
-| `events/refugees.json`                                        | Texts and prices of the refugee event template                                     | `domain/story/events.ts`                              |
-| `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                      | `domain/rules/*Catalog.ts`                            |
-| `enemies.json`                                                | Enemy stats, ability texts, wave generation                                        | `domain/rules/enemyRules.ts`                          |
-| `briefings.json`                                              | Main-menu greeting line by story progress (`{name}` is the profile)                | `domain/story/briefing.ts`                            |
-| `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                           | `domain/rules`, `domain/story`, `domain/achievements` |
+| File                                                          | What it holds                                                                             | Schema                                                |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `levels/level_N.json`                                         | One level: geometry, tower slots, start, waves, objectives, events, carry-over            | `domain/levels/schema.ts`                             |
+| `campaign.json`                                               | Sector order, prerequisites, ship-map rooms and conduits, finale, `contentVersion`        | `domain/story/campaign.ts`                            |
+| `endings.json`                                                | Endings after the finale, chosen by outcome and story flags                               | `domain/story/endings.ts`                             |
+| `events/refugees.json`                                        | Texts and prices of the refugee event template                                            | `domain/story/events.ts`                              |
+| `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                             | `domain/rules/*Catalog.ts`                            |
+| `enemies.json`                                                | Enemy stats, ability texts, wave generation                                               | `domain/rules/enemyRules.ts`                          |
+| `music.json`                                                  | Soundtrack catalogue, menu track and the license credit; levels pick a track with `music` | `domain/story/soundtrack.ts`                          |
+| `briefings.json`                                              | Main-menu greeting line by story progress (`{name}` is the profile)                       | `domain/story/briefing.ts`                            |
+| `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                                  | `domain/rules`, `domain/story`, `domain/achievements` |
 
 - **New level:** add `src/content/levels/level_N.json` (the `id` must match the file name) and a sector for it in `campaign.json`. A sector may only require sectors listed before it. The layout and content tests run on every level automatically.
 - **Level events:** `when` lists story-flag conditions (`atLeast` / `below`). Pairs of events with opposite conditions give branches. At most 3 events per wave and 10 per level; timers 7–15 s.
 - **Carry-over** (`carryOver` in a level): `start` adds flag sums to the starting stats, `effect` applies an effect at the start when flags hold, `excludeAbility` removes an enemy ability from the level's waves.
+- **Music:** every level has its own track (`music` in its file); the menu and ship map play `music.json#menu`. `HtmlMusicPlayer` loops and crossfades tracks and starts after the first user gesture when autoplay is blocked. New tracks must allow redistribution (CC0/CC BY); add the file as Opus WebM to `public/audio/music/`, list it in `music.json` and credit it in `CREDITS.md`.
 - **Changing an existing level's layout:** bump `contentVersion` in `campaign.json`, so old between-wave checkpoints of that content are discarded.
 
 ## Story

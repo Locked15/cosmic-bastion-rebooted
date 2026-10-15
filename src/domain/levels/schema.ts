@@ -201,6 +201,8 @@ export const levelSchema = v.pipe(
         description: text,
         // Story levels advance the plot even after a tactical defeat (their flags are kept).
         type: v.picklist(['story', 'normal']),
+        // Track id from content/music.json.
+        music: v.pipe(v.string(), v.regex(/^[a-z0-9-]+$/)),
         width: positive,
         height: positive,
         // Everything below this line is the living quarters.

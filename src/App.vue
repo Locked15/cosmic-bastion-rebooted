@@ -1,7 +1,8 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
-    import { watchEffect } from 'vue'
-    import { RouterView } from 'vue-router'
+    import { watch, watchEffect } from 'vue'
+    import { RouterView, useRoute } from 'vue-router'
+    import { useMusicStore } from '@/stores/musicStore'
     import { useSettingsStore } from '@/stores/settingsStore'
     import AchievementsModal from '@/ui/layouts/AchievementsModal.vue'
     import ConfirmModal from '@/ui/layouts/ConfirmModal.vue'
@@ -15,6 +16,15 @@
     watchEffect(() => {
         document.body.style.setProperty('--brightness', String(settings.value.brightness / 100))
     })
+
+    // Each level has its own track; the menu and the ship map share the main theme.
+    const route = useRoute()
+    const music = useMusicStore()
+    watch(
+        () => (route.name === 'game' ? String(route.params.levelId) : null),
+        (levelId) => music.playFor(levelId),
+        { immediate: true },
+    )
 </script>
 
 <template>

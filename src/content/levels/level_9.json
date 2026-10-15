@@ -3,6 +3,7 @@
     "name": "ДВИГАТЕЛЬНЫЙ ОТСЕК E-0: ПРИЧИНА",
     "description": "Журналы двигателей помнят 41 секунду до удара. Здесь решится, улетит ли корабль.",
     "type": "story",
+    "music": "shadowlands-3-machine",
     "width": 1700,
     "height": 950,
     "livingQuartersY": 620,

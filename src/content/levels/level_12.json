@@ -3,6 +3,7 @@
     "name": "ЧАСОВНЯ ГРУЗА Ч-4: ПРИЧАСТНИКИ",
     "description": "Носители открывают шлюзы и поют. Пыль идёт на голос.",
     "type": "story",
+    "music": "gregorian-chant",
     "width": 1200,
     "height": 760,
     "livingQuartersY": 520,

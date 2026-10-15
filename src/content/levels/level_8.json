@@ -3,6 +3,7 @@
     "name": "РИЗНИЦА R-1: РЕЛИКВАРИЙ",
     "description": "Оружие Синода, которое не чинят, а отмаливают. Два нефа — два пути для Сонма.",
     "type": "normal",
+    "music": "rites",
     "width": 1300,
     "height": 750,
     "livingQuartersY": 500,

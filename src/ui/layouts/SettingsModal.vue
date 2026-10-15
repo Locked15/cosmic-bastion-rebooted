@@ -16,7 +16,8 @@
         <div class="modal__box settings-modal">
             <h3 class="modal__title">// НАСТРОЙКИ //</h3>
             <SettingsSlider v-model="settings.brightness" label="ЯРКОСТЬ:" :min="50" :max="150" />
-            <SettingsSlider v-model="settings.volume" label="ГРОМКОСТЬ:" :min="0" :max="100" />
+            <SettingsSlider v-model="settings.volume" label="ЗВУКИ:" :min="0" :max="100" />
+            <SettingsSlider v-model="settings.music" label="МУЗЫКА:" :min="0" :max="100" />
             <OptionGroup
                 v-model="settings.difficulty"
                 label="СЛОЖНОСТЬ:"
