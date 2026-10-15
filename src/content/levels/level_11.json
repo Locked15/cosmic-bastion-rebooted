@@ -104,12 +104,26 @@
                         "text": "Списать долг смены",
                         "cost": { "resources": 60 },
                         "consequence": "Долг смены списан. Тягло это запомнит. Потрачено 60 ресурсов.",
-                        "effect": { "type": "flag", "name": "debt_forgiven", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "debt_forgiven", "value": 1 },
+                                { "type": "relationship", "character": "gorban", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Устав есть устав",
                         "consequence": "Смена отработала долг. Получено 80 ресурсов.",
-                        "effect": { "type": "resources", "value": 80 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "resources", "value": 80 },
+                                { "type": "relationship", "character": "gorban", "disposition": -2 }
+                            ]
+                        }
                     }
                 ],
                 "timed": true,
@@ -178,7 +192,14 @@
                         "text": "Поднять Горбаня",
                         "cost": { "resources": 80 },
                         "consequence": "Горбань поднят. Тягло не осталось без голоса. Потрачено 80 ресурсов.",
-                        "effect": { "type": "flag", "name": "foreman_saved", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "foreman_saved", "value": 1 },
+                                { "type": "relationship", "character": "gorban", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Оставить бригадира",

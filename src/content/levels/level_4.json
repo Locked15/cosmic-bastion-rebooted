@@ -163,12 +163,27 @@
                     {
                         "text": "Доложить капитану",
                         "consequence": "Капитан Восс узнает правду до двигательного отсека.",
-                        "effect": { "type": "flag", "name": "truth_told", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "truth_told", "value": 1 },
+                                { "type": "relationship", "character": "voss", "disposition": 2 },
+                                { "type": "relationship", "character": "petrov", "disposition": 1 }
+                            ]
+                        }
                     },
                     {
                         "text": "Молчать до двигателей",
                         "consequence": "Петров молча подключил запасные линии. Получено 80 ресурсов.",
-                        "effect": { "type": "resources", "value": 80 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "resources", "value": 80 },
+                                { "type": "relationship", "character": "voss", "disposition": -1 }
+                            ]
+                        }
                     }
                 ],
                 "timed": true,

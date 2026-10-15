@@ -3,12 +3,20 @@ import { count, point, positive, rect, text } from '../content/parse'
 import { BARRICADE_TYPES, type BarricadeType } from '../rules/barricadeCatalog'
 import { enemyAbilitySchema } from '../rules/enemyRules'
 import { TOWER_TYPES, type TowerType } from '../rules/towerCatalog'
+import {
+    RELATIONSHIP_ISSUE,
+    relationshipAllowed,
+    relationshipChangeSchema,
+    type RelationshipChange,
+} from '../story/cast'
+import { flagConditionSchema, flagName } from './flags'
+
+export * from './flags'
 
 // Schemas of level files (content/levels/*.json). Types of level data are inferred from them.
 
 const MAX_EVENTS_PER_WAVE = 3
 const MAX_EVENTS_PER_LEVEL = 10
-const flagName = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9_]*$/, 'Flags are snake_case'))
 
 const costSchema = v.strictObject({
     resources: v.optional(count),
@@ -16,8 +24,6 @@ const costSchema = v.strictObject({
     military: v.optional(count),
 })
 export type EventCost = v.InferOutput<typeof costSchema>
-
-export type StoryFlags = Record<string, number>
 
 // The engine knows how to apply each effect type (application/session/effects.ts).
 export type EventEffect =
@@ -35,59 +41,48 @@ export type EventEffect =
     | { type: 'buffDamage'; value: number }
     | { type: 'buffBarricades'; value: number }
     | { type: 'superWeapon'; military: number; killPercent: number }
+    // Changes a character's disposition (and affection, for romanceable ones): story/cast.ts.
+    | ({ type: 'relationship' } & RelationshipChange)
 
-export const effectSchema: v.GenericSchema<EventEffect> = v.variant('type', [
-    v.strictObject({
-        type: v.literal('transaction'),
-        cost: costSchema,
-        effects: v.array(v.lazy(() => effectSchema)),
-    }),
-    v.strictObject({ type: v.literal('flag'), name: flagName, value: v.number() }),
-    v.strictObject({ type: v.literal('unlockTower'), tower: v.picklist(TOWER_TYPES) }),
-    v.strictObject({
-        type: v.literal('unlockBarricade'),
-        barricade: v.picklist(BARRICADE_TYPES),
-    }),
-    v.strictObject({
-        type: v.literal('resources'),
-        value: v.number(),
-        military: v.optional(v.number()),
-    }),
-    v.strictObject({ type: v.literal('convert'), count }),
-    v.strictObject({ type: v.literal('addMilitary'), count }),
-    v.strictObject({ type: v.literal('addMiners'), count }),
-    v.strictObject({ type: v.literal('addPersonnel'), miners: count, military: count }),
-    v.strictObject({ type: v.literal('removeMilitary'), count, resources: v.number() }),
-    v.strictObject({ type: v.literal('emergency'), resources: v.number(), military: v.number() }),
-    v.strictObject({ type: v.literal('buffDamage'), value: positive }),
-    v.strictObject({ type: v.literal('buffBarricades'), value: positive }),
-    v.strictObject({
-        type: v.literal('superWeapon'),
-        military: v.number(),
-        killPercent: v.pipe(v.number(), v.minValue(0), v.maxValue(1)),
-    }),
-])
-
-// Holds when the flag is at least `atLeast` and below `below` (either may be omitted).
-export const flagConditionSchema = v.pipe(
-    v.strictObject({
-        flag: flagName,
-        atLeast: v.optional(v.number()),
-        below: v.optional(v.number()),
-    }),
-    v.check(
-        (condition) => condition.atLeast !== undefined || condition.below !== undefined,
-        'A flag condition needs atLeast or below',
-    ),
+export const effectSchema: v.GenericSchema<EventEffect> = v.pipe(
+    v.variant('type', [
+        v.strictObject({
+            type: v.literal('transaction'),
+            cost: costSchema,
+            effects: v.array(v.lazy(() => effectSchema)),
+        }),
+        v.strictObject({ type: v.literal('flag'), name: flagName, value: v.number() }),
+        v.strictObject({ type: v.literal('unlockTower'), tower: v.picklist(TOWER_TYPES) }),
+        v.strictObject({
+            type: v.literal('unlockBarricade'),
+            barricade: v.picklist(BARRICADE_TYPES),
+        }),
+        v.strictObject({
+            type: v.literal('resources'),
+            value: v.number(),
+            military: v.optional(v.number()),
+        }),
+        v.strictObject({ type: v.literal('convert'), count }),
+        v.strictObject({ type: v.literal('addMilitary'), count }),
+        v.strictObject({ type: v.literal('addMiners'), count }),
+        v.strictObject({ type: v.literal('addPersonnel'), miners: count, military: count }),
+        v.strictObject({ type: v.literal('removeMilitary'), count, resources: v.number() }),
+        v.strictObject({
+            type: v.literal('emergency'),
+            resources: v.number(),
+            military: v.number(),
+        }),
+        v.strictObject({ type: v.literal('buffDamage'), value: positive }),
+        v.strictObject({ type: v.literal('buffBarricades'), value: positive }),
+        v.strictObject({
+            type: v.literal('superWeapon'),
+            military: v.number(),
+            killPercent: v.pipe(v.number(), v.minValue(0), v.maxValue(1)),
+        }),
+        v.strictObject({ type: v.literal('relationship'), ...relationshipChangeSchema.entries }),
+    ]),
+    v.check((effect) => relationshipAllowed(effect), RELATIONSHIP_ISSUE),
 )
-export type FlagCondition = v.InferOutput<typeof flagConditionSchema>
-
-export function flagsMatch(flags: Readonly<StoryFlags>, when: readonly FlagCondition[]): boolean {
-    return when.every(({ flag, atLeast, below }) => {
-        const value = flags[flag] ?? 0
-        return (atLeast === undefined || value >= atLeast) && (below === undefined || value < below)
-    })
-}
 
 const choiceSchema = v.strictObject({
     text,

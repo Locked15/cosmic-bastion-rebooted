@@ -134,7 +134,14 @@
                     {
                         "text": "Передать лист капитану",
                         "consequence": "Восс получила лист. Правда дошла до неё раньше двигательного отсека.",
-                        "effect": { "type": "flag", "name": "truth_told", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "truth_told", "value": 1 },
+                                { "type": "relationship", "character": "voss", "disposition": 1 }
+                            ]
+                        }
                     },
                     {
                         "text": "Сжечь лист",

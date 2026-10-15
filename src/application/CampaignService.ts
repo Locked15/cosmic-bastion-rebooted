@@ -1,6 +1,19 @@
 import {
     CAMPAIGN,
+    CAST,
     Campaign,
+    affection,
+    disposition,
+    isPresent,
+    playScene,
+    romancePartner,
+    scenesAfterMissions,
+    scenesBeforeMission,
+    skipScene,
+    standing,
+    type DifficultyRecords,
+    type SceneProgress,
+    type StoryScene,
     campaignSector,
     createLevel,
     flagsMatch,
@@ -14,7 +27,13 @@ import {
     type StoryFlags,
 } from '@/domain'
 import { technologyUnlocks, type TechnologyUnlocks } from '@/domain/story/technology'
-import type { CampaignResolution, LevelSummary, ObjectiveView } from './dto/views'
+import type {
+    CampaignResolution,
+    CrewMemberView,
+    LevelSummary,
+    ObjectiveView,
+    SceneView,
+} from './dto/views'
 import type { KeyValueStore } from './ports/KeyValueStore'
 import type { SessionOptions } from './session/GameSession'
 
@@ -40,10 +59,31 @@ export interface MissionReport {
     survivors: number
 }
 
+export interface CampaignOptions {
+    // Highest completed difficulty per level, for the golden ending. Supplied by the
+    // difficulty system once it records it in the profile; until then nothing qualifies.
+    difficultyRecords?: () => DifficultyRecords
+    // The player's romance setting (on by default).
+    romance?: () => boolean
+}
+
+function sceneView(scene: StoryScene): SceneView {
+    return {
+        id: scene.id,
+        speaker: scene.speaker,
+        place: scene.place,
+        lines: [...scene.lines],
+        choices: scene.choices.map((choice) => choice.text),
+    }
+}
+
 export class CampaignService {
     private campaign: Campaign
 
-    constructor(private readonly storage: KeyValueStore) {
+    constructor(
+        private readonly storage: KeyValueStore,
+        private readonly options: CampaignOptions = {},
+    ) {
         this.campaign = Campaign.fromProgress(
             storage.read<CampaignProgress>(CAMPAIGN_KEY) ?? undefined,
         )
@@ -157,8 +197,58 @@ export class CampaignService {
         this.save()
         // The finale closes the story either way: a defeat there is an ending too.
         const ending =
-            levelId === CAMPAIGN.finale ? resolveEnding(report.outcome, this.campaign.flags) : null
+            levelId === CAMPAIGN.finale
+                ? resolveEnding(report.outcome, this.campaign.flags, {
+                      difficultyRecords: this.options.difficultyRecords?.(),
+                      romance: this.romance,
+                  })
+                : null
         return { advanced, firstVictory, unlocks, ending }
+    }
+
+    // Scenes waiting on the ship map after won missions.
+    scenesAfterMissions(): SceneView[] {
+        return scenesAfterMissions(this.sceneProgress).map(sceneView)
+    }
+
+    // Scenes to play before the level starts (the partner choice before the finale).
+    scenesBefore(levelId: string): SceneView[] {
+        if (!this.isUnlocked(levelId)) return []
+        return scenesBeforeMission(levelId, this.sceneProgress).map(sceneView)
+    }
+
+    // Plays a choice of an available scene; returns the character's reply, or null.
+    chooseScene(sceneId: string, choice: number): string | null {
+        const scene = this.findScene(sceneId)
+        const result = scene ? playScene(scene, choice, this.campaign.flags) : null
+        if (result) this.save()
+        return result?.reply ?? null
+    }
+
+    // Every scene can be skipped without consequences (skipping the partner choice declines).
+    skipScene(sceneId: string): boolean {
+        const scene = this.findScene(sceneId)
+        if (!scene) return false
+        skipScene(scene, this.campaign.flags)
+        this.save()
+        return true
+    }
+
+    // Present characters in cast order with their standing toward the player.
+    crew(): CrewMemberView[] {
+        const flags = this.campaign.flags
+        const partner = romancePartner(flags, this.romance)
+        return CAST.characters
+            .filter((member) => isPresent(flags, member.id))
+            .map((member) => ({
+                id: member.id,
+                name: member.name,
+                role: member.role,
+                disposition: disposition(flags, member.id),
+                standing: standing(disposition(flags, member.id)),
+                affection: member.romance && this.romance ? affection(flags, member.id) : null,
+                partner: partner === member.id,
+            }))
     }
 
     reset(): void {
@@ -177,6 +267,30 @@ export class CampaignService {
             if (rule.stat === 'miners') level.startingMiners += bonus
             if (rule.stat === 'military') level.startingMilitary += bonus
         }
+    }
+
+    private get romance(): boolean {
+        return this.options.romance?.() ?? true
+    }
+
+    private get sceneProgress(): SceneProgress {
+        return {
+            flags: this.campaign.flags,
+            completedLevels: this.campaign.completedLevels,
+            difficultyRecords: this.options.difficultyRecords?.(),
+            romance: this.romance,
+        }
+    }
+
+    private findScene(sceneId: string): StoryScene | null {
+        const progress = this.sceneProgress
+        const candidates = [
+            ...scenesAfterMissions(progress),
+            ...this.campaign.levels
+                .filter((level) => !level.locked)
+                .flatMap((level) => scenesBeforeMission(level.id, progress)),
+        ]
+        return candidates.find((scene) => scene.id === sceneId) ?? null
     }
 
     private save(): void {

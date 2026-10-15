@@ -1,4 +1,4 @@
-import type { EventEffect } from '@/domain'
+import { applyRelationship, type EventEffect } from '@/domain'
 import type { GameSession } from './GameSession'
 
 // Simulate the complete transaction before applying anything, including nested costs.
@@ -115,6 +115,9 @@ export function applyEffect(session: GameSession, effect: EventEffect | null): v
             break
         case 'buffBarricades':
             session.applyBarricadeBuff(effect.value)
+            break
+        case 'relationship':
+            applyRelationship(session.story.flags, effect)
             break
     }
 }

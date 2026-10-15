@@ -82,7 +82,12 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "gardens_burned", "value": 1 },
-                                { "type": "resources", "value": 60 }
+                                { "type": "resources", "value": 60 },
+                                {
+                                    "type": "relationship",
+                                    "character": "zaremba",
+                                    "disposition": -2
+                                }
                             ]
                         }
                     },
@@ -155,7 +160,14 @@
                         "text": "Защитить оранжерею",
                         "cost": { "resources": 100 },
                         "consequence": "Оранжерея спасена. В следующих секторах шахтёров станет больше на пятерых. Потрачено 100 ресурсов.",
-                        "effect": { "type": "flag", "name": "gardens_saved", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "gardens_saved", "value": 1 },
+                                { "type": "relationship", "character": "zaremba", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Снять урожай и уйти",

@@ -136,7 +136,14 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "draft_told", "value": 1 },
-                                { "type": "convert", "count": 3 }
+                                { "type": "convert", "count": 3 },
+                                { "type": "relationship", "character": "gorban", "disposition": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "silva",
+                                    "disposition": 1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     },
@@ -168,7 +175,14 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "engines_restored", "value": 1 },
-                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                                { "type": "flag", "name": "engines_decided", "value": 1 },
+                                { "type": "relationship", "character": "chen", "disposition": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "diana",
+                                    "disposition": 1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     },
@@ -180,7 +194,19 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "engines_stripped", "value": 1 },
-                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                                { "type": "flag", "name": "engines_decided", "value": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "hale",
+                                    "disposition": 1,
+                                    "affection": 0
+                                },
+                                {
+                                    "type": "relationship",
+                                    "character": "diana",
+                                    "disposition": -1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     }

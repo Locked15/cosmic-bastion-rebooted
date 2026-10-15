@@ -86,7 +86,13 @@
                             "cost": {},
                             "effects": [
                                 { "type": "resources", "value": 150 },
-                                { "type": "flag", "name": "shuttle_salvage", "value": 120 }
+                                { "type": "flag", "name": "shuttle_salvage", "value": 120 },
+                                {
+                                    "type": "relationship",
+                                    "character": "diana",
+                                    "disposition": -1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     },
@@ -136,7 +142,14 @@
                     {
                         "text": "Выдать оружие",
                         "consequence": "Четверо шахтёров переобучаются в Стражу.",
-                        "effect": { "type": "convert", "count": 4 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "convert", "count": 4 },
+                                { "type": "relationship", "character": "gorban", "disposition": 1 }
+                            ]
+                        }
                     },
                     {
                         "text": "Отказать",

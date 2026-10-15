@@ -1,0 +1,120 @@
+{
+    "range": {
+        "min": -10,
+        "max": 10
+    },
+    "allyAt": 5,
+    "romanceAt": 5,
+    "standings": [
+        {
+            "atLeast": 7,
+            "label": "Преданность"
+        },
+        {
+            "atLeast": 4,
+            "label": "Доверие"
+        },
+        {
+            "atLeast": 1,
+            "label": "Расположение"
+        },
+        {
+            "atLeast": -1,
+            "label": "Сдержанность"
+        },
+        {
+            "atLeast": -4,
+            "label": "Холод"
+        },
+        {
+            "atLeast": -10,
+            "label": "Вражда"
+        }
+    ],
+    "characters": [
+        {
+            "id": "kirch",
+            "name": "Лейтенант Ода Кирх",
+            "role": "Тактический офицер",
+            "romance": true
+        },
+        {
+            "id": "hale",
+            "name": "Командор Маркус Хейл",
+            "role": "Командор Стражи",
+            "romance": true
+        },
+        {
+            "id": "silva",
+            "name": "Доктор Мирея Сильва",
+            "role": "Ксенолог",
+            "romance": true,
+            "present": [
+                {
+                    "flag": "scientist_saved",
+                    "atLeast": 1
+                }
+            ]
+        },
+        {
+            "id": "diana",
+            "name": "Пилот Диана Корвин",
+            "role": "Пилот челноков ангара H-2",
+            "romance": true
+        },
+        {
+            "id": "voss",
+            "name": "Капитан-Носитель Ирена Восс",
+            "role": "Капитан «Тяжести Обета»",
+            "romance": false
+        },
+        {
+            "id": "chen",
+            "name": "Старший инженер Чен Ло",
+            "role": "Инженер маршевых двигателей",
+            "romance": false,
+            "present": [
+                {
+                    "flag": "engineer_saved",
+                    "atLeast": 1
+                }
+            ]
+        },
+        {
+            "id": "petrov",
+            "name": "Инженер Глеб Петров",
+            "role": "Инженер технического ядра",
+            "romance": false
+        },
+        {
+            "id": "renn",
+            "name": "Сестра-хирург Агата Ренн",
+            "role": "Медотсек",
+            "romance": false,
+            "present": [
+                {
+                    "flag": "surgeon_saved",
+                    "atLeast": 1
+                }
+            ]
+        },
+        {
+            "id": "gorban",
+            "name": "Бригадир Ясь Горбань",
+            "role": "Бригадир Тягла",
+            "romance": false,
+            "present": [
+                {
+                    "flag": "foreman_lost",
+                    "below": 1
+                }
+            ]
+        },
+        {
+            "id": "zaremba",
+            "name": "Агроном Лидия Заремба",
+            "role": "Гидропоника",
+            "romance": false
+        }
+    ]
+}

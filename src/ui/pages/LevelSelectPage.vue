@@ -3,11 +3,15 @@
     import { computed, nextTick, ref, useTemplateRef } from 'vue'
     import { useRouter } from 'vue-router'
     import { useCampaignStore } from '@/stores/campaignStore'
+    import AppButton from '@/ui/components/AppButton.vue'
+    import CrewRoster from '@/ui/components/CrewRoster.vue'
     import ShipDeckMap from '@/ui/components/ShipDeckMap.vue'
+    import CrewScenes from '@/ui/layouts/CrewScenes.vue'
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
     const router = useRouter()
-    const { levels, savedWaves } = storeToRefs(useCampaignStore())
+    const campaign = useCampaignStore()
+    const { levels, savedWaves, crew, pendingScenes } = storeToRefs(campaign)
 
     // Start on the first open sector not won yet: the training briefing for a new officer.
     const selectedId = ref<string | null>(
@@ -27,14 +31,16 @@
         ;(info.value?.$el as HTMLElement | undefined)?.scrollIntoView?.({ behavior: 'smooth' })
     }
 
-    function start(resume: boolean) {
-        if (selected.value) {
-            router.push({
-                name: 'game',
-                params: { levelId: selected.value.id },
-                query: resume ? { resume: '1' } : {},
-            })
-        }
+    async function start(resume: boolean) {
+        const level = selected.value
+        if (!level) return
+        // A resumed mission already had its briefing scenes.
+        if (!resume) await campaign.playScenesBefore(level.id)
+        router.push({
+            name: 'game',
+            params: { levelId: level.id },
+            query: resume ? { resume: '1' } : {},
+        })
     }
 </script>
 
@@ -43,7 +49,14 @@
         <h2 class="level-select__title">СХЕМА КОРАБЛЯ - ВЫБОР СЕКТОРА</h2>
         <section class="level-select__map">
             <ShipDeckMap :levels="levels" :selected-id="selectedId" @select="select" />
+            <div v-if="pendingScenes.length" class="level-select__scenes">
+                <AppButton variant="secondary" @click="campaign.openPendingScenes()">
+                    КАЮТ-КОМПАНИЯ · РАЗГОВОРОВ: {{ pendingScenes.length }}
+                </AppButton>
+            </div>
+            <CrewRoster v-if="crew.length" :members="crew" />
         </section>
+        <CrewScenes />
         <MissionInfo
             ref="info"
             class="level-select__info"
@@ -80,6 +93,12 @@
             align-self: start;
             padding: $spacing-md;
             border: 2px solid $color-primary;
+        }
+
+        &__scenes {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: $spacing-md;
         }
 
         // Mission details always fit the viewport, so the start button is reachable.

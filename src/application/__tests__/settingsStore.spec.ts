@@ -21,7 +21,14 @@ describe('settingsStore', () => {
             difficulty: 'nope',
         })
         const { settings } = useSettingsStore()
-        expect(settings).toEqual({ brightness: 80, volume: 20, music: 40, difficulty: 'modest' })
+        expect(settings).toEqual({
+            brightness: 80,
+            volume: 20,
+            music: 40,
+            difficulty: 'modest',
+            crewScenes: true,
+            romance: true,
+        })
     })
 
     it('describes the selected difficulty with its effects', () => {

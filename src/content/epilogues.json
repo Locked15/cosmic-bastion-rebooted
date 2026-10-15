@@ -1,0 +1,612 @@
+[
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "kirch"
+            },
+            {
+                "kind": "disposition",
+                "character": "kirch",
+                "atLeast": 5
+            }
+        ],
+        "text": "Ода Кирх ведёт вахтенный журнал первого перелёта. На полях — счёт живых, а не мёртвых: так она решила считать теперь."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "kirch"
+            },
+            {
+                "kind": "disposition",
+                "character": "kirch",
+                "atLeast": 5
+            }
+        ],
+        "text": "Ода Кирх составила план обороны Бастиона на сто лет вперёд. Каждая смена Стражи учит его наизусть и знает, чья это работа."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "kirch"
+            },
+            {
+                "kind": "disposition",
+                "character": "kirch",
+                "atLeast": 5
+            }
+        ],
+        "text": "Кирх держала свой фланг до последней цифры в расчёте. Её последнее донесение — ровное, без единой ошибки."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "kirch"
+            },
+            {
+                "kind": "disposition",
+                "character": "kirch",
+                "below": -3
+            }
+        ],
+        "text": "Кирх подала рапорт о переводе в первый же день после боя. В графе «причина» стоит одно слово: «командование»."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "hale"
+            },
+            {
+                "kind": "disposition",
+                "character": "hale",
+                "atLeast": 5
+            }
+        ],
+        "text": "Маркус Хейл сдал Стражу младшим и впервые за двадцать лет проспал смену. Говорят, во сне он улыбался."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "hale"
+            },
+            {
+                "kind": "disposition",
+                "character": "hale",
+                "atLeast": 5
+            }
+        ],
+        "text": "Хейл прожил долго. Стражу Бастиона он передал преемнику со словами: «Держите людей. Остальное держится само»."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "hale"
+            },
+            {
+                "kind": "disposition",
+                "character": "hale",
+                "atLeast": 5
+            }
+        ],
+        "text": "Хейл вывел из-под удара всех, кого успел. Себя он в этот список не включил."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "hale"
+            },
+            {
+                "kind": "disposition",
+                "character": "hale",
+                "below": -3
+            }
+        ],
+        "text": "Хейл больше не спорит с новым офицером. Он просто перестал с ним говорить."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "silva"
+            },
+            {
+                "kind": "disposition",
+                "character": "silva",
+                "atLeast": 5
+            }
+        ],
+        "text": "Мирея Сильва отправила Синоду сорок томов о Сонме. На первой странице каждого — один и тот же вопрос: «Что, если вес — не спасение?»"
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "silva"
+            },
+            {
+                "kind": "disposition",
+                "character": "silva",
+                "atLeast": 5
+            }
+        ],
+        "text": "Сильва научилась отличать спящую руду от мёртвой породы. Шахтёры Бастиона называют её прибор «совестью»."
+    },
+    {
+        "endings": ["communion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "silva"
+            },
+            {
+                "kind": "disposition",
+                "character": "silva",
+                "atLeast": 5
+            }
+        ],
+        "text": "Сильва дописала журнал до последней строки. Архив, исполняя приказ, не стал его стирать."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "silva"
+            },
+            {
+                "kind": "disposition",
+                "character": "silva",
+                "below": -3
+            }
+        ],
+        "text": "Сильва больше не показывает данные командованию. Она пишет их шифром, которого не знает даже Архив."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "diana"
+            },
+            {
+                "kind": "disposition",
+                "character": "diana",
+                "atLeast": 5
+            }
+        ],
+        "text": "Диана Корвин провела «Тяжесть Обета» сквозь кладбище кораблей вручную, когда отказали навигационные контуры. В бортовом журнале её почерком: «Лёгкий ход»."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "diana"
+            },
+            {
+                "kind": "disposition",
+                "character": "diana",
+                "atLeast": 5
+            }
+        ],
+        "text": "Корвин так и не взлетела. Она учит детей Бастиона читать звёздные карты — «на всякий случай»."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "diana"
+            },
+            {
+                "kind": "disposition",
+                "character": "diana",
+                "atLeast": 5
+            }
+        ],
+        "text": "Корвин до конца держала связь с «Безмолвием». Её голос в эфире — последнее, что Синод услышал с Тризны."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "diana"
+            },
+            {
+                "kind": "disposition",
+                "character": "diana",
+                "below": -3
+            }
+        ],
+        "text": "Корвин ушла в шахты добровольцем. Сказала, что под землёй хотя бы не видно неба."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "voss"
+            },
+            {
+                "kind": "disposition",
+                "character": "voss",
+                "atLeast": 5
+            }
+        ],
+        "text": "Ирена Восс сложила с себя сан Носителя на глазах у всего экипажа. Свинцовое облачение она оставила в Колодце."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "voss"
+            },
+            {
+                "kind": "disposition",
+                "character": "voss",
+                "atLeast": 5
+            }
+        ],
+        "text": "Восс правит Бастионом как капитан, а не как Носитель. Паломникам Синода она отвечает одно: «Вес — это люди»."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "voss"
+            },
+            {
+                "kind": "disposition",
+                "character": "voss",
+                "atLeast": 5
+            }
+        ],
+        "text": "Восс отдала последний приказ с мостика: «Всем, кто может, — уходить». Сама она осталась в кресле."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "voss"
+            },
+            {
+                "kind": "disposition",
+                "character": "voss",
+                "below": -3
+            }
+        ],
+        "text": "Восс вычеркнула имя нового офицера из корабельной литании. В Синоде это считается хуже трибунала."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "chen"
+            },
+            {
+                "kind": "disposition",
+                "character": "chen",
+                "atLeast": 5
+            }
+        ],
+        "text": "Чен Ло исписал за время подъёма ещё три тетради. Последнюю он отдал новому офицеру: «Чтобы было что читать, когда я сдам вахту»."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "chen"
+            },
+            {
+                "kind": "disposition",
+                "character": "chen",
+                "atLeast": 5
+            }
+        ],
+        "text": "Чен превратил мёртвые двигатели в мастерскую. Дети Тягла учатся там тому, чего не знает Синод."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "chen"
+            },
+            {
+                "kind": "disposition",
+                "character": "chen",
+                "below": -3
+            }
+        ],
+        "text": "Чен Ло чинил всё, что от него требовали, — и не говорил ни слова сверх того."
+    },
+    {
+        "endings": ["ascent", "golden", "bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "petrov"
+            },
+            {
+                "kind": "disposition",
+                "character": "petrov",
+                "atLeast": 5
+            }
+        ],
+        "text": "Глеб Петров больше не молится над платами. Он по-прежнему обслуживает каждую линию корабля — теперь, говорит он, ради людей, а не ради Синода."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "petrov"
+            },
+            {
+                "kind": "disposition",
+                "character": "petrov",
+                "below": -3
+            }
+        ],
+        "text": "Петров отправил в Синод прошение о покаянии. В нём упомянут и новый офицер."
+    },
+    {
+        "endings": ["ascent", "golden", "bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "renn"
+            },
+            {
+                "kind": "disposition",
+                "character": "renn",
+                "atLeast": 5
+            }
+        ],
+        "text": "Агата Ренн открыла новую палату для Отяжелевших. Не все уходят к Сонму: некоторые снова учатся говорить."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "renn"
+            },
+            {
+                "kind": "disposition",
+                "character": "renn",
+                "below": -3
+            }
+        ],
+        "text": "Ренн лечит всех, кто приходит в лазарет. Кроме тех, кто отдавал приказы о палате."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "gorban"
+            },
+            {
+                "kind": "disposition",
+                "character": "gorban",
+                "atLeast": 5
+            }
+        ],
+        "text": "Ясь Горбань сжёг долговые книги Тягла прямо в рубке. Пепел вытянуло за борт — первое, что Тягло выбросило не по приказу."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "gorban"
+            },
+            {
+                "kind": "disposition",
+                "character": "gorban",
+                "atLeast": 5
+            }
+        ],
+        "text": "Горбань добился своего: в Бастионе считают тонны руды, а не килограммы долга."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "gorban"
+            },
+            {
+                "kind": "disposition",
+                "character": "gorban",
+                "below": -3
+            }
+        ],
+        "text": "Горбань говорит шахтёрам, что новый офицер ничем не лучше Носителей. Шахтёры ему верят."
+    },
+    {
+        "endings": ["ascent", "golden", "bastion"],
+        "when": [
+            {
+                "kind": "present",
+                "character": "zaremba"
+            },
+            {
+                "kind": "disposition",
+                "character": "zaremba",
+                "atLeast": 5
+            }
+        ],
+        "text": "Каждый новый урожай Лидия Заремба начинает с одной кружки гороха на подоконнике командного поста. Она не объясняет зачем."
+    },
+    {
+        "endings": [],
+        "when": [
+            {
+                "kind": "present",
+                "character": "zaremba"
+            },
+            {
+                "kind": "disposition",
+                "character": "zaremba",
+                "below": -3
+            }
+        ],
+        "text": "Заремба не пускает в оранжерею никого в офицерской форме."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "kirch"
+            }
+        ],
+        "text": "Ода Кирх стоит рядом у обзорного экрана, пока Тризна становится точкой. Она не считает — впервые. «Больше не хочу считать», — говорит она, и её рука остаётся в вашей."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "kirch"
+            }
+        ],
+        "text": "У Оды Кирх в Бастионе каюта с окном на пустоши Тризны. Вечерами вы вдвоём смотрите, как оседает пыль. Она говорит, что это самая спокойная вахта в её жизни."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "kirch"
+            }
+        ],
+        "text": "В последнюю минуту Кирх перестала докладывать. Она просто сказала ваше имя — один раз, будто ставила точку в расчёте, который наконец сошёлся."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "hale"
+            }
+        ],
+        "text": "Маркус Хейл бросил нашивку Стражи в утилизатор и попросил разрешения сесть рядом. «Без устава, — сказал он. — Один раз в жизни»."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "hale"
+            }
+        ],
+        "text": "Хейл так и не поверил ни во что, кроме людей. Одного человека он выбрал сам: вечерами вы делите с ним смену и тишину."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "hale"
+            }
+        ],
+        "text": "Хейл стоял рядом до конца. «Мы выстояли, — сказал он. — Вдвоём — это уже немало»."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "silva"
+            }
+        ],
+        "text": "Мирея Сильва пишет в журнал не только о Сонме. На последней странице — что-то о вас, и эту страницу она не шифрует."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "silva"
+            }
+        ],
+        "text": "Сильва ставит вашу кружку рядом со своими пробирками. В Бастионе это считают помолвкой: ни один ксенолог не делится лабораторией."
+    },
+    {
+        "endings": ["communion"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "silva"
+            }
+        ],
+        "text": "Сильва держала вашу руку и диктовала последние данные. «Пусть знают, — сказала она, — что мы не были лёгкими. Мы были вместе»."
+    },
+    {
+        "endings": ["renunciation"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "silva"
+            }
+        ],
+        "text": "Сильва рассчитала угол, отложила планшет и взяла вас за руку. «Лёгкое — не грех», — сказала она тихо, и это было не про копьё."
+    },
+    {
+        "endings": ["ascent", "golden"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "diana"
+            }
+        ],
+        "text": "Первый круг над облаками Тризны Диана Корвин посвятила вам. «Обещала показать», — сказала она и не отпускала штурвал, пока вы не взяли её за руку."
+    },
+    {
+        "endings": ["bastion"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "diana"
+            }
+        ],
+        "text": "Корвин собрала в ангаре кабину-тренажёр. По вечерам она учит вас летать — туда, где нет Колодца."
+    },
+    {
+        "endings": ["communion", "renunciation"],
+        "when": [
+            {
+                "kind": "romance",
+                "character": "diana"
+            }
+        ],
+        "text": "Корвин подняла челнок в последний раз — с вами в соседнем кресле. Сто метров над Тризной. «Видите? — сказала она. — Мы летали»."
+    }
+]

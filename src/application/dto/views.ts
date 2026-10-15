@@ -83,6 +83,30 @@ export interface EndingView {
     id: string
     title: string
     paragraphs: string[]
+    // What became of the cast, by their standing with the player.
+    epilogue: string[]
+    // Name of the player's partner, if any.
+    partner: string | null
+}
+
+// A visual-novel scene between missions.
+export interface SceneView {
+    id: string
+    speaker: string
+    place: string
+    lines: string[]
+    choices: string[]
+}
+
+export interface CrewMemberView {
+    id: string
+    name: string
+    role: string
+    disposition: number
+    standing: string
+    // Null for characters without romance, or when romance is turned off.
+    affection: number | null
+    partner: boolean
 }
 
 export interface CampaignResolution {
@@ -171,6 +195,10 @@ export interface Settings {
     music: number
     // Applied when a level starts.
     difficulty: DifficultyId
+    // Character scenes between missions on the ship map; off hides them all.
+    crewScenes: boolean
+    // Romantic lines, the partner choice and the partner's epilogue.
+    romance: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -178,4 +206,6 @@ export const DEFAULT_SETTINGS: Settings = {
     volume: 50,
     music: 40,
     difficulty: DEFAULT_DIFFICULTY,
+    crewScenes: true,
+    romance: true,
 }

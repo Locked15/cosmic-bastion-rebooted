@@ -44,6 +44,12 @@
             <p v-for="(paragraph, index) in result.ending.paragraphs" :key="index">
                 {{ paragraph }}
             </p>
+            <template v-if="result.ending.epilogue.length">
+                <p class="game-menu__ending-label game-menu__epilogue">ЭКИПАЖ</p>
+                <p v-for="(paragraph, index) in result.ending.epilogue" :key="`crew-${index}`">
+                    {{ paragraph }}
+                </p>
+            </template>
         </section>
         <div v-if="result" class="game-menu__stats">
             <p v-if="result.outcome === 'defeat'" class="game-menu__reason">{{ result.reason }}</p>
@@ -156,6 +162,12 @@
             color: $color-accent;
             font-size: 10px;
             letter-spacing: 2px;
+        }
+
+        &__epilogue {
+            margin-top: $spacing-md;
+            padding-top: $spacing-sm;
+            border-top: 1px solid $color-border;
         }
 
         &__ending-title {

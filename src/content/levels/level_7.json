@@ -84,13 +84,27 @@
                         "text": "Продолжить лечение",
                         "cost": { "resources": 60 },
                         "consequence": "Ренн продолжает лечение. Потрачено 60 ресурсов. Сонм не отступит от палаты.",
-                        "effect": { "type": "flag", "name": "ward_treated", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ward_treated", "value": 1 },
+                                { "type": "relationship", "character": "renn", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Очистить палату",
                         "cost": { "miners": 4 },
                         "consequence": "Палата очищена. Четверо Отяжелевших больше не встанут. «Пыль в контурах» исчезнет из следующих секторов.",
-                        "effect": { "type": "flag", "name": "ward_purged", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ward_purged", "value": 1 },
+                                { "type": "relationship", "character": "renn", "disposition": -3 }
+                            ]
+                        }
                     }
                 ],
                 "timed": true,

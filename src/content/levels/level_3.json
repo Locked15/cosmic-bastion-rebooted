@@ -114,7 +114,19 @@
                 "choices": [
                     {
                         "text": "Обеспечить эвакуацию",
-                        "effect": { "type": "flag", "name": "scientist_saved", "value": 1 },
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "scientist_saved", "value": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "silva",
+                                    "disposition": 2,
+                                    "affection": 0
+                                }
+                            ]
+                        },
                         "consequence": "Сильва спасена. Сюжет продолжится даже при потере лаборатории.",
                         "cost": { "resources": 80 }
                     },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
+    import { computed } from 'vue'
     import { useSettingsStore } from '@/stores/settingsStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
@@ -9,6 +10,20 @@
     const settingsStore = useSettingsStore()
     const { settings } = storeToRefs(settingsStore)
     const ui = useUiStore()
+
+    // Optional story content: on/off switches shown as option buttons.
+    const toggleOptions: { value: 'on' | 'off'; text: string }[] = [
+        { value: 'on', text: 'ВКЛ' },
+        { value: 'off', text: 'ВЫКЛ' },
+    ]
+    function toggle(key: 'crewScenes' | 'romance') {
+        return computed({
+            get: () => (settings.value[key] ? 'on' : 'off'),
+            set: (value: 'on' | 'off') => (settings.value[key] = value === 'on'),
+        })
+    }
+    const crewScenes = toggle('crewScenes')
+    const romance = toggle('romance')
 </script>
 
 <template>
@@ -30,6 +45,16 @@
                 <p class="settings-modal__effects">{{ settingsStore.difficultyDetails.effects }}</p>
                 <p class="settings-modal__hint">Применяется при запуске уровня.</p>
             </div>
+            <OptionGroup v-model="crewScenes" label="СЦЕНЫ С ЭКИПАЖЕМ:" :options="toggleOptions" />
+            <OptionGroup
+                v-if="settings.crewScenes"
+                v-model="romance"
+                label="РОМАНТИЧЕСКИЕ ЛИНИИ:"
+                :options="toggleOptions"
+            />
+            <p class="settings-modal__hint settings-modal__story">
+                Разговоры между миссиями необязательны: любую сцену можно пропустить.
+            </p>
             <div class="modal__footer">
                 <AppButton variant="secondary" @click="settingsStore.reset()">
                     СБРОСИТЬ НАСТРОЙКИ
@@ -65,6 +90,10 @@
         &__hint {
             color: $color-secondary;
             font-size: 11px;
+        }
+
+        &__story {
+            margin: -$spacing-md 0 $spacing-lg;
         }
     }
 </style>

@@ -12,6 +12,11 @@ Remaining work and known limitations. Implemented items from the original list a
 - [ ] Balance pass for the new boss abilities, tech tree and sectors 6–9 (values are first guesses; they live in `src/content`).
 - [ ] Optional: generate JSON Schema files from the Valibot schemas (`@valibot/to-json-schema`) for editor autocompletion in `src/content`.
 
+- [ ] Golden ending «Налегке»: pass the profile's per-level highest completed difficulty to `CampaignService` (`CampaignOptions.difficultyRecords`) once the difficulty system records it; until then `allLevelsAtDifficulty` never holds.
+- [ ] Full event hints don't mention relationship changes yet (e.g. "Ренн это запомнит").
+- [ ] Balance pass for relationship values and thresholds (`content/cast.json`, `content/scenes.json`).
+- [ ] Character portraits for scenes.
+
 ## Done (summary)
 
 - Gameplay:
@@ -30,6 +35,7 @@ Remaining work and known limitations. Implemented items from the original list a
     - Branching ship map.
     - Key objectives.
     - Nine sectors on a tactical deck plan, four endings (`docs/LORE.md`).
+    - Relationships and romance: disposition for the cast, affection for four romanceable characters, optional scenes between missions, a partner choice before the finale, epilogues and the golden ending.
 - Content: levels, campaign, endings, balance, tech tree and achievements are validated JSON in `src/content`.
 - UI:
     - Animated main-menu blueprint.

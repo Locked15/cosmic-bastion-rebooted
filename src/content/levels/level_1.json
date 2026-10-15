@@ -172,7 +172,8 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "engineer_saved", "value": 1 },
-                                { "type": "flag", "name": "supply_cache", "value": 100 }
+                                { "type": "flag", "name": "supply_cache", "value": 100 },
+                                { "type": "relationship", "character": "chen", "disposition": 2 }
                             ]
                         },
                         "consequence": "Чен спасён вместе с тетрадями. В следующих секторах доступен запас 100 ресурсов. Сюжет продолжится даже при потере отсека.",

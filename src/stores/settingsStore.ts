@@ -17,6 +17,9 @@ export const useSettingsStore = defineStore('settings', () => {
         difficulty: isDifficultyId(saved.difficulty)
             ? saved.difficulty
             : DEFAULT_SETTINGS.difficulty,
+        crewScenes:
+            typeof saved.crewScenes === 'boolean' ? saved.crewScenes : DEFAULT_SETTINGS.crewScenes,
+        romance: typeof saved.romance === 'boolean' ? saved.romance : DEFAULT_SETTINGS.romance,
     })
 
     watch(settings, (value) => storage.write(SETTINGS_KEY, value), { deep: true })
