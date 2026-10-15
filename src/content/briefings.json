@@ -1,0 +1,27 @@
+[
+    {
+        "completed": ["level_5"],
+        "when": [{ "flag": "ending_renunciation", "atLeast": 1 }],
+        "text": "Посмертная запись Архива, {name}."
+    },
+    {
+        "completed": ["level_5"],
+        "when": [
+            { "flag": "engines_restored", "atLeast": 1 },
+            { "flag": "engineer_saved", "atLeast": 1 }
+        ],
+        "text": "Бортовой журнал на взлёте, {name}."
+    },
+    { "completed": ["level_5"], "text": "Рапорт из Вечного Бастиона, {name}." },
+    { "completed": ["level_9"], "text": "Последний рапорт перед реактором, {name}." },
+    {
+        "completed": ["level_4"],
+        "when": [{ "flag": "truth_told", "atLeast": 1 }],
+        "text": "Донесение под грифом Внутреннего Круга, {name}."
+    },
+    { "completed": ["level_4"], "text": "Секретное донесение из ядра, {name}." },
+    { "completed": ["level_3"], "text": "Сводка из лабораторий, {name}." },
+    { "completed": ["level_2"], "text": "Сводка из жилого слоя, {name}." },
+    { "completed": ["level_1"], "text": "Сводка с внешнего корпуса, {name}." },
+    { "text": "Экстренный рапорт, {name}." }
+]

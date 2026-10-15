@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useProfileStore } from '@/stores/profileStore'
 import MainMenuPage from '@/ui/pages/MainMenuPage.vue'
 
 const router = createRouter({
@@ -19,5 +20,10 @@ const router = createRouter({
         { path: '/:pathMatch(.*)*', redirect: { name: 'menu' } },
     ],
 })
+
+// Missions belong to a profile: without one the player signs in on the main menu first.
+router.beforeEach((to) =>
+    to.name === 'menu' || !useProfileStore().required ? true : { name: 'menu' },
+)
 
 export default router

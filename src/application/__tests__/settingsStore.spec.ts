@@ -1,23 +1,15 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { silentSoundPlayer } from '../ports/SoundPlayer'
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
-import { provideServices } from '@/stores/services'
 import { useSettingsStore } from '@/stores/settingsStore'
-import { createMathRandom } from '@/domain'
+import { provideTestServices } from './testServices'
 
 let storage: MemoryStore
 
-beforeEach(() => {
+beforeEach(async () => {
     storage = new MemoryStore()
     setActivePinia(createPinia())
-    provideServices({
-        storage,
-        sound: silentSoundPlayer,
-        createRandom: createMathRandom,
-        createScheduler: () => ({ start() {}, stop() {} }),
-        renderScene: () => {},
-    })
+    await provideTestServices({ deviceStorage: storage })
 })
 
 describe('settingsStore', () => {

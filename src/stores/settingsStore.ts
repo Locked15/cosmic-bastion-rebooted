@@ -7,7 +7,7 @@ import { useServices } from './services'
 const SETTINGS_KEY = 'settings'
 
 export const useSettingsStore = defineStore('settings', () => {
-    const { storage, sound } = useServices()
+    const { deviceStorage: storage, sound } = useServices()
     const saved = storage.read<Partial<Settings>>(SETTINGS_KEY) ?? {}
     // Take only known keys: older saves may carry removed settings (e.g. enemy speed).
     const settings = ref<Settings>({

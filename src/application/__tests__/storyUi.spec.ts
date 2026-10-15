@@ -4,7 +4,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { createSeededRandom } from '@/domain'
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
-import { provideServices } from '@/stores/services'
+import { provideTestServices } from './testServices'
 import { useCampaignStore } from '@/stores/campaignStore'
 import { useGameStore } from '@/stores/gameStore'
 import { CampaignService } from '../CampaignService'
@@ -30,10 +30,10 @@ function router() {
     })
 }
 
-beforeEach(() => {
+beforeEach(async () => {
     storage = new MemoryStore()
     setActivePinia(createPinia())
-    provideServices({
+    await provideTestServices({
         storage,
         sound: silentSoundPlayer,
         createRandom: () => createSeededRandom(1),
@@ -182,9 +182,9 @@ describe('story and campaign UI', () => {
         expect(game.snapshot?.buildOptions.map((option) => option.type)).not.toContain('shield')
     })
 
-    it('reports results once, carries flags into a new store session and attaches newly unlocked tech', () => {
+    it('reports results once, carries flags into a new store session and attaches newly unlocked tech', async () => {
         const captured: { current?: import('../session/GameSession').GameSession } = {}
-        provideServices({
+        await provideTestServices({
             storage,
             sound: silentSoundPlayer,
             createRandom: () => createSeededRandom(1),

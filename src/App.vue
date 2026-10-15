@@ -6,6 +6,7 @@
     import AchievementsModal from '@/ui/layouts/AchievementsModal.vue'
     import ConfirmModal from '@/ui/layouts/ConfirmModal.vue'
     import HelpModal from '@/ui/layouts/HelpModal.vue'
+    import ProfilesModal from '@/ui/layouts/ProfilesModal.vue'
     import SettingsModal from '@/ui/layouts/SettingsModal.vue'
     import ToastStack from '@/ui/layouts/ToastStack.vue'
 
@@ -21,6 +22,7 @@
     <SettingsModal />
     <HelpModal />
     <AchievementsModal />
+    <ProfilesModal />
     <ConfirmModal />
     <ToastStack />
 </template>

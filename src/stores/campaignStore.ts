@@ -13,7 +13,7 @@ import { useServices } from './services'
 
 export const useCampaignStore = defineStore('campaign', () => {
     const { storage } = useServices()
-    const service = new CampaignService(storage)
+    let service = new CampaignService(storage)
     const checkpoints = new CheckpointService(storage)
     const levels = ref<LevelSummary[]>(service.listLevels())
     const hasProgress = ref(service.hasProgress)
@@ -61,9 +61,9 @@ export const useCampaignStore = defineStore('campaign', () => {
         return resolution
     }
 
-    function reset() {
-        service.reset()
-        for (const id of LEVEL_IDS) checkpoints.clear(id)
+    // Re-read after the active profile changed.
+    function reload() {
+        service = new CampaignService(storage)
         refresh()
     }
 
@@ -75,7 +75,7 @@ export const useCampaignStore = defineStore('campaign', () => {
         completeLevel,
         prepareLevel,
         recordResult,
-        reset,
+        reload,
         saveCheckpoint,
         restoreCheckpoint,
         clearCheckpoint,

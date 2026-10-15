@@ -1,27 +1,37 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { ProfileService } from '@/application'
 import { createMathRandom } from '@/domain'
 import { renderScene } from '@/infrastructure/canvas'
 import { SynthSoundPlayer } from '@/infrastructure/audio/SynthSoundPlayer'
 import { RafScheduler } from '@/infrastructure/clock/RafScheduler'
-import { LocalStorageStore } from '@/infrastructure/storage/LocalStorageStore'
+import { IdbProfileRepository } from '@/infrastructure/storage/IdbProfileRepository'
+import { LegacyLocalStorage } from '@/infrastructure/storage/LegacyLocalStorage'
 import { provideServices } from '@/stores/services'
 import App from './App.vue'
 import router from './router'
 import '@/styles/main.scss'
 
 // Composition root: the only place that knows the concrete adapters.
-provideServices({
-    storage: new LocalStorageStore(),
-    sound: new SynthSoundPlayer(),
-    createScheduler: () => new RafScheduler(),
-    createRandom: () => createMathRandom(),
-    renderScene,
-})
+async function bootstrap() {
+    // Profiles live in IndexedDB; they are loaded into memory before the app starts.
+    const profiles = await ProfileService.open(await IdbProfileRepository.open(), {
+        legacy: new LegacyLocalStorage(),
+    })
+    provideServices({
+        storage: profiles.storage,
+        deviceStorage: profiles.device,
+        profiles,
+        sound: new SynthSoundPlayer(),
+        createScheduler: () => new RafScheduler(),
+        createRandom: () => createMathRandom(),
+        renderScene,
+    })
 
-const app = createApp(App)
+    const app = createApp(App)
+    app.use(createPinia())
+    app.use(router)
+    app.mount('#app')
+}
 
-app.use(createPinia())
-app.use(router)
-
-app.mount('#app')
+void bootstrap()

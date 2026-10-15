@@ -7,7 +7,7 @@ import { useUiStore } from './uiStore'
 export const useAchievementsStore = defineStore('achievements', () => {
     const { storage, sound } = useServices()
     const ui = useUiStore()
-    const service = new AchievementService(storage)
+    let service = new AchievementService(storage)
     const achievements = ref<AchievementView[]>(service.list())
 
     // Check the running level and announce anything newly earned.
@@ -26,10 +26,11 @@ export const useAchievementsStore = defineStore('achievements', () => {
         achievements.value = service.list()
     }
 
-    function reset() {
-        service.reset()
+    // Re-read after the active profile changed.
+    function reload() {
+        service = new AchievementService(storage)
         achievements.value = service.list()
     }
 
-    return { achievements, check, reset }
+    return { achievements, check, reload }
 })

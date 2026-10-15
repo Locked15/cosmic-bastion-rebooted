@@ -35,7 +35,8 @@ src/
                    personnel.ts, livingQuarters.ts, story.ts (StoryDirector), effects.ts,
                    objectives.ts (ObjectiveTracker), checkpoint.ts; presenter.ts + presenters/
                    turn the session into GameSnapshot; scene.ts is the read model for renderers
-    ports/         KeyValueStore, FrameScheduler, SoundPlayer (implemented in infrastructure)
+    profiles/      ProfileService (≤3 profiles, briefing line), CachedStore/SwitchingStore
+    ports/         KeyValueStore, ProfileRepository, FrameScheduler, SoundPlayer (implemented in infrastructure)
     dto/           plain view models for the UI
     CampaignService, CheckpointService, AchievementService
   infrastructure/  adapters: localStorage/memory stores, requestAnimationFrame scheduler,
@@ -63,7 +64,8 @@ Key rules:
 - **Campaign context** reaches a level through `SessionOptions` (unlocks, story flags); the session never reads storage.
 - **New story effect:** extend `EventEffect` and `effectSchema` (`domain/levels/schema.ts`), then handle it in `applyEffect` and `canAfford` (`application/session/effects.ts`).
 - **New objective kind:** add it to `OBJECTIVE_KINDS` (`domain/levels/schema.ts`) and handle it in `ObjectiveTracker` (`application/session/objectives.ts`).
-- **Persistence** goes through the `KeyValueStore` port (keys are prefixed `cosmicBastion:` in localStorage).
+- **Persistence:** services use the synchronous `KeyValueStore` port. In the app it is the active profile's `CachedStore`: `ProfileService.open` (in `main.ts`) loads every profile from IndexedDB (`IdbProfileRepository`, via `idb`) before the app mounts; writes update memory at once and reach IndexedDB in order. Settings are device-wide (`AppServices.deviceStorage`); campaign, checkpoints and achievements belong to a profile. Old `cosmicBastion:` localStorage saves move into the first profile.
+- **Profiles:** at most three. Without an active profile the security dialog (`ProfilesModal`) cannot be closed and mission routes redirect to the menu. After a switch, `profileStore` reloads the campaign and achievement stores. The menu greeting comes from `content/briefings.json` by story progress.
 
 ## UI rules
 
@@ -83,7 +85,8 @@ Key rules:
 ## Code style
 
 - 4-space indent. oxfmt also indents the contents of `<script>`, `<template>` and `<style>` (`vueIndentScriptAndStyle`). No semicolons, single quotes, 100 columns.
-- Keep dependencies small. Runtime deps are only `vue`, `vue-router`, `pinia` and `valibot`; ask before adding any.
+- Keep dependencies small. Runtime deps are only `vue`, `vue-router`, `pinia`, `valibot` and `idb`; ask before adding any.
+- Store and UI tests set up services with `provideTestServices()` (`application/__tests__/testServices.ts`).
 - Tests: Vitest specs live next to the code in `__tests__/`; e2e specs live in `e2e/`.
 - Commits follow Conventional Commits: `feat(scope): …`, `fix: …`, `refactor: …`, `test: …`, `docs: …`, `chore: …`.
 
@@ -99,6 +102,7 @@ Game content is data in `src/content/*.json`; code only interprets it. Each file
 | `events/refugees.json`                                        | Texts and prices of the refugee event template                                     | `domain/story/events.ts`                              |
 | `towers.json`, `barricades.json`                              | Costs, base stats and per-level upgrade stats                                      | `domain/rules/*Catalog.ts`                            |
 | `enemies.json`                                                | Enemy stats, ability texts, wave generation                                        | `domain/rules/enemyRules.ts`                          |
+| `briefings.json`                                              | Main-menu greeting line by story progress (`{name}` is the profile)                | `domain/story/briefing.ts`                            |
 | `difficulties.json`, `technologies.json`, `achievements.json` | Settings levels, tech tree, achievements                                           | `domain/rules`, `domain/story`, `domain/achievements` |
 
 - **New level:** add `src/content/levels/level_N.json` (the `id` must match the file name) and a sector for it in `campaign.json`. A sector may only require sectors listed before it. The layout and content tests run on every level automatically.

@@ -1,39 +1,43 @@
 <script setup lang="ts">
+    import { onMounted } from 'vue'
     import { useRouter } from 'vue-router'
-    import { useAchievementsStore } from '@/stores/achievementsStore'
     import { useCampaignStore } from '@/stores/campaignStore'
+    import { useProfileStore } from '@/stores/profileStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
     import ShipSchema from '@/ui/components/ShipSchema.vue'
 
     const router = useRouter()
     const campaign = useCampaignStore()
+    const profiles = useProfileStore()
     const ui = useUiStore()
-    const achievements = useAchievementsStore()
 
-    async function resetProgress() {
-        if (await ui.confirm('Вы уверены? Это удалит весь ваш прогресс навсегда.')) {
-            campaign.reset()
-            achievements.reset()
-            ui.notify('Прогресс сброшен. Начинаем игру заново!')
-        }
-    }
+    // The report line follows story progress made since the menu was last shown.
+    onMounted(() => profiles.refresh())
 </script>
 
 <template>
     <main class="main-menu">
+        <header v-if="profiles.activeName" class="main-menu__report" aria-live="polite">
+            <p class="main-menu__briefing">{{ profiles.briefing }}</p>
+            <p class="main-menu__identity">
+                Если это не Вы,
+                <button type="button" class="main-menu__security" @click="profiles.open()">
+                    вызовите службу безопасности</button
+                >.
+            </p>
+        </header>
         <div class="main-menu__container">
             <ShipSchema />
             <h1 class="main-menu__title">COSMIC BASTION</h1>
             <p class="main-menu__subtitle">// ПРОТОКОЛ АВАРИЙНОЙ ЗАЩИТЫ //</p>
             <nav class="main-menu__buttons">
-                <AppButton @click="router.push({ name: 'levels' })">
+                <AppButton :disabled="profiles.required" @click="router.push({ name: 'levels' })">
                     {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
                 </AppButton>
                 <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
                 <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
                 <AppButton @click="ui.openSettings()">НАСТРОЙКИ</AppButton>
-                <AppButton variant="secondary" @click="resetProgress">НАЧАТЬ ЗАНОВО</AppButton>
             </nav>
             <div class="main-menu__status">
                 <p>СТАТУС: КРИТИЧЕСКИЙ</p>
@@ -49,15 +53,57 @@
         @include blueprint-grid;
 
         display: flex;
-        align-items: safe center;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: $spacing-lg;
         height: 100vh;
         padding: $spacing-lg;
         overflow-y: auto;
 
+        &__report {
+            @include pop-in(report-pop, 0.96);
+
+            align-self: stretch;
+            padding: $spacing-sm $spacing-md;
+            border: 1px solid $color-border;
+            border-left: 4px solid $color-danger;
+            background-color: rgba($color-bg, 0.95);
+        }
+
+        &__briefing {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        &__identity {
+            margin-top: $spacing-xs;
+            color: $color-secondary;
+            font-size: 13px;
+        }
+
+        &__security {
+            padding: 0;
+            border: none;
+            background: none;
+            color: $color-primary;
+            font: inherit;
+            text-decoration: underline dashed;
+            text-underline-offset: 3px;
+            cursor: pointer;
+
+            &:hover,
+            &:focus-visible {
+                color: $color-danger;
+                outline: none;
+            }
+        }
+
         &__container {
             @include corner-frame;
 
+            margin: auto 0;
             max-width: 800px;
             padding: $spacing-lg;
             border: 2px solid $color-primary;
