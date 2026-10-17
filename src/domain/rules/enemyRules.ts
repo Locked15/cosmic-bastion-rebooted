@@ -77,3 +77,6 @@ export const ENEMY_KIND_MODIFIERS: Record<
 > = rules.kinds
 export const ABILITY_DESCRIPTIONS: Record<EnemyAbility, string> = rules.abilities
 export const WAVE_RULES: WaveRules = rules.waves
+
+// Abilities only bosses get.
+export const BOSS_ABILITIES: readonly EnemyAbility[] = WAVE_RULES.bossAbilities

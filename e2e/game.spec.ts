@@ -189,7 +189,13 @@ test('opens the quartermaster terminal from the ship map', async ({ page }) => {
     await winSectors(page, ['level_1', 'level_10'])
     await page.getByRole('button', { name: /^ИТ-41 Интендантство: НА СЧЁТЕ/ }).click()
     await expect(page).toHaveURL(/\/quartermaster$/)
-    await expect(page.getByRole('option')).toHaveCount(10)
+    await expect(page.getByRole('tab')).toHaveText([
+        '[1] МАШИНЕРИЯ',
+        '[2] ЭКИПАЖ',
+        '[3] НАУКА ▒',
+        '[4] ОСОБЫЕ ▒',
+    ])
+    await expect(page.getByRole('option')).toHaveCount(11)
     // The two won sectors are paid for when the account is opened.
     await expect(page.getByRole('img', { name: /^РЕКВИЗИЦИИ НА СЧЁТЕ [1-9]\d*$/ })).toBeVisible()
     await expect(page.getByRole('button', { name: /УТВЕРДИТЬ/ })).toBeEnabled()

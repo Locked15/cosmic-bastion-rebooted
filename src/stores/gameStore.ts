@@ -133,10 +133,14 @@ export const useGameStore = defineStore('game', () => {
                 difficulty: session.difficulty,
             })
             if (!session.overrides.used) {
+                const won = session.result.outcome === 'victory'
                 reward = requisitions.award(
-                    session.result.outcome,
-                    starsFor(session),
-                    resolution.firstVictory,
+                    session.level.id,
+                    {
+                        outcome: session.result.outcome,
+                        stars: starsFor(session),
+                        wavesHeld: Math.max(0, session.currentWave - (won ? 0 : 1)),
+                    },
                     DIFFICULTIES[session.difficulty].requisitions,
                 )
             }

@@ -12,11 +12,11 @@ const technologySchema = v.strictObject({
     storyCompletions: count,
     tower: v.optional(v.picklist(TOWER_TYPES)),
     barricade: v.optional(v.picklist(BARRICADE_TYPES)),
-    upgradeTier: v.optional(v.pipe(count, v.minValue(1), v.maxValue(3))),
 })
 export type Technology = v.InferOutput<typeof technologySchema>
 
-// Progress follows completed story missions; branch order does not matter.
+// Progress follows completed story missions; branch order does not matter. Upgrade steps of
+// towers and barricades are bought at the quartermaster's (meta/requisitions.ts).
 // A story flag `tech_<id>` opens a technology early.
 export const TECHNOLOGIES: readonly Technology[] = parseContent(
     v.array(technologySchema),
@@ -27,7 +27,6 @@ export const TECHNOLOGIES: readonly Technology[] = parseContent(
 export interface TechnologyUnlocks {
     towers: TowerType[]
     barricades: BarricadeType[]
-    upgradeTier: number
     technologies: Technology[]
 }
 
@@ -41,7 +40,6 @@ export function technologyUnlocks(
     return {
         towers: technologies.flatMap((tech) => (tech.tower ? [tech.tower] : [])),
         barricades: technologies.flatMap((tech) => (tech.barricade ? [tech.barricade] : [])),
-        upgradeTier: Math.max(0, ...technologies.map((tech) => tech.upgradeTier ?? 0)),
         technologies: technologies.map((tech) => ({ ...tech })),
     }
 }

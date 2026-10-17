@@ -177,7 +177,6 @@ export class CampaignService {
             campaignFlags: {
                 ...flags,
                 mission_index: missionIndex(level.id),
-                tech_upgrade_tier: unlocks.upgradeTier,
             },
             startEffects,
             excludedAbilities,

@@ -13,12 +13,20 @@ let storage: MemoryStore
 
 const Shell = defineComponent(() => () => [h(QuartermasterPage), h(ConfirmModal)])
 
-async function mountTerminal(balance: number) {
-    storage.write('requisitions', { balance, earned: balance, spent: 0, levels: {} })
+async function mountTerminal(balance: number, levels: Record<string, number> = {}) {
+    storage.write('requisitions', {
+        version: 2,
+        balance,
+        earned: balance,
+        spent: 0,
+        levels,
+        missions: {},
+    })
     const router = createRouter({
         history: createMemoryHistory(),
         routes: [
             { path: '/', name: 'menu', component: { template: '<main />' } },
+            { path: '/levels', name: 'levels', component: { template: '<main />' } },
             { path: '/quartermaster', name: 'quartermaster', component: QuartermasterPage },
         ],
     })
@@ -28,7 +36,12 @@ async function mountTerminal(balance: number) {
     return router
 }
 
-const rows = () => wrapper!.findAll('.requisition-row')
+const rows = () => wrapper!.findAll('.requisition-node')
+const tabs = () => wrapper!.findAll('.quartermaster__tab')
+const press = async (key: string) => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key }))
+    await flushPromises()
+}
 const key = (label: string) =>
     wrapper!.findAll('.keycap').find((candidate) => candidate.text().startsWith(label))!
 const counter = () => wrapper!.find('.mechanical-counter').attributes('aria-label')
@@ -45,49 +58,85 @@ afterEach(() => {
 })
 
 describe('quartermaster terminal', () => {
-    it('lists every requisition by rank and approves the selected one with the key', async () => {
+    it('shows four trees as tabs and five tiers split by dotted rules', async () => {
         await mountTerminal(100)
-        expect(rows()).toHaveLength(10)
-        expect(wrapper!.text()).toContain('== РАЗРЯД IV — ОСОБЫЙ ==')
+        expect(tabs().map((tab) => tab.text())).toEqual([
+            '[1] МАШИНЕРИЯ',
+            '[2] ЭКИПАЖ',
+            '[3] НАУКА ▒',
+            '[4] ОСОБЫЕ ▒',
+        ])
+        expect(tabs()[0]!.attributes('aria-selected')).toBe('true')
+        expect(wrapper!.findAll('.quartermaster__tier')).toHaveLength(5)
+        expect(wrapper!.findAll('hr.quartermaster__rule')).toHaveLength(4)
+        expect(wrapper!.text()).toContain('РАЗРЯД V')
+        expect(wrapper!.text()).toContain('С 4 НАРЯДОВ')
         expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 100')
 
-        await rows()[3]!.trigger('click')
-        expect(rows()[3]!.attributes('aria-selected')).toBe('true')
-        await key('УТВЕРДИТЬ').trigger('click')
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 55')
-        expect(rows()[3]!.text()).toContain('■□□□□')
-        expect(wrapper!.text()).toContain('НАРЯД СТ-О-11 «Оптика наведения» УТВЕРЖДЁН · СПИСАНО 45')
+        await tabs()[2]!.trigger('click')
+        expect(wrapper!.text()).toContain('ОТКРОЕТСЯ ПОСЛЕ ПОБЕДЫ В СЕКТОРЕ C-9')
+        await press('4')
+        expect(wrapper!.text()).toContain('ДОПУСК ТОЛЬКО ДЛЯ МАЙОРОВ И ГЕНЕРАЛОВ')
+        await press('ArrowRight')
+        expect(tabs()[0]!.attributes('aria-selected')).toBe('true')
+    })
 
-        // Rank IV costs more than what is left: the key is disabled for it.
-        await rows()[9]!.trigger('click')
+    it('approves the selected form with the key and keeps closed tiers shut', async () => {
+        await mountTerminal(100)
+        await rows()[1]!.trigger('click')
+        expect(rows()[1]!.attributes('aria-selected')).toBe('true')
+        await key('УТВЕРДИТЬ').trigger('click')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 85')
+        expect(rows()[1]!.text()).toContain('■□□□□')
+        expect(wrapper!.text()).toContain('НАРЯД СТ-М-07 «Оптика наведения» УТВЕРЖДЁН · СПИСАНО 15')
+
+        // Tier II needs four purchases first.
+        await rows()[2]!.trigger('click')
+        expect(rows()[2]!.classes()).toContain('requisition-node--blocked')
+        expect(wrapper!.text()).toContain('РАЗРЯД II ОТКРОЕТСЯ ПОСЛЕ 4 НАРЯДОВ')
         expect(key('УТВЕРДИТЬ').attributes('disabled')).toBeDefined()
     })
 
     it('moves the cursor with the arrows and approves with Enter', async () => {
         await mountTerminal(100)
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown' }))
-        await flushPromises()
+        await press('ArrowDown')
         expect(rows()[1]!.attributes('aria-selected')).toBe('true')
-        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }))
-        await flushPromises()
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 75')
+        await press('Enter')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 85')
+        await press('ArrowLeft')
+        expect(tabs()[3]!.attributes('aria-selected')).toBe('true')
+    })
+
+    it('opens tier II after four purchases in any tree', async () => {
+        await mountTerminal(1_000, { tower_damage: 2, mining: 2 })
+        expect(wrapper!.text()).toContain('НАРЯДОВ УТВЕРЖДЕНО: 4')
+        await rows()[2]!.trigger('click')
+        expect(rows()[2]!.classes()).not.toContain('requisition-node--blocked')
+        await key('УТВЕРДИТЬ').trigger('click')
+        expect(rows()[2]!.text()).toContain('■')
     })
 
     it('burns all forms with the lever after confirmation and returns 75%', async () => {
         await mountTerminal(100)
         await key('УТВЕРДИТЬ').trigger('click')
         await key('УТВЕРДИТЬ').trigger('click')
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 45')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 65')
         await wrapper!.find('.reset-lever__slot').trigger('click')
         await new Promise((resolve) => setTimeout(resolve, 400))
         await flushPromises()
-        expect(wrapper!.text()).toContain('вернёт 41 реквизиций (75% от потраченных 55)')
+        expect(wrapper!.text()).toContain('вернёт 26 реквизиций (75% от потраченных 35)')
         await wrapper!
             .findAll('button')
             .find((button) => button.text() === 'ДА')!
             .trigger('click')
         await flushPromises()
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 86')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 91')
         expect(rows()[0]!.text()).toContain('□□□□□')
+    })
+
+    it('leaves for the ship map with Esc', async () => {
+        const router = await mountTerminal(0)
+        await press('Escape')
+        expect(router.currentRoute.value.name).toBe('levels')
     })
 })

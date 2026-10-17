@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import * as v from 'valibot'
-import { CAMPAIGN, DIFFICULTIES, DIFFICULTY_IDS, requisitionReward, sectorDepth } from '@/domain'
+import { CAMPAIGN, DIFFICULTIES, DIFFICULTY_IDS, sectorDepth } from '@/domain'
 import { difficultySchema } from '../rules/difficulty'
 
 describe('difficulty content', () => {
@@ -64,22 +64,4 @@ describe('campaign depth', () => {
         })
         expect(sectorDepth('unknown')).toBe(0)
     })
-})
-
-describe('requisition multiplier', () => {
-    it.each(['victory', 'defeat'] as const)(
-        'scales the final %s reward and preserves the default',
-        (outcome) => {
-            for (const stars of [0, 1, 2, 3]) {
-                for (const first of [true, false]) {
-                    for (const id of DIFFICULTY_IDS) {
-                        const base = requisitionReward(outcome, stars, first)
-                        expect(
-                            requisitionReward(outcome, stars, first, DIFFICULTIES[id].requisitions),
-                        ).toBe(Math.round(base * DIFFICULTIES[id].requisitions))
-                    }
-                }
-            }
-        },
-    )
 })

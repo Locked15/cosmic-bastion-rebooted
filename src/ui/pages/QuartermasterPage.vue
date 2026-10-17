@@ -1,13 +1,13 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
-    import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+    import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
     import { useRouter } from 'vue-router'
     import { useProfileStore } from '@/stores/profileStore'
     import { useRequisitionStore } from '@/stores/requisitionStore'
     import { useUiStore } from '@/stores/uiStore'
     import KeycapButton from '@/ui/components/KeycapButton.vue'
     import MechanicalCounter from '@/ui/components/MechanicalCounter.vue'
-    import RequisitionRow from '@/ui/components/RequisitionRow.vue'
+    import RequisitionNode from '@/ui/components/RequisitionNode.vue'
     import ResetLever from '@/ui/components/ResetLever.vue'
     import TerminalScreen from '@/ui/components/TerminalScreen.vue'
 
@@ -17,11 +17,21 @@
     const ui = useUiStore()
     const { view, log, flashId } = storeToRefs(requisitions)
 
-    const upgrades = computed(() => view.value.tiers.flatMap((tier) => tier.upgrades))
+    // The open tab: one of the four trees.
+    const treeId = ref(view.value.trees[0]!.id)
+    const tree = computed(() =>
+        view.value.trees.find((candidate) => candidate.id === treeId.value)!,
+    )
+    // Forms of the open tree, column by column (tier I to V): the cursor's order.
+    const upgrades = computed(() => tree.value.tiers.flatMap((tier) => tier.upgrades))
     const selectedId = ref(upgrades.value[0]?.id ?? null)
     const selected = computed(
         () => upgrades.value.find((upgrade) => upgrade.id === selectedId.value) ?? null,
     )
+    // Purchases still needed for the next closed tier, for the status line.
+    const nextTier = computed(() => tree.value.tiers.find((tier) => !tier.open) ?? null)
+
+    watch(treeId, () => (selectedId.value = upgrades.value[0]?.id ?? null))
 
     onMounted(() => {
         requisitions.refresh()
@@ -29,7 +39,13 @@
     })
     onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
-    // ↑/↓ move the cursor, Enter approves, Esc leaves the terminal for the ship map.
+    function switchTree(step: number) {
+        const trees = view.value.trees
+        const index = trees.findIndex((candidate) => candidate.id === treeId.value)
+        treeId.value = trees[(index + step + trees.length) % trees.length]!.id
+    }
+
+    // ←/→ or 1–4 switch tabs, ↑/↓ move the cursor, Enter approves, Esc leaves the terminal.
     function onKey(event: KeyboardEvent) {
         if (ui.confirmRequest) return
         const index = upgrades.value.findIndex((upgrade) => upgrade.id === selectedId.value)
@@ -38,10 +54,15 @@
             const step = event.key === 'ArrowDown' ? 1 : -1
             const next = (index + step + upgrades.value.length) % upgrades.value.length
             selectedId.value = upgrades.value[next]!.id
+        } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+            event.preventDefault()
+            switchTree(event.key === 'ArrowRight' ? 1 : -1)
+        } else if (/^[1-4]$/.test(event.key)) {
+            treeId.value = view.value.trees[Number(event.key) - 1]!.id
         } else if (event.key === 'Enter' && selected.value) {
             event.preventDefault()
             approve()
-        } else if (event.key === 'Escape' && !ui.confirmRequest) {
+        } else if (event.key === 'Escape') {
             router.push({ name: 'levels' })
         }
     }
@@ -64,24 +85,64 @@
             <TerminalScreen
                 :title="`> ИНТЕНДАНТСТВО // ОФИЦЕР: ${(profiles.activeName ?? '').toUpperCase()} // ДОПУСК ПОДТВЕРЖДЁН`"
             >
-                <div class="quartermaster__listing" role="listbox" aria-label="Наряды">
-                    <template v-for="tier in view.tiers" :key="tier.rank">
-                        <p class="quartermaster__tier">== {{ tier.title }} ==</p>
-                        <RequisitionRow
-                            v-for="upgrade in tier.upgrades"
-                            :key="upgrade.id"
-                            :code="upgrade.form"
-                            :name="upgrade.name"
-                            :level="upgrade.level"
-                            :max-level="upgrade.maxLevel"
-                            :current="upgrade.current"
-                            :next="upgrade.next"
-                            :cost="upgrade.cost"
-                            :affordable="upgrade.affordable"
-                            :selected="upgrade.id === selectedId"
-                            :flash="upgrade.id === flashId"
-                            @select="selectedId = upgrade.id"
-                        />
+                <div class="quartermaster__tabs" role="tablist" aria-label="Ветви нарядов">
+                    <button
+                        v-for="(candidate, index) in view.trees"
+                        :key="candidate.id"
+                        type="button"
+                        role="tab"
+                        class="quartermaster__tab"
+                        :class="{
+                            'quartermaster__tab--active': candidate.id === treeId,
+                            'quartermaster__tab--locked': candidate.locked,
+                        }"
+                        :aria-selected="candidate.id === treeId"
+                        @click="treeId = candidate.id"
+                    >
+                        [{{ index + 1 }}] {{ candidate.title }}{{ candidate.locked ? ' ▒' : '' }}
+                    </button>
+                </div>
+                <p class="quartermaster__status">
+                    &gt; {{ tree.form }} · {{ tree.description }}
+                    <template v-if="tree.locked">
+                        <br />&gt; <span class="quartermaster__warning">{{ tree.locked }}</span>
+                    </template>
+                    <br />&gt; НАРЯДОВ УТВЕРЖДЕНО: {{ view.purchases }}
+                    <template v-if="nextTier">
+                        · РАЗРЯД {{ nextTier.numeral }} — С {{ nextTier.opensAt }}
+                    </template>
+                </p>
+                <div
+                    class="quartermaster__tree"
+                    role="listbox"
+                    :aria-label="`Наряды: ${tree.title}`"
+                >
+                    <template v-for="(tier, index) in tree.tiers" :key="tier.tier">
+                        <hr v-if="index" class="quartermaster__rule" aria-orientation="vertical" />
+                        <section
+                            class="quartermaster__tier"
+                            :class="{ 'quartermaster__tier--closed': !tier.open }"
+                            :aria-label="`Разряд ${tier.numeral}`"
+                        >
+                            <p class="quartermaster__tier-title">РАЗРЯД {{ tier.numeral }}</p>
+                            <p class="quartermaster__tier-gate">
+                                {{ tier.open ? 'ОТКРЫТ' : `С ${tier.opensAt} НАРЯДОВ` }}
+                            </p>
+                            <RequisitionNode
+                                v-for="upgrade in tier.upgrades"
+                                :key="upgrade.id"
+                                :code="upgrade.form"
+                                :name="upgrade.name"
+                                :level="upgrade.level"
+                                :max-level="upgrade.maxLevel"
+                                :cost="upgrade.cost"
+                                :affordable="upgrade.affordable"
+                                :blocked="!!upgrade.blocked"
+                                :selected="upgrade.id === selectedId"
+                                :flash="upgrade.id === flashId"
+                                @select="selectedId = upgrade.id"
+                            />
+                        </section>
                     </template>
                 </div>
 
@@ -96,6 +157,9 @@
                             <span class="requisition-icon" aria-hidden="true" />
                         </template>
                         <template v-else> · НАРЯД ИСПОЛНЕН ПОЛНОСТЬЮ</template>
+                    </p>
+                    <p v-if="selected.blocked" class="quartermaster__warning">
+                        &gt; {{ selected.blocked.toUpperCase() }}
                     </p>
                 </div>
 
@@ -136,7 +200,9 @@
                     @pull="requisitions.reset()"
                 />
             </div>
-            <p class="quartermaster__hint">↑ ↓ — выбор наряда · ENTER — утвердить · ESC — выход</p>
+            <p class="quartermaster__hint">
+                ← → или 1–4 — ветвь · ↑ ↓ — выбор наряда · ENTER — утвердить · ESC — выход
+            </p>
         </section>
     </main>
 </template>
@@ -202,11 +268,96 @@
             background: radial-gradient(circle at 30% 30%, #fff, $color-metal-dark);
         }
 
+        &__tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: $spacing-xs;
+            margin-bottom: $spacing-sm;
+        }
+
+        &__tab {
+            padding: 3px $spacing-sm;
+            border: 1px solid rgba($color-primary, 0.5);
+            background: none;
+            color: inherit;
+            font-family: $font-main;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-shadow: inherit;
+            cursor: pointer;
+
+            &--active {
+                background: $color-primary;
+                color: $color-screen;
+                text-shadow: none;
+            }
+
+            &--locked:not(&--active) {
+                color: $color-secondary;
+            }
+        }
+
+        &__status {
+            margin-bottom: $spacing-sm;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        &__warning {
+            color: $color-warning;
+        }
+
+        // Five tier columns left to right, separated by dotted vertical rules.
+        &__tree {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr) auto) minmax(0, 1fr);
+            gap: $spacing-sm;
+            align-items: start;
+        }
+
+        &__rule {
+            align-self: stretch;
+            width: 0;
+            height: auto;
+            margin: 0;
+            border: none;
+            border-left: 2px dotted rgba($color-primary, 0.45);
+        }
+
         &__tier {
-            margin: $spacing-sm 0 2px;
-            color: $color-secondary;
+            display: flex;
+            flex-direction: column;
+            gap: $spacing-xs;
+            min-width: 0;
+
+            &--closed {
+                opacity: 0.75;
+            }
+        }
+
+        &__tier-title {
+            color: $color-primary;
             font-size: 12px;
             letter-spacing: 2px;
+        }
+
+        &__tier-gate {
+            color: $color-secondary;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        // Narrow screens: tiers stack, and the rules turn horizontal.
+        @media (max-width: 900px) {
+            &__tree {
+                grid-template-columns: 1fr;
+            }
+
+            &__rule {
+                width: auto;
+                border-top: 2px dotted rgba($color-primary, 0.45);
+                border-left: none;
+            }
         }
 
         &__detail {

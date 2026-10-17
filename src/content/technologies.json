@@ -2,12 +2,9 @@
     { "id": "cannon", "name": "Пушка", "storyCompletions": 0, "tower": "cannon" },
     { "id": "machinegun", "name": "Пулемёт", "storyCompletions": 0, "tower": "machinegun" },
     { "id": "wall", "name": "Стандартная стена", "storyCompletions": 0, "barricade": "wall" },
-    { "id": "upgrade_1", "name": "Улучшения I", "storyCompletions": 0, "upgradeTier": 1 },
     { "id": "rocket", "name": "Ракетница", "storyCompletions": 1, "tower": "rocket" },
     { "id": "filter", "name": "Баррикада «Фильтр»", "storyCompletions": 1, "barricade": "filter" },
-    { "id": "upgrade_2", "name": "Улучшения II", "storyCompletions": 1, "upgradeTier": 2 },
     { "id": "laser", "name": "Лазерная установка", "storyCompletions": 2, "tower": "laser" },
     { "id": "shock", "name": "Электрошоковая установка", "storyCompletions": 2, "tower": "shock" },
-    { "id": "shield", "name": "Лазерный щит", "storyCompletions": 2, "barricade": "shield" },
-    { "id": "upgrade_3", "name": "Улучшения III", "storyCompletions": 2, "upgradeTier": 3 }
+    { "id": "shield", "name": "Лазерный щит", "storyCompletions": 2, "barricade": "shield" }
 ]

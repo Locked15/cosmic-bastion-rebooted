@@ -14,9 +14,11 @@ export interface TerminalLine {
 
 // The profile's requisitions and the quartermaster's terminal that spends them.
 export const useRequisitionStore = defineStore('requisitions', () => {
-    const { storage, sound } = useServices()
+    const { storage, sound, profiles } = useServices()
     const ui = useUiStore()
-    let service = new RequisitionService(storage)
+    // Special favours depend on the officer's rank.
+    const create = () => new RequisitionService(storage, { difficulty: () => profiles.difficulty })
+    let service = create()
     const view = shallowRef<RequisitionView>(service.view())
     // Terminal output, newest last.
     const log = ref<TerminalLine[]>([])
@@ -31,11 +33,19 @@ export const useRequisitionStore = defineStore('requisitions', () => {
         log.value = [...log.value, { text, amount }].slice(-LOG_LINES)
     }
 
+    // An account from before the four trees was converted: say so on the terminal.
+    function announceMigration() {
+        if (service.migrationRefund)
+            print('НАРЯДЫ ПЕРЕСМОТРЕНЫ ПО НОВОМУ УСТАВУ · ВОЗВРАЩЕНО', service.migrationRefund)
+    }
+    announceMigration()
+
     // Re-read after the active profile changed.
     function reload() {
-        service = new RequisitionService(storage)
+        service = create()
         log.value = []
         flashId.value = null
+        announceMigration()
         refresh()
     }
 
@@ -44,8 +54,8 @@ export const useRequisitionStore = defineStore('requisitions', () => {
     }
 
     function buy(id: string): boolean {
-        const upgrade = view.value.tiers
-            .flatMap((tier) => tier.upgrades)
+        const upgrade = view.value.trees
+            .flatMap((tree) => tree.tiers.flatMap((tier) => tier.upgrades))
             .find((item) => item.id === id)
         const result = service.buy(id)
         if (!result.ok) {
@@ -79,12 +89,11 @@ export const useRequisitionStore = defineStore('requisitions', () => {
     }
 
     function award(
-        outcome: 'victory' | 'defeat',
-        stars: number,
-        firstVictory: boolean,
+        levelId: string,
+        result: { outcome: 'victory' | 'defeat'; stars: number; wavesHeld: number },
         multiplier = 1,
     ): number {
-        const amount = service.award(outcome, stars, firstVictory, multiplier)
+        const amount = service.award(levelId, result, multiplier)
         refresh()
         return amount
     }

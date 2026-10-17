@@ -29,9 +29,9 @@ const flag = (name: string, label: string, value?: number): Directive => ({
 })
 
 const DIRECTIVES: Readonly<Record<string, Directive>> = {
-    yjow7j: session((current) => ({ ok: true, state: current.toggleOverride('lethal') })),
-    '1pwag4e': session((current) => current.grantResources(GRANT)),
-    evfcp8: session((current) => current.eliminateEnemies()),
+    p0xbb1: session((current) => ({ ok: true, state: current.toggleOverride('lethal') })),
+    '214pj1': session((current) => current.grantResources(GRANT)),
+    '5dahtl': session((current) => current.eliminateEnemies()),
     dgk4tx: session((current) => current.clearWave()),
     '1ba0kls': session((current) => current.forceVictory()),
     '1azqu9h': session((current) => ({ ok: true, state: current.toggleOverride('fortified') })),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createLevel, createSeededRandom, type CampaignProgress } from '@/domain'
+import { createLevel, createSeededRandom, type CampaignProgress, NO_BONUSES } from '@/domain'
 import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
 import { CampaignService, type MissionReport } from '../CampaignService'
 import { GameSession } from '../session/GameSession'
@@ -29,12 +29,7 @@ describe('campaign story progression', () => {
         )
         expect(result.advanced).toBe(true)
         expect(result.unlocks).toEqual(
-            expect.arrayContaining([
-                'Ракетница',
-                'Баррикада «Фильтр»',
-                'Лазерная установка',
-                'Улучшения II',
-            ]),
+            expect.arrayContaining(['Ракетница', 'Баррикада «Фильтр»', 'Лазерная установка']),
         )
         const reloaded = new CampaignService(storage)
         expect(reloaded.isUnlocked('level_2')).toBe(true)
@@ -142,28 +137,35 @@ describe('campaign story progression', () => {
         campaign.completeLevel('level_3', 2)
         expect(campaign.unlocks.towers).toContain('shock')
         expect(campaign.unlocks.barricades).toContain('shield')
-        expect(campaign.unlocks.upgradeTier).toBe(3)
     })
 
-    it('gates upgrades with the campaign tier for towers and barricades', () => {
+    it('gates upgrade steps with the quartermaster for towers and barricades', () => {
         const campaign = new CampaignService(new MemoryStore())
         const level = createLevel('level_1')!
         level.events = []
-        const session = new GameSession(level, createSeededRandom(1), campaign.prepareLevel(level))
+        const bonuses = { ...NO_BONUSES }
+        const session = new GameSession(level, createSeededRandom(1), {
+            ...campaign.prepareLevel(level),
+            bonuses,
+        })
         session.buildTower(session.slots[0]!.id, 'cannon')
         for (let frame = 0; frame < 1000; frame++) session.update(1)
         const slot = session.slots[0]!
         expect(canUpgradeTechnology(session, slot.id)).toBe(true)
         slot.tower!.level = 1
         expect(canUpgradeTechnology(session, slot.id)).toBe(false)
-        session.story.flags.tech_upgrade_tier = 2
-        expect(canUpgradeTechnology(session, slot.id)).toBe(true)
+        const stepTwo = new GameSession(createLevel('level_1')!, createSeededRandom(1), {
+            bonuses: { ...NO_BONUSES, upgradeTier: 1 },
+        })
+        expect(stepTwo.upgradeTier).toBe(2)
         session.buildBarricade(level.basePath[2]!, 'wall')
         const wall = session.barricades[0]!
-        wall.level = 2
+        wall.level = 1
         expect(canUpgradeTechnology(session, wall.id)).toBe(false)
-        session.story.flags.tech_upgrade_tier = 3
+        wall.level = 0
         expect(canUpgradeTechnology(session, wall.id)).toBe(true)
+        // Without meta upgrades (tools, tests) every step is open.
+        expect(new GameSession(createLevel('level_1')!, createSeededRandom(1)).upgradeTier).toBe(3)
     })
 
     it('loads old saves without flags, isolates returned state, and resets all progression', () => {
