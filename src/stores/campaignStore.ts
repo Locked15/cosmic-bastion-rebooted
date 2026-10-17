@@ -66,6 +66,13 @@ export const useCampaignStore = defineStore('campaign', () => {
         refresh()
     }
 
+    // Dev console only: sets (or flips) a story flag of the campaign.
+    function setFlag(name: string, value?: number): number {
+        const result = service.setFlag(name, value)
+        refresh()
+        return result
+    }
+
     function isFacilityOpen(id: string) {
         return service.isFacilityOpen(id)
     }
@@ -155,6 +162,7 @@ export const useCampaignStore = defineStore('campaign', () => {
         crewDeck,
         facilities,
         isFacilityOpen,
+        setFlag,
         pendingScenes,
         activeScene,
         openPendingScenes,

@@ -157,6 +157,8 @@ export interface ResultView {
     ending: EndingView | null
     // Requisitions paid for this mission.
     requisitions: number | null
+    // The campaign moved on: the sector counts as held (after a defeat too, in A-7).
+    advanced: boolean
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]

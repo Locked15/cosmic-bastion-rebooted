@@ -92,7 +92,7 @@ const choiceSchema = v.strictObject({
 })
 export type StoryChoice = v.InferOutput<typeof choiceSchema>
 
-const dialogSchema = v.strictObject({
+export const dialogSchema = v.strictObject({
     // full: costs and consequences shown; partial: consequence shown after the choice;
     // unknown: nothing is shown.
     kind: v.picklist(['full', 'partial', 'unknown']),
@@ -165,10 +165,7 @@ const objectiveSchema = v.pipe(
         (objective) => (objective.kind === 'decision') === (objective.events !== undefined),
         'A decision objective needs `events`, and only it',
     ),
-    v.check(
-        (objective) => objective.kind !== 'survive' || !objective.optional,
-        'Surviving is always a main objective',
-    ),
+
     v.check(
         (objective) => !TARGETED.includes(objective.kind) || objective.target !== undefined,
         'This objective kind needs `target`',
@@ -278,6 +275,15 @@ export const levelSchema = v.pipe(
         objectives: v.pipe(v.array(objectiveSchema), v.nonEmpty()),
         events: v.array(eventSchema),
         carryOver: v.optional(v.array(carryOverSchema), []),
+        // Story flags the mission's result writes into the campaign (A-7 lost: the Swarm is
+        // loose in the ship; won later: the breach is sealed).
+        outcomeFlags: v.optional(
+            v.strictObject({
+                victory: v.optional(v.record(flagName, v.number()), {}),
+                defeat: v.optional(v.record(flagName, v.number()), {}),
+            }),
+            { victory: {}, defeat: {} },
+        ),
     }),
     v.check(
         (level) => level.livingQuartersY < level.height,

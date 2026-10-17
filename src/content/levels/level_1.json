@@ -166,7 +166,12 @@
     "start": { "miners": 12, "military": 6, "resources": 250 },
     "waves": { "total": 4, "difficulty": 0.7 },
     "objectives": [
-        { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
+        {
+            "id": "survive",
+            "text": "Пережить все волны (иначе Сонм прорвётся вглубь корабля)",
+            "kind": "survive",
+            "optional": true
+        },
         {
             "id": "decision",
             "text": "Решить судьбу инженера Чена",
@@ -193,6 +198,10 @@
             "optional": true
         }
     ],
+    "outcomeFlags": {
+        "victory": { "hull_breached": 0 },
+        "defeat": { "hull_breached": 1 }
+    },
     "events": [
         {
             "wave": 0,

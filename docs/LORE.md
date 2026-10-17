@@ -233,6 +233,8 @@ Shown in the result window after level 5 and chosen by conditions (`src/content/
 
 Further notes are added to the endings by `gardens_saved`, `foreman_saved`, `ballast_kept` and `cult_spared` (see `endings.json`). At the reactor, the earlier choices arrive as start effects: the pact's reserves, the Communicants' guard or their desertion, Ренн's serum, the lead bulkheads, the shaft's ore, and the gardens' miners.
 
+**A-7 can be lost.** Only Чен's fate is mandatory there. If the outer hull falls, the campaign goes on, but the Swarm gets through the breach (`hull_breached`): every later mission has a quarter more enemies and opens with «ПРОРЫВ ВНЕШНЕГО КОРПУСА». Retaking A-7 later seals the breach.
+
 Mission tasks are **main** (hold the sector, make its story decision) or **optional** (tactical goals and rescues of people, a star each). Only the main tasks open the next sectors, so the campaign goes on whatever was chosen: without Чен, Сильва, Ренн or Горбань, and on either side of the balanced choices (the gardens, the relic, the Archive), which give no star.
 
 Story levels can still move the plot forward after a tactical defeat (brief § 4.2). That is what the existing flags `engineer_saved`, `scientist_saved` and `archive_saved` are for, and the new story flags follow the same rule.
@@ -278,5 +280,6 @@ Planned revisions to existing texts:
 
 Existing: `engineer_saved`, `scientist_saved`, `archive_saved`, `archive_signal`, `supply_cache`, `lab_supplies`, `refugees_*`, `survivors_<level>`.
 New: `wreck_found`, `offerings_known`, `shuttle_salvage`, `ward_purged`, `ward_treated`, `surgeon_saved`, `relic_secured`, `truth_told`, `archive_isolated`, `draft_told`, `engines_restored`, `engines_stripped`, `engines_decided`, `ending_renunciation`.
+The breach: `hull_breached`.
 Relationships: `rep_<character>`, `aff_<character>`, `romance_<character>`, `romance_declined`, `scene_<scene id>`.
 Acts II–III, added with sectors 10–15: `registry_seen`, `kp_pattern`, `kp_decoded`, `bridge_retaken`, `bridge_manual`, `bridge_archive`, `ore_samples`, `debt_forgiven`, `shaft_sealed`, `shaft_open`, `foreman_saved`, `foreman_lost`, `litany_jammed`, `cult_broken`, `cult_spared`, `cult_decided`, `gardens_burned`, `gardens_washed`, `gardens_saved`, `serum_made`, `sealed_orders`, `archive_silenced`, `archive_pact`, `archive_decided`, `ballast_dumped`, `ballast_kept`, `ballast_decided`.

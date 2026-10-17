@@ -9,6 +9,9 @@ export type Directive =
       }
     // Re-ranks the active profile; the next mission starts on that difficulty.
     | { kind: 'rank'; difficulty: DifficultyId }
+    // Sets a campaign story flag (and the running mission's copy of it) to `value`, or
+    // toggles it between 0 and 1 when `value` is omitted.
+    | { kind: 'flag'; flag: string; label: string; value?: number }
 
 const SEED = 'ws.7c19:'
 const GRANT = 5000
@@ -18,6 +21,12 @@ const session = (run: Extract<Directive, { kind: 'session' }>['run']): Directive
     run,
 })
 const rank = (difficulty: DifficultyId): Directive => ({ kind: 'rank', difficulty })
+const flag = (name: string, label: string, value?: number): Directive => ({
+    kind: 'flag',
+    flag: name,
+    label,
+    value,
+})
 
 const DIRECTIVES: Readonly<Record<string, Directive>> = {
     yjow7j: session((current) => ({ ok: true, state: current.toggleOverride('lethal') })),
@@ -30,6 +39,12 @@ const DIRECTIVES: Readonly<Record<string, Directive>> = {
     '9sv4ec': rank('modest'),
     azzhm2: rank('complex'),
     '12brzcz': rank('xhard'),
+    // The Swarm loose in the ship after a lost A-7 (more enemies in later missions), or not.
+    '14foev2': flag('hull_breached', 'прорыв корпуса', 1),
+    ebsdh2: flag('hull_breached', 'прорыв корпуса', 0),
+    // Chen evacuated from A-7 with his engine notebooks, or left behind.
+    '1kwm449': flag('engineer_saved', 'инженер Чен', 1),
+    '1gmuubo': flag('engineer_saved', 'инженер Чен', 0),
 }
 
 // Salted FNV-1a over the letters of the input, case-insensitive.

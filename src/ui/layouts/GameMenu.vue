@@ -59,6 +59,9 @@
         </section>
         <div v-if="result" class="game-menu__stats">
             <p v-if="result.outcome === 'defeat'" class="game-menu__reason">{{ result.reason }}</p>
+            <p v-if="result.outcome === 'defeat' && result.advanced" class="game-menu__onward">
+                Сектор потерян, но кампания продолжается: Сонм прорвался вглубь корабля.
+            </p>
             <StatItem
                 v-for="row in result.stats"
                 :key="row.label"
@@ -101,7 +104,9 @@
             </div>
         </div>
         <AppButton v-if="!result" @click="game.togglePause()">ПРОДОЛЖИТЬ</AppButton>
-        <AppButton v-if="result?.outcome === 'victory'" @click="quit">К СХЕМЕ КОРАБЛЯ</AppButton>
+        <AppButton v-if="result?.outcome === 'victory' || result?.advanced" @click="quit">
+            К СХЕМЕ КОРАБЛЯ
+        </AppButton>
         <AppButton v-if="result?.outcome === 'defeat'" @click="restart">ПОВТОРИТЬ</AppButton>
         <AppButton v-if="!result" variant="secondary" @click="restart">ПЕРЕЗАПУСТИТЬ</AppButton>
         <AppButton variant="secondary" @click="quit">ВЫХОД В МЕНЮ</AppButton>
@@ -138,6 +143,12 @@
             padding: 15px;
             border: 1px solid $color-border;
             font-size: 14px;
+        }
+
+        &__onward {
+            margin-bottom: 15px;
+            color: $color-warning;
+            text-align: center;
         }
 
         &__reason {

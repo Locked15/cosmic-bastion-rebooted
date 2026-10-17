@@ -146,6 +146,7 @@ export const useGameStore = defineStore('game', () => {
         if (next.result && resolution) {
             next.result.unlocks = resolution.unlocks
             next.result.ending = resolution.ending
+            next.result.advanced = resolution.advanced
             next.result.requisitions = reward
         }
         snapshot.value = next
@@ -170,6 +171,14 @@ export const useGameStore = defineStore('game', () => {
                 .overrideRank(directive.difficulty)
                 .then((done) => done && ui.notify(`Код принят: звание «${label}»`))
             return `Звание «${label}» — со следующей миссии`
+        }
+        if (directive.kind === 'flag') {
+            const value = campaign.setFlag(directive.flag, directive.value)
+            // The mission writes its flags back when it ends: keep its copy in step.
+            if (session) session.story.flags[directive.flag] = value
+            const text = `Код принят: ${directive.label} — ${value ? 'вкл' : 'выкл'}`
+            ui.notify(text)
+            return text
         }
         if (!session) return 'Нет активной миссии'
         const result = run(directive.run)

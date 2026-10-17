@@ -153,6 +153,7 @@ describe('story and campaign UI', () => {
                 unlocks: ['Ракетница', 'Улучшения II'],
                 ending: null,
                 requisitions: null,
+                advanced: false,
                 objectives: [
                     { id: 'save_engineer', text: 'Чен спасён', completed: true, optional: true },
                     { id: 'survive', text: 'Отразить волны', completed: false, optional: false },
@@ -167,6 +168,17 @@ describe('story and campaign UI', () => {
         // A defeat never advances the campaign: only retry or leave.
         expect(wrapper.text()).toContain('ПОВТОРИТЬ')
         expect(wrapper.text()).not.toContain('К СХЕМЕ КОРАБЛЯ')
+        expect(wrapper.text()).not.toContain('кампания продолжается')
+        wrapper.unmount()
+
+        // A-7 lost after Chen's fate was decided: the story goes on through the breach.
+        game.snapshot = {
+            ...game.snapshot!,
+            result: { ...game.snapshot!.result!, advanced: true },
+        }
+        wrapper = mount(GameMenu, { global: { plugins: [router()] } })
+        expect(wrapper.text()).toContain('Сектор потерян, но кампания продолжается')
+        expect(wrapper.text()).toContain('К СХЕМЕ КОРАБЛЯ')
     })
 
     it('passes campaign options and starting resources through gameStore.start', () => {

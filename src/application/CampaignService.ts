@@ -18,6 +18,10 @@ import {
     DIFFICULTIES,
     campaignSector,
     createLevel,
+    BREACH_ENEMIES,
+    breachApplies,
+    breachEvent,
+    levelDefinition,
     flagsMatch,
     missionIndex,
     resolveEnding,
@@ -155,6 +159,8 @@ export class CampaignService {
     // Call once on a fresh level; lists and session starts use the same conditions.
     prepareLevel(level: Level): SessionOptions {
         this.applyStartingConditions(level)
+        // The breach opens the level as a special event, ahead of the level's own.
+        if (breachApplies(level.id, this.campaign.flags)) level.events.unshift(breachEvent())
         const unlocks = this.unlocks
         const flags = this.campaign.flags
         const startEffects: { effect: EventEffect; message?: string }[] = []
@@ -198,15 +204,29 @@ export class CampaignService {
             }
         }
         this.campaign.flags[`survivors_${levelId}`] = Math.max(0, Math.floor(report.survivors))
-        // Only a won mission with every main objective done completes the level and opens the
-        // next sectors; optional objectives only add stars.
-        const advanced =
-            report.outcome === 'victory' &&
-            report.objectives.every((objective) => objective.optional || objective.completed)
+        const won = report.outcome === 'victory'
+        const definition = levelDefinition(levelId)!
+        Object.assign(this.campaign.flags, definition.outcomeFlags[won ? 'victory' : 'defeat'])
+        // Every main objective done completes the level and opens the next sectors; optional
+        // objectives only add stars. A victory settles survival and decisions (one that never
+        // came up counts as made). Survival is main everywhere except where a lost sector still
+        // lets the story go on (A-7), so elsewhere a defeat never advances.
+        const done = (id: string) =>
+            report.objectives.some((objective) => objective.id === id && objective.completed)
+        const advanced = definition.objectives
+            .filter((objective) => !objective.optional)
+            .every((objective) =>
+                objective.kind === 'survive'
+                    ? won
+                    : (won && objective.kind === 'decision') || done(objective.id),
+            )
         const firstVictory =
+            won &&
             advanced &&
             !this.campaign.levels.some((entry) => entry.id === levelId && entry.completed)
-        if (advanced) this.campaign.completeLevel(levelId, report.stars, report.difficulty)
+        // Only a victory records the rank the sector was held on.
+        if (advanced)
+            this.campaign.completeLevel(levelId, report.stars, won ? report.difficulty : undefined)
         const unlocks = this.unlocks.technologies
             .filter((tech) => !before.has(tech.id))
             .map((tech) => tech.name)
@@ -220,6 +240,15 @@ export class CampaignService {
                   })
                 : null
         return { advanced, firstVictory, unlocks, ending }
+    }
+
+    // Dev console: sets a story flag (or flips it between 0 and 1) and saves it. Returns the
+    // new value.
+    setFlag(name: string, value?: number): number {
+        if (value === undefined) value = (this.campaign.flags[name] ?? 0) >= 1 ? 0 : 1
+        this.campaign.flags[name] = value
+        this.save()
+        return value
     }
 
     // Scenes waiting on the ship map after won missions.
@@ -315,6 +344,8 @@ export class CampaignService {
             if (rule.stat === 'miners') level.startingMiners += bonus
             if (rule.stat === 'military') level.startingMilitary += bonus
         }
+        // A lost first mission let the Swarm into the ship: more enemies everywhere after it.
+        if (breachApplies(level.id, flags)) level.waveDifficulty *= BREACH_ENEMIES
     }
 
     private get romance(): boolean {
