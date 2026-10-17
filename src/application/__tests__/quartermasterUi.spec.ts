@@ -58,7 +58,7 @@ afterEach(() => {
 })
 
 describe('quartermaster terminal', () => {
-    it('shows four trees as tabs and five tiers split by dotted rules', async () => {
+    it('shows four trees as tabs, tiers and transitions split by dotted rules', async () => {
         await mountTerminal(100)
         expect(tabs().map((tab) => tab.text())).toEqual([
             '[1] МАШИНЕРИЯ',
@@ -67,16 +67,23 @@ describe('quartermaster terminal', () => {
             '[4] ОСОБЫЕ ▒',
         ])
         expect(tabs()[0]!.attributes('aria-selected')).toBe('true')
-        expect(wrapper!.findAll('.quartermaster__tier')).toHaveLength(5)
-        expect(wrapper!.findAll('hr.quartermaster__rule')).toHaveLength(4)
+        expect(wrapper!.findAll('.quartermaster__tier')).toHaveLength(7)
+        expect(wrapper!.findAll('.quartermaster__tier--transition')).toHaveLength(2)
+        expect(wrapper!.findAll('hr.quartermaster__rule')).toHaveLength(6)
         expect(wrapper!.text()).toContain('РАЗРЯД V')
-        expect(wrapper!.text()).toContain('С 4 НАРЯДОВ')
+        expect(wrapper!.text()).toContain('ПЕРЕХОД I–II')
+        expect(wrapper!.text()).toContain('ПЕРЕХОД III–IV')
+        expect(wrapper!.text()).toContain('С 3 НАРЯДОВ')
         expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 100')
 
+        // A sealed register hides its forms and says what opens it.
         await tabs()[2]!.trigger('click')
-        expect(wrapper!.text()).toContain('ОТКРОЕТСЯ ПОСЛЕ ПОБЕДЫ В СЕКТОРЕ C-9')
+        expect(rows()).toHaveLength(0)
+        expect(wrapper!.find('.quartermaster__seal').text()).toContain('РАЗДЕЛ ОПЕЧАТАН')
+        expect(wrapper!.text()).toContain('[ ] СЕКТОР C-9 «ЛАБОРАТОРИИ» УДЕРЖАН')
         await press('4')
-        expect(wrapper!.text()).toContain('ДОПУСК ТОЛЬКО ДЛЯ МАЙОРОВ И ГЕНЕРАЛОВ')
+        expect(wrapper!.text()).toContain('[ ] ЗВАНИЕ: МАЙОР ИЛИ ГЕНЕРАЛ')
+        expect(wrapper!.text()).not.toContain('Подряд верфей')
         await press('ArrowRight')
         expect(tabs()[0]!.attributes('aria-selected')).toBe('true')
     })
@@ -86,14 +93,15 @@ describe('quartermaster terminal', () => {
         await rows()[1]!.trigger('click')
         expect(rows()[1]!.attributes('aria-selected')).toBe('true')
         await key('УТВЕРДИТЬ').trigger('click')
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 85')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 86')
         expect(rows()[1]!.text()).toContain('■□□□□')
-        expect(wrapper!.text()).toContain('НАРЯД СТ-М-07 «Оптика наведения» УТВЕРЖДЁН · СПИСАНО 15')
+        expect(wrapper!.text()).toContain('НАРЯД СТ-М-07 «Оптика наведения» УТВЕРЖДЁН · СПИСАНО 14')
+        expect(wrapper!.text()).toContain('НАДБАВКА СИНОДА К ЦЕНАМ: +2.5%')
 
-        // Tier II needs four purchases first.
+        // The transition I–II needs three purchases in this tree first.
         await rows()[2]!.trigger('click')
         expect(rows()[2]!.classes()).toContain('requisition-node--blocked')
-        expect(wrapper!.text()).toContain('РАЗРЯД II ОТКРОЕТСЯ ПОСЛЕ 4 НАРЯДОВ')
+        expect(wrapper!.text()).toContain('ПЕРЕХОД I–II ОТКРОЕТСЯ ПОСЛЕ 3 НАРЯДОВ ЭТОЙ ВЕТВИ')
         expect(key('УТВЕРДИТЬ').attributes('disabled')).toBeDefined()
     })
 
@@ -102,35 +110,44 @@ describe('quartermaster terminal', () => {
         await press('ArrowDown')
         expect(rows()[1]!.attributes('aria-selected')).toBe('true')
         await press('Enter')
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 85')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 86')
         await press('ArrowLeft')
         expect(tabs()[3]!.attributes('aria-selected')).toBe('true')
     })
 
-    it('opens tier II after four purchases in any tree', async () => {
-        await mountTerminal(1_000, { tower_damage: 2, mining: 2 })
-        expect(wrapper!.text()).toContain('НАРЯДОВ УТВЕРЖДЕНО: 4')
+    it('does not open machinery transitions with purchases in another tree', async () => {
+        await mountTerminal(1_000, { mining: 5 })
+        expect(wrapper!.text()).toContain('НАРЯДОВ В ВЕТВИ: 0')
+        expect(rows()[2]!.classes()).toContain('requisition-node--blocked')
+    })
+
+    it('opens the transition after three purchases in this tree, then the tier', async () => {
+        await mountTerminal(1_000, { tower_damage: 3 })
+        expect(wrapper!.text()).toContain('НАРЯДОВ В ВЕТВИ: 3')
+        expect(wrapper!.text()).toContain('ПОСЛЕ ПЕРЕХОДА I–II')
+        expect(rows()[3]!.classes()).toContain('requisition-node--blocked')
         await rows()[2]!.trigger('click')
         expect(rows()[2]!.classes()).not.toContain('requisition-node--blocked')
         await key('УТВЕРДИТЬ').trigger('click')
         expect(rows()[2]!.text()).toContain('■')
+        expect(rows()[3]!.classes()).not.toContain('requisition-node--blocked')
     })
 
-    it('burns all forms with the lever after confirmation and returns 75%', async () => {
+    it('recalls all forms with the lever after confirmation and returns 75%', async () => {
         await mountTerminal(100)
         await key('УТВЕРДИТЬ').trigger('click')
         await key('УТВЕРДИТЬ').trigger('click')
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 65')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 70')
         await wrapper!.find('.reset-lever__slot').trigger('click')
         await new Promise((resolve) => setTimeout(resolve, 400))
         await flushPromises()
-        expect(wrapper!.text()).toContain('вернёт 26 реквизиций (75% от потраченных 35)')
+        expect(wrapper!.text()).toContain('вернёт 22 реквизиций (75% от потраченных 30)')
         await wrapper!
             .findAll('button')
             .find((button) => button.text() === 'ДА')!
             .trigger('click')
         await flushPromises()
-        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 91')
+        expect(counter()).toBe('РЕКВИЗИЦИИ НА СЧЁТЕ 92')
         expect(rows()[0]!.text()).toContain('□□□□□')
     })
 

@@ -9,7 +9,11 @@ import {
     effectShape,
     effectValue,
     missionReward,
+    priceIndex,
     purchaseCount,
+    tierGate,
+    transitionDone,
+    transitionOpen,
     tierOpen,
     treeDefinition,
     treeLock,
@@ -57,13 +61,24 @@ export interface UpgradeView {
     affordable: boolean
 }
 
-export interface RequisitionTierView {
+// A column of a tree: a tier, or the transition into one (its keystones).
+export interface RequisitionStageView {
+    key: string
     tier: number
+    transition: boolean
+    // "II", or "I–II" for a transition.
     numeral: string
     open: boolean
-    // Purchases that open it.
+    // Steps bought in its tree that open it.
     opensAt: number
+    // A tier waiting for its transition's keystones: the transition's numeral.
+    waitsFor: string | null
     upgrades: UpgradeView[]
+}
+
+export interface TreeSealView {
+    text: string
+    requirements: { text: string; met: boolean }[]
 }
 
 export interface RequisitionTreeView {
@@ -71,17 +86,20 @@ export interface RequisitionTreeView {
     title: string
     form: string
     description: string
-    // Why the whole tree is closed, or null.
-    locked: string | null
-    tiers: RequisitionTierView[]
+    // Shown instead of a closed tree: why it is sealed and what opens it; null when open.
+    seal: TreeSealView | null
+    // Steps bought in this tree: they open its tiers.
+    purchases: number
+    stages: RequisitionStageView[]
 }
 
 export interface RequisitionView {
     balance: number
     earned: number
     spent: number
-    // Steps bought in all trees: they open the tiers.
+    // Steps bought in all trees: each one raises every price (the price index).
     purchases: number
+    priceIndex: number
     // What a reset would return now.
     refund: number
     refundPercent: number
@@ -158,6 +176,7 @@ export class RequisitionService {
             earned: this.ledger.earned,
             spent: this.ledger.spent,
             purchases: purchaseCount(this.ledger.levels),
+            priceIndex: priceIndex(purchaseCount(this.ledger.levels)),
             refund: this.refund(),
             refundPercent: Math.round(REQUISITIONS.resetRefund * 100),
             trees: TREE_IDS.map((id) => {
@@ -167,16 +186,9 @@ export class RequisitionService {
                     title: tree.title,
                     form: tree.form,
                     description: tree.description,
-                    locked: this.lockText(id),
-                    tiers: REQUISITIONS.tiers.map((tier) => ({
-                        tier: tier.tier,
-                        numeral: tier.numeral,
-                        open: tierOpen(tier.tier, this.ledger.levels),
-                        opensAt: tier.opensAt,
-                        upgrades: REQUISITIONS.upgrades
-                            .filter((upgrade) => upgrade.tree === id && upgrade.tier === tier.tier)
-                            .map((upgrade) => this.upgradeView(upgrade)),
-                    })),
+                    seal: this.seal(id),
+                    purchases: purchaseCount(this.ledger.levels, id),
+                    stages: this.stages(id),
                 }
             }),
         }
@@ -189,7 +201,7 @@ export class RequisitionService {
         if (level >= upgrade.maxLevel) return { ok: false, error: 'Наряд исполнен полностью' }
         const blocked = this.blocked(upgrade)
         if (blocked) return { ok: false, error: blocked }
-        const cost = upgradeCost(upgrade, level)
+        const cost = upgradeCost(upgrade, level, purchaseCount(this.ledger.levels))
         if (cost > this.ledger.balance) return { ok: false, error: 'Недостаточно реквизиций' }
         this.ledger.balance -= cost
         this.ledger.spent += cost
@@ -198,7 +210,7 @@ export class RequisitionService {
         return { ok: true }
     }
 
-    // Burns every upgrade; returns the refunded amount.
+    // Revokes every upgrade; returns the refunded amount.
     reset(): number {
         const refund = this.refund()
         this.ledger.balance += refund
@@ -228,23 +240,44 @@ export class RequisitionService {
         })
     }
 
-    private lockText(tree: TreeId): string | null {
-        const reason = this.lock(tree)
-        if (reason === 'rank') return 'ДОПУСК ТОЛЬКО ДЛЯ МАЙОРОВ И ГЕНЕРАЛОВ'
-        if (reason === 'story') {
-            const sector = campaignSector(treeDefinition(tree).opensAfter!)
-            return `ОТКРОЕТСЯ ПОСЛЕ ПОБЕДЫ В СЕКТОРЕ ${sector?.code ?? ''}`.trim()
+    private seal(id: TreeId): TreeSealView | null {
+        if (!this.lock(id)) return null
+        const tree = treeDefinition(id)
+        const campaign = this.storage.read<CampaignProgress>('campaign')
+        const requirements: TreeSealView['requirements'] = []
+        if (tree.ranks)
+            requirements.push({
+                text: `Звание: ${tree.ranks.map((rank) => DIFFICULTIES[rank].label.toLowerCase()).join(' или ')}`,
+                met: tree.ranks.includes(this.access.difficulty()),
+            })
+        if (tree.opensAfter) {
+            const sector = campaignSector(tree.opensAfter)
+            requirements.push({
+                text: `Сектор ${sector?.code ?? ''} «${sector?.name ?? ''}» удержан`,
+                met: !!campaign?.completedLevels.includes(tree.opensAfter),
+            })
         }
-        return null
+        return { text: tree.sealed!, requirements }
+    }
+
+    private lockText(tree: TreeId): string | null {
+        return this.lock(tree) ? 'Раздел опечатан' : null
     }
 
     // Why an upgrade cannot be bought now (ignoring the price), or null.
     private blocked(upgrade: UpgradeDefinition): string | null {
         const tree = this.lockText(upgrade.tree)
         if (tree) return tree
-        const tier = REQUISITIONS.tiers[upgrade.tier - 1]!
-        if (!tierOpen(upgrade.tier, this.ledger.levels))
-            return `Разряд ${tier.numeral} откроется после ${tier.opensAt} нарядов`
+        const levels = this.ledger.levels
+        const gate = tierGate(upgrade.tree, upgrade.tier)
+        const transition = REQUISITIONS.transitions.find((t) => t.tier === upgrade.tier)
+        const name = upgrade.transition
+            ? `Переход ${transition!.numeral}`
+            : `Разряд ${REQUISITIONS.tiers[upgrade.tier - 1]!.numeral}`
+        if (!transitionOpen(upgrade.tree, upgrade.tier, levels))
+            return `${name} откроется после ${gate} нарядов этой ветви`
+        if (!upgrade.transition && !transitionDone(upgrade.tree, upgrade.tier, levels))
+            return `${name} откроется после перехода ${transition!.numeral}`
         const required = upgrade.requires ? upgradeDefinition(upgrade.requires) : null
         if (required && (this.ledger.levels[required.id] ?? 0) < required.maxLevel)
             return `Сначала нужен наряд «${required.name}»`
@@ -252,6 +285,46 @@ export class RequisitionService {
         if (upgrade.ability && banned.includes(upgrade.ability))
             return 'На вашем звании Средоточия этого не умеют'
         return null
+    }
+
+    // Columns of a tree, left to right: tier I, transition I–II, tier II, … tier V.
+    private stages(id: TreeId): RequisitionStageView[] {
+        const levels = this.ledger.levels
+        const forms = (tier: number, transition: boolean) =>
+            REQUISITIONS.upgrades
+                .filter((u) => u.tree === id && u.tier === tier && u.transition === transition)
+                .map((u) => this.upgradeView(u))
+        return REQUISITIONS.tiers.flatMap((tier) => {
+            const transition = REQUISITIONS.transitions.find((t) => t.tier === tier.tier)
+            const gate = tierGate(id, tier.tier)
+            const stage: RequisitionStageView = {
+                key: `${tier.tier}`,
+                tier: tier.tier,
+                transition: false,
+                numeral: tier.numeral,
+                open: tierOpen(id, tier.tier, levels),
+                opensAt: gate,
+                waitsFor:
+                    transition && !transitionDone(id, tier.tier, levels)
+                        ? transition.numeral
+                        : null,
+                upgrades: forms(tier.tier, false),
+            }
+            if (!transition) return [stage]
+            return [
+                {
+                    key: `${tier.tier}t`,
+                    tier: tier.tier,
+                    transition: true,
+                    numeral: transition.numeral,
+                    open: transitionOpen(id, tier.tier, levels),
+                    opensAt: gate,
+                    waitsFor: null,
+                    upgrades: forms(tier.tier, true),
+                },
+                stage,
+            ]
+        })
     }
 
     private refund(): number {
@@ -317,7 +390,10 @@ export class RequisitionService {
 
     private upgradeView(upgrade: UpgradeDefinition): UpgradeView {
         const level = Math.min(upgrade.maxLevel, this.ledger.levels[upgrade.id] ?? 0)
-        const cost = level < upgrade.maxLevel ? upgradeCost(upgrade, level) : null
+        const cost =
+            level < upgrade.maxLevel
+                ? upgradeCost(upgrade, level, purchaseCount(this.ledger.levels))
+                : null
         const blocked = cost === null ? null : this.blocked(upgrade)
         return {
             id: upgrade.id,

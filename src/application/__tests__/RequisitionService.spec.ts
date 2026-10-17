@@ -40,7 +40,7 @@ const funded = (amount: number, difficulty: DifficultyId = 'modest', completed: 
 const upgrade = (service: RequisitionService, id: string) =>
     service
         .view()
-        .trees.flatMap((tree) => tree.tiers.flatMap((tier) => tier.upgrades))
+        .trees.flatMap((tree) => tree.stages.flatMap((stage) => stage.upgrades))
         .find((candidate) => candidate.id === id)!
 
 describe('RequisitionService', () => {
@@ -58,25 +58,20 @@ describe('RequisitionService', () => {
         )
     })
 
-    it('opens tiers by purchases over all trees and buys at rising prices', () => {
+    it('opens tiers per tree and raises every price with each purchase', () => {
         const { service } = funded(100_000)
-        expect(upgrade(service, 'upgrade_step_two').blocked).toBe(
-            'Разряд II откроется после 4 нарядов',
-        )
-        expect(service.buy('upgrade_step_two')).toEqual({
-            ok: false,
-            error: 'Разряд II откроется после 4 нарядов',
-        })
-        const prices: number[] = []
-        for (let i = 0; i < 2; i++) {
-            prices.push(upgrade(service, 'tower_damage').cost!)
-            expect(service.buy('tower_damage').ok).toBe(true)
-        }
-        // Crew purchases count too.
-        service.buy('mining')
-        service.buy('mining')
-        expect(prices[1]).toBeGreaterThan(prices[0]!)
-        expect(service.view().purchases).toBe(4)
+        const gate = 'Переход I–II откроется после 3 нарядов этой ветви'
+        expect(upgrade(service, 'upgrade_step_two').blocked).toBe(gate)
+        expect(service.buy('upgrade_step_two')).toEqual({ ok: false, error: gate })
+        // Purchases in the crew tree raise machinery prices but do not open its tiers.
+        const before = upgrade(service, 'tower_damage').cost!
+        for (let i = 0; i < 4; i++) expect(service.buy('mining').ok).toBe(true)
+        expect(upgrade(service, 'tower_damage').cost!).toBeGreaterThan(before)
+        expect(upgrade(service, 'upgrade_step_two').blocked).toBe(gate)
+        expect(service.view().priceIndex).toBeCloseTo(1 + 4 * REQUISITIONS.priceRise)
+        for (let i = 0; i < 3; i++) service.buy('tower_damage')
+        const machinery = service.view().trees.find((tree) => tree.id === 'machinery')!
+        expect(machinery.purchases).toBe(3)
         expect(upgrade(service, 'upgrade_step_two').blocked).toBeNull()
         expect(service.buy('upgrade_step_two').ok).toBe(true)
         expect(service.buy('upgrade_step_two')).toEqual({
@@ -86,23 +81,47 @@ describe('RequisitionService', () => {
         expect(service.bonuses.upgradeTier).toBe(1)
     })
 
-    it('requires earlier forms and refuses what the balance cannot pay', () => {
+    it('keeps a tier shut until its transition keystones are bought', () => {
         const { service } = funded(20)
         expect(service.buy('tower_damage').ok).toBe(true)
         expect(service.buy('tower_damage')).toEqual({ ok: false, error: 'Недостаточно реквизиций' })
         const rich = funded(1_000_000).service
         for (let i = 0; i < 10; i++) rich.buy(i % 2 ? 'tower_damage' : 'tower_range')
-        expect(upgrade(rich, 'upgrade_step_three').blocked).toBe(
-            'Сначала нужен наряд «Чертежи второй ступени»',
+        // Enough purchases: the transition opens, the tier behind it waits for the keystone.
+        expect(upgrade(rich, 'upgrade_step_two').blocked).toBeNull()
+        expect(upgrade(rich, 'barricade_health').blocked).toBe(
+            'Разряд II откроется после перехода I–II',
         )
+        expect(rich.buy('barricade_health').ok).toBe(false)
+        expect(rich.buy('upgrade_step_two').ok).toBe(true)
+        expect(upgrade(rich, 'barricade_health').blocked).toBeNull()
+        const machinery = rich.view().trees.find((tree) => tree.id === 'machinery')!
+        expect(machinery.stages.map((stage) => stage.numeral)).toEqual([
+            'I',
+            'I–II',
+            'II',
+            'III',
+            'III–IV',
+            'IV',
+            'V',
+        ])
+        expect(machinery.stages.find((stage) => stage.numeral === 'IV')!.waitsFor).toBe('III–IV')
     })
 
     it('keeps science and the favours closed until the story and the rank allow them', () => {
         const lieutenant = funded(1_000_000, 'modest', ['level_1', 'level_2'])
         const view = lieutenant.service.view()
         const tree = (id: string) => view.trees.find((candidate) => candidate.id === id)!
-        expect(tree('science').locked).toBe('ОТКРОЕТСЯ ПОСЛЕ ПОБЕДЫ В СЕКТОРЕ C-9')
-        expect(tree('special').locked).toBe('ДОПУСК ТОЛЬКО ДЛЯ МАЙОРОВ И ГЕНЕРАЛОВ')
+        // Sealed registers say why, not what is inside.
+        expect(tree('science').seal).toEqual({
+            text: expect.stringContaining('РАЗДЕЛ ОПЕЧАТАН'),
+            requirements: [{ text: 'Сектор C-9 «Лаборатории» удержан', met: false }],
+        })
+        expect(tree('special').seal!.requirements).toEqual([
+            { text: 'Звание: майор или генерал', met: false },
+            { text: 'Сектор D-1 «Техническое ядро» удержан', met: false },
+        ])
+        expect(tree('machinery').seal).toBeNull()
         expect(lieutenant.service.buy('enemy_health').ok).toBe(false)
 
         const major = funded(1_000_000, 'complex', ['level_1', 'level_2', 'level_3', 'level_4'])
@@ -140,7 +159,10 @@ describe('RequisitionService', () => {
         const { service } = funded(1_000)
         service.buy('tower_damage')
         service.buy('mining')
-        const spent = upgradeCost(upgradeDefinition('tower_damage')!, 0) * 2
+        const damage = upgradeDefinition('tower_damage')!
+        const mining = upgradeDefinition('mining')!
+        // The second purchase already pays the raised price index.
+        const spent = upgradeCost(damage, 0, 0) + upgradeCost(mining, 0, 1)
         expect(service.view().spent).toBe(spent)
         expect(service.reset()).toBe(Math.floor(spent * 0.75))
         expect(service.view().purchases).toBe(0)

@@ -22,14 +22,29 @@
     const tree = computed(() =>
         view.value.trees.find((candidate) => candidate.id === treeId.value)!,
     )
-    // Forms of the open tree, column by column (tier I to V): the cursor's order.
-    const upgrades = computed(() => tree.value.tiers.flatMap((tier) => tier.upgrades))
+    // Forms of the open tree, column by column (tier I to V with transitions): the cursor's
+    // order. A sealed register shows none.
+    const upgrades = computed(() =>
+        tree.value.seal ? [] : tree.value.stages.flatMap((stage) => stage.upgrades),
+    )
     const selectedId = ref(upgrades.value[0]?.id ?? null)
     const selected = computed(
         () => upgrades.value.find((upgrade) => upgrade.id === selectedId.value) ?? null,
     )
-    // Purchases still needed for the next closed tier, for the status line.
-    const nextTier = computed(() => tree.value.tiers.find((tier) => !tier.open) ?? null)
+    // The next closed column, for the status line.
+    const nextTier = computed(() => tree.value.stages.find((stage) => !stage.open) ?? null)
+
+    // What a closed column waits for: purchases in this tree, or its transition's keystones.
+    function gateText(stage: (typeof tree.value.stages)[number]): string {
+        if (stage.open) return 'ОТКРЫТ'
+        if (tree.value.purchases < stage.opensAt) return `С ${stage.opensAt} НАРЯДОВ`
+        return stage.waitsFor ? `ПОСЛЕ ПЕРЕХОДА ${stage.waitsFor}` : 'ОТКРЫТ'
+    }
+
+    // The price index as a surcharge: "+12.5%".
+    const surcharge = computed(
+        () => `+${(Math.round((view.value.priceIndex - 1) * 1000) / 10).toString()}%`,
+    )
 
     watch(treeId, () => (selectedId.value = upgrades.value[0]?.id ?? null))
 
@@ -94,42 +109,62 @@
                         class="quartermaster__tab"
                         :class="{
                             'quartermaster__tab--active': candidate.id === treeId,
-                            'quartermaster__tab--locked': candidate.locked,
+                            'quartermaster__tab--locked': candidate.seal,
                         }"
                         :aria-selected="candidate.id === treeId"
                         @click="treeId = candidate.id"
                     >
-                        [{{ index + 1 }}] {{ candidate.title }}{{ candidate.locked ? ' ▒' : '' }}
+                        [{{ index + 1 }}] {{ candidate.title }}{{ candidate.seal ? ' ▒' : '' }}
                     </button>
                 </div>
-                <p class="quartermaster__status">
-                    &gt; {{ tree.form }} · {{ tree.description }}
-                    <template v-if="tree.locked">
-                        <br />&gt; <span class="quartermaster__warning">{{ tree.locked }}</span>
-                    </template>
-                    <br />&gt; НАРЯДОВ УТВЕРЖДЕНО: {{ view.purchases }}
+                <!-- A sealed register shows only why it is sealed and what opens it. -->
+                <section v-if="tree.seal" class="quartermaster__seal" aria-label="Раздел опечатан">
+                    <p class="quartermaster__seal-stamp">
+                        ▒▒▒ {{ tree.form }} · {{ tree.title }} ▒▒▒
+                    </p>
+                    <p class="quartermaster__seal-text">{{ tree.seal.text }}</p>
+                    <ul class="quartermaster__seal-list">
+                        <li
+                            v-for="requirement in tree.seal.requirements"
+                            :key="requirement.text"
+                            :class="{ 'quartermaster__seal-met': requirement.met }"
+                        >
+                            [{{ requirement.met ? 'X' : ' ' }}] {{ requirement.text.toUpperCase() }}
+                        </li>
+                    </ul>
+                </section>
+                <p v-else class="quartermaster__status">
+                    &gt; {{ tree.form }} · {{ tree.description }} <br />&gt; НАРЯДОВ В ВЕТВИ:
+                    {{ tree.purchases }}
                     <template v-if="nextTier">
-                        · РАЗРЯД {{ nextTier.numeral }} — С {{ nextTier.opensAt }}
+                        · {{ nextTier.transition ? 'ПЕРЕХОД' : 'РАЗРЯД' }} {{ nextTier.numeral }} —
+                        {{ gateText(nextTier) }}
                     </template>
+                    <br />&gt; НАДБАВКА СИНОДА К ЦЕНАМ: {{ surcharge }} (ВСЕГО НАРЯДОВ:
+                    {{ view.purchases }})
                 </p>
                 <div
+                    v-if="!tree.seal"
                     class="quartermaster__tree"
                     role="listbox"
                     :aria-label="`Наряды: ${tree.title}`"
                 >
-                    <template v-for="(tier, index) in tree.tiers" :key="tier.tier">
+                    <template v-for="(stage, index) in tree.stages" :key="stage.key">
                         <hr v-if="index" class="quartermaster__rule" aria-orientation="vertical" />
                         <section
                             class="quartermaster__tier"
-                            :class="{ 'quartermaster__tier--closed': !tier.open }"
-                            :aria-label="`Разряд ${tier.numeral}`"
+                            :class="{
+                                'quartermaster__tier--closed': !stage.open,
+                                'quartermaster__tier--transition': stage.transition,
+                            }"
+                            :aria-label="`${stage.transition ? 'Переход' : 'Разряд'} ${stage.numeral}`"
                         >
-                            <p class="quartermaster__tier-title">РАЗРЯД {{ tier.numeral }}</p>
-                            <p class="quartermaster__tier-gate">
-                                {{ tier.open ? 'ОТКРЫТ' : `С ${tier.opensAt} НАРЯДОВ` }}
+                            <p class="quartermaster__tier-title">
+                                {{ stage.transition ? 'ПЕРЕХОД' : 'РАЗРЯД' }} {{ stage.numeral }}
                             </p>
+                            <p class="quartermaster__tier-gate">{{ gateText(stage) }}</p>
                             <RequisitionNode
-                                v-for="upgrade in tier.upgrades"
+                                v-for="upgrade in stage.upgrades"
                                 :key="upgrade.id"
                                 :code="upgrade.form"
                                 :name="upgrade.name"
@@ -307,10 +342,48 @@
             color: $color-warning;
         }
 
+        // A sealed register: a stamped notice instead of the forms.
+        &__seal {
+            min-height: 220px;
+            padding: $spacing-lg;
+            border: 2px dashed rgba($color-warning, 0.6);
+            text-align: center;
+        }
+
+        &__seal-stamp {
+            margin-bottom: $spacing-md;
+            color: $color-warning;
+            font-size: 14px;
+            letter-spacing: 4px;
+        }
+
+        &__seal-text {
+            max-width: 640px;
+            margin: 0 auto $spacing-md;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        &__seal-list {
+            display: inline-block;
+            color: $color-warning;
+            font-size: 12px;
+            line-height: 1.8;
+            list-style: none;
+            text-align: left;
+        }
+
+        &__seal-met {
+            color: $color-secondary;
+        }
+
         // Five tier columns left to right, separated by dotted vertical rules.
         &__tree {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr) auto) minmax(0, 1fr);
+            // Seven columns: tiers I–V and the transitions I–II, III–IV between them.
+            grid-template-columns:
+                minmax(0, 1fr) auto minmax(0, 0.8fr) auto minmax(0, 1fr) auto minmax(0, 1fr)
+                auto minmax(0, 0.8fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
             gap: $spacing-sm;
             align-items: start;
         }
@@ -332,6 +405,18 @@
 
             &--closed {
                 opacity: 0.75;
+            }
+
+            // Keystones between tiers: a framed passage the tree cannot skip.
+            &--transition {
+                padding: $spacing-xs;
+                border: 1px dashed rgba($color-warning, 0.55);
+
+                .quartermaster__tier-title {
+                    font-size: 10px;
+                    letter-spacing: 1px;
+                    white-space: nowrap;
+                }
             }
         }
 
@@ -399,10 +484,20 @@
             border-top: 2px solid $color-metal-dark;
         }
 
+        // ENTER above ESC: the keys take little width next to the counter and the lever.
         &__keys {
             display: flex;
-            justify-content: center;
-            gap: $spacing-md;
+            flex-direction: column;
+            align-items: center;
+            gap: $spacing-sm;
+        }
+
+        // Very narrow screens: counter, keys and lever stack.
+        @media (max-width: 640px) {
+            &__deck {
+                grid-template-columns: 1fr;
+                justify-items: center;
+            }
         }
 
         &__hint {

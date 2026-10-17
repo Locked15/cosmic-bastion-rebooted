@@ -103,6 +103,10 @@ const treeSchema = v.strictObject({
     opensAfter: v.optional(levelId),
     // Ranks that may use the tree; every rank when omitted.
     ranks: v.optional(v.pipe(v.array(v.picklist(DIFFICULTY_IDS)), v.nonEmpty())),
+    // Steps bought in this tree that open its tiers I–V (progression is per tree).
+    gates: v.pipe(v.array(count), v.length(5)),
+    // What the terminal shows instead of a closed tree.
+    sealed: v.optional(text),
 })
 export type TreeDefinition = v.InferOutput<typeof treeSchema>
 
@@ -111,6 +115,9 @@ const upgradeSchema = v.pipe(
         id: v.pipe(v.string(), v.regex(/^[a-z_]+$/)),
         tree: v.picklist(TREE_IDS),
         tier: v.pipe(count, v.minValue(1), v.maxValue(5)),
+        // A keystone of the transition into `tier` (I–II, III–IV): the tier stays shut until
+        // every keystone of its transition is fully bought.
+        transition: v.optional(v.boolean(), false),
         // Number of the paper form in the quartermaster's office.
         form: text,
         effect: v.picklist(BONUS_KINDS),
@@ -133,10 +140,8 @@ export type UpgradeDefinition = v.InferOutput<typeof upgradeSchema>
 const tierSchema = v.strictObject({
     tier: v.pipe(count, v.minValue(1), v.maxValue(5)),
     numeral: text,
-    // Price of the first step of an upgrade in this tier.
+    // Price of the first step of an upgrade in this tier, before the price index.
     baseCost: v.pipe(count, v.minValue(1)),
-    // Purchases (steps bought in all trees) needed to open the tier.
-    opensAt: count,
 })
 
 export const requisitionRulesSchema = v.pipe(
@@ -158,9 +163,16 @@ export const requisitionRulesSchema = v.pipe(
         }),
         // Each next step of an upgrade costs this much more than the previous one.
         costGrowth: v.pipe(v.number(), v.minValue(1)),
-        // Share of spent requisitions returned when upgrades are burned.
+        // Global price index: every step bought in any tree raises all prices by this share of
+        // their base (0.025: +2.5% per purchase).
+        priceRise: v.pipe(v.number(), v.minValue(0)),
+        // Share of spent requisitions returned when upgrades are revoked.
         resetRefund: v.pipe(v.number(), v.minValue(0), v.maxValue(1)),
         tiers: v.pipe(v.array(tierSchema), v.length(5)),
+        // Transition stages before these tiers, with their numerals ("I–II").
+        transitions: v.array(
+            v.strictObject({ tier: v.pipe(count, v.minValue(2), v.maxValue(5)), numeral: text }),
+        ),
         trees: v.array(treeSchema),
         upgrades: v.pipe(v.array(upgradeSchema), v.nonEmpty()),
     }),
@@ -171,12 +183,32 @@ export const requisitionRulesSchema = v.pipe(
     v.check(
         (rules) =>
             rules.tiers.every(
-                (tier, index) =>
-                    index === 0 ||
-                    (tier.baseCost > rules.tiers[index - 1]!.baseCost &&
-                        tier.opensAt > rules.tiers[index - 1]!.opensAt),
-            ) && rules.tiers[0]!.opensAt === 0,
-        'Higher tiers cost more and open later; tier I is open from the start',
+                (tier, index) => index === 0 || tier.baseCost > rules.tiers[index - 1]!.baseCost,
+            ),
+        'Higher tiers cost more',
+    ),
+    v.check(
+        (rules) =>
+            rules.trees.every(
+                (tree) =>
+                    tree.gates[0] === 0 &&
+                    tree.gates.every((gate, index) => index === 0 || gate > tree.gates[index - 1]!),
+            ),
+        'Tier I of every tree is open from the start, and higher tiers open later',
+    ),
+    // A gate must be reachable with the steps of the tree's lower tiers.
+    v.check(
+        (rules) =>
+            rules.trees.every((tree) =>
+                tree.gates.every(
+                    (gate, index) =>
+                        gate <=
+                        rules.upgrades
+                            .filter((u) => u.tree === tree.id && u.tier <= index)
+                            .reduce((sum, u) => sum + u.maxLevel, 0),
+                ),
+            ),
+        'Every tier of a tree can be opened with the steps below it',
     ),
     v.check(
         (rules) =>
@@ -190,6 +222,10 @@ export const requisitionRulesSchema = v.pipe(
         'Upgrade ids must be unique',
     ),
     v.check(
+        (rules) => rules.trees.every((tree) => (!tree.opensAfter && !tree.ranks) || !!tree.sealed),
+        'A tree that can be closed needs its `sealed` text',
+    ),
+    v.check(
         (rules) =>
             TREE_IDS.every((tree) =>
                 [1, 2, 3, 4, 5].every((tier) =>
@@ -200,14 +236,33 @@ export const requisitionRulesSchema = v.pipe(
     ),
     v.check(
         (rules) =>
+            rules.upgrades.every(
+                (u) => !u.transition || rules.transitions.some((t) => t.tier === u.tier),
+            ) &&
+            TREE_IDS.every((tree) =>
+                rules.transitions.every((t) =>
+                    rules.upgrades.some(
+                        (u) => u.tree === tree && u.tier === t.tier && u.transition,
+                    ),
+                ),
+            ),
+        'Every tree has keystones in each transition, and only there',
+    ),
+    v.check(
+        (rules) =>
             rules.upgrades.every((upgrade) => {
                 const required = rules.upgrades.find((other) => other.id === upgrade.requires)
                 return (
                     upgrade.requires === undefined ||
-                    (!!required && required.tree === upgrade.tree && required.tier < upgrade.tier)
+                    (!!required &&
+                        required.tree === upgrade.tree &&
+                        (required.tier < upgrade.tier ||
+                            (required.tier === upgrade.tier &&
+                                required.transition &&
+                                !upgrade.transition)))
                 )
             }),
-        'An upgrade may only require an earlier one of its tree',
+        "An upgrade may only require an earlier one of its tree (or its own tier's keystone)",
     ),
     v.check(
         (rules) =>
@@ -239,26 +294,59 @@ export function treeDefinition(id: TreeId): TreeDefinition {
     return REQUISITIONS.trees.find((tree) => tree.id === id)!
 }
 
-// Price of raising `upgrade` from `level` to `level + 1`, rounded to 5.
-export function upgradeCost(upgrade: UpgradeDefinition, level: number): number {
+// Global price index after `purchases` steps bought in all trees.
+export function priceIndex(purchases: number): number {
+    return 1 + REQUISITIONS.priceRise * Math.max(0, purchases)
+}
+
+// Price of raising `upgrade` from `level` to `level + 1` after `purchases` steps bought in all
+// trees, in whole requisitions (every purchase visibly raises the next prices).
+export function upgradeCost(upgrade: UpgradeDefinition, level: number, purchases = 0): number {
     const tier = REQUISITIONS.tiers[upgrade.tier - 1]!
     const factor = treeDefinition(upgrade.tree).costFactor
-    return Math.max(
-        5,
-        Math.round((tier.baseCost * factor * REQUISITIONS.costGrowth ** level) / 5) * 5,
-    )
+    const price = tier.baseCost * factor * REQUISITIONS.costGrowth ** level * priceIndex(purchases)
+    return Math.max(1, Math.round(price))
 }
 
-// Steps bought in all trees: what opens the next tiers.
-export function purchaseCount(levels: UpgradeLevels): number {
-    return REQUISITIONS.upgrades.reduce(
-        (sum, upgrade) => sum + Math.max(0, Math.min(upgrade.maxLevel, levels[upgrade.id] ?? 0)),
-        0,
-    )
+// Steps bought, in all trees or in one: all trees raise prices, one tree opens its own tiers.
+export function purchaseCount(levels: UpgradeLevels, tree?: TreeId): number {
+    return REQUISITIONS.upgrades
+        .filter((upgrade) => !tree || upgrade.tree === tree)
+        .reduce(
+            (sum, upgrade) =>
+                sum + Math.max(0, Math.min(upgrade.maxLevel, levels[upgrade.id] ?? 0)),
+            0,
+        )
 }
 
-export function tierOpen(tier: number, levels: UpgradeLevels): boolean {
-    return purchaseCount(levels) >= REQUISITIONS.tiers[tier - 1]!.opensAt
+// Steps bought in `tree` that open its `tier`.
+export function tierGate(tree: TreeId, tier: number): number {
+    return treeDefinition(tree).gates[tier - 1]!
+}
+
+// The transition into `tier` of `tree` is complete: all its keystones are fully bought (true
+// for tiers without a transition).
+export function transitionDone(tree: TreeId, tier: number, levels: UpgradeLevels): boolean {
+    return REQUISITIONS.upgrades
+        .filter((u) => u.tree === tree && u.tier === tier && u.transition)
+        .every((u) => (levels[u.id] ?? 0) >= u.maxLevel)
+}
+
+// The transition stage into `tier` is reached by the same purchases as the tier itself.
+export function transitionOpen(tree: TreeId, tier: number, levels: UpgradeLevels): boolean {
+    return purchaseCount(levels, tree) >= tierGate(tree, tier)
+}
+
+// A tier opens with enough purchases in its tree and its transition complete.
+export function tierOpen(tree: TreeId, tier: number, levels: UpgradeLevels): boolean {
+    return transitionOpen(tree, tier, levels) && transitionDone(tree, tier, levels)
+}
+
+// Whether the stage holding `upgrade` (its tier, or the transition into it) is open.
+export function stageOpen(upgrade: UpgradeDefinition, levels: UpgradeLevels): boolean {
+    return upgrade.transition
+        ? transitionOpen(upgrade.tree, upgrade.tier, levels)
+        : tierOpen(upgrade.tree, upgrade.tier, levels)
 }
 
 // What a tree needs from the campaign and the officer's rank.

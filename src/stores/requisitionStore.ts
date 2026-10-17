@@ -55,7 +55,7 @@ export const useRequisitionStore = defineStore('requisitions', () => {
 
     function buy(id: string): boolean {
         const upgrade = view.value.trees
-            .flatMap((tree) => tree.tiers.flatMap((tier) => tier.upgrades))
+            .flatMap((tree) => tree.stages.flatMap((stage) => stage.upgrades))
             .find((item) => item.id === id)
         const result = service.buy(id)
         if (!result.ok) {
@@ -74,17 +74,17 @@ export const useRequisitionStore = defineStore('requisitions', () => {
     async function reset() {
         const { refund, refundPercent, spent } = view.value
         if (!spent) {
-            print('ПЕЧЬ ПУСТА: УТВЕРЖДЁННЫХ НАРЯДОВ НЕТ')
+            print('ОТЗЫВАТЬ НЕЧЕГО: УТВЕРЖДЁННЫХ НАРЯДОВ НЕТ')
             return
         }
         const confirmed = await ui.confirm(
-            `Сжечь все наряды? Интендантство вернёт ${refund} реквизиций (${refundPercent}% от потраченных ${spent}).`,
+            `Отозвать все наряды? Интендантство вернёт ${refund} реквизиций (${refundPercent}% от потраченных ${spent}).`,
         )
         if (!confirmed) return
         const returned = service.reset()
         flashId.value = null
         refresh()
-        print('НАРЯДЫ СОЖЖЕНЫ · ВОЗВРАЩЕНО', returned)
+        print('НАРЯДЫ ОТОЗВАНЫ · ВОЗВРАЩЕНО', returned)
         sound.play('waveClear')
     }
 
