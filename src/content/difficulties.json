@@ -15,7 +15,7 @@
             "dialogSpeed": 0,
             "refundRate": 0.9,
             "startResources": 1.5,
-            "requisitions": 0.6,
+            "requisitions": 0.8,
             "swarmMemory": 0,
             "bosses": {
                 "minDepth": 5,

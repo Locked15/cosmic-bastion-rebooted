@@ -16,7 +16,6 @@ Remaining work and known limitations. Implemented items from the original list a
 - [ ] Balance pass for relationship values and thresholds (`content/cast.json`, `content/scenes.json`).
 - [ ] Character portraits for scenes.
 - [ ] Rework replays of held sectors: a replay currently writes its story choices back into the campaign (both `ballast_dumped` and `ballast_kept` can end up set) and adds relationship changes again (reputation can be farmed). Replays should run as drills: combat, stars and requisitions only.
-- [ ] Economy: Младший лейтенант earns ×0.6 requisitions and needs about 9 replay passes to complete the common trees (Лейтенант about 3); consider a higher multiplier for that rank.
 
 ## Done (summary)
 
