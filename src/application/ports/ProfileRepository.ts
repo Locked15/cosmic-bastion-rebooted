@@ -1,9 +1,15 @@
+import type { DifficultyId } from '@/domain'
+
 // A player profile: one save slot with its own campaign, checkpoints and achievements.
 export interface ProfileRecord {
     id: string
     name: string
     createdAt: number
     lastPlayedAt: number
+    // Rank chosen at registration; it sets the difficulty for good. Absent in old records.
+    difficulty?: DifficultyId
+    // Answer at registration: romance is available to this officer. Absent (old records): no.
+    romance?: boolean
 }
 
 // Asynchronous persistence of profiles (IndexedDB in the browser, memory in tests).

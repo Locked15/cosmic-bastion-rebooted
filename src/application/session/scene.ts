@@ -4,6 +4,9 @@ import type { BuildCategory, GameView } from '../dto/views'
 // Read-only view of a running session for renderers. Renderers must not mutate it.
 export interface Scene {
     readonly level: Level
+    // The wave on screen: routes are shown for it (during a wave) or for the next one.
+    readonly currentWave: number
+    readonly waveInProgress: boolean
     readonly view: GameView
     readonly slots: readonly TowerSlot[]
     readonly barricades: readonly Barricade[]

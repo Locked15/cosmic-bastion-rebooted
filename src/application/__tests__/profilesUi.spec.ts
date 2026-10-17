@@ -72,6 +72,54 @@ describe('profiles on the main menu', () => {
         expect(wrapper!.text()).not.toContain('НАЧАТЬ ЗАНОВО')
     })
 
+    it('registers the officer with the chosen rank and shows it on the file', async () => {
+        await mountMenu()
+        expect(wrapper!.text()).toContain('Назовите звание и представьтесь.')
+        const cards = wrapper!.findAll('.rank-card')
+        expect(cards.map((card) => card.find('.rank-card__label').text())).toEqual([
+            'Младший лейтенант',
+            'Лейтенант',
+            'Майор',
+            'Генерал',
+        ])
+        expect(cards[1]!.attributes('aria-checked')).toBe('true')
+        await cards[3]!.trigger('click')
+        expect(cards[3]!.attributes('aria-checked')).toBe('true')
+
+        await register('Хейл')
+        expect(profiles.difficulty).toBe('xhard')
+        await wrapper!.find('.main-menu__identity button').trigger('click')
+        expect(wrapper!.find('.profile-slot__rank').text()).toBe('Генерал')
+    })
+
+    it('asks about personal relationships at registration, declining by default', async () => {
+        await mountMenu()
+        expect(wrapper!.text()).toContain('ВЫ ПРИЕМЛЕТЕ ЛИЧНЫЕ ОТНОШЕНИЯ НА СЛУЖБЕ?')
+        const select = wrapper!.find<HTMLSelectElement>('#profile-romance')
+        expect(select.element.value).toBe('no')
+        await register('Кирх')
+        expect(profiles.romance).toBe(false)
+        expect(profiles.list()[0]!.romance).toBe(false)
+
+        await wrapper!.find('.main-menu__identity button').trigger('click')
+        await button('НОВЫЙ ПРОФИЛЬ').trigger('click')
+        await wrapper!.find('#profile-romance').setValue('yes')
+        await register('Хейл')
+        expect(profiles.romance).toBe(true)
+        expect(profiles.list().map((profile) => profile.romance)).toEqual([false, true])
+    })
+
+    it('gates romance by the profile, never reputation', async () => {
+        await profiles.create('Без романов')
+        const campaign = useCampaignStore()
+        const kirch = () => campaign.crewDeck.members.find((member) => member.id === 'kirch')!
+        expect(kirch().affection).toBeNull()
+        await profiles.create('С романами', undefined, true)
+        campaign.reload()
+        expect(kirch().affection).toBe(0)
+        expect(kirch().standing).toBeTruthy()
+    })
+
     it('switches profiles through the security link and reloads their progress', async () => {
         await profiles.create('Альфа')
         profiles.storage.write('campaign', {

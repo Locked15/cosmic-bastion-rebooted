@@ -5,11 +5,19 @@ import {
     Barricade,
     DEFAULT_DIFFICULTY,
     DIFFICULTIES,
+    SWARM_MEMORY_RULES,
+    assignRoutes,
+    sectorDepth,
     TOWER_CATALOG,
     barricadeRepairCost,
     TOWER_MAX_LEVEL,
     TowerSlot,
+    CannonTower,
+    MachineGunTower,
     NO_BONUSES,
+    RocketTower,
+    ShockTower,
+    type Tower,
     distance,
     generateWave,
     lineIntersectsRect,
@@ -40,14 +48,12 @@ import { StoryDirector, type ActiveDialog } from './story'
 export type { ActiveDialog } from './story'
 
 export const SPEED_STEPS = [0.5, 1, 2, 4, 8] as const
-// Story dialogs slow the battle down instead of freezing it.
-const DIALOG_SPEED = 0.5
 const FPS = 60
 const VICTORY_DELAY = 60
 const PICK_RADIUS = 30
 const SLOT_SNAP_RADIUS = 50
-export const REFUND_RATE = 0.5
-const UPGRADE_LOCKED = 'Этот уровень улучшения ещё не открыт'
+export const REFUND_RATE = DIFFICULTIES[DEFAULT_DIFFICULTY].refundRate
+const UPGRADE_LOCKED = 'Эта ступень улучшения не утверждена в Интендантстве'
 // Filter barricades slow the enemies they let through for 5 seconds.
 const FILTER_SLOW_FRAMES = 5 * FPS
 
@@ -58,6 +64,7 @@ export interface SessionOptions {
     // Story flags carried over from earlier levels (choices, redirected refugees, …).
     campaignFlags?: Readonly<Record<string, number>>
     difficulty?: DifficultyId
+    depth?: number
     // Consequences of earlier missions applied when the level starts.
     startEffects?: readonly { effect: EventEffect; message?: string }[]
     // Enemy abilities that never appear in this run.
@@ -106,7 +113,14 @@ export class GameSession implements Scene {
     readonly unlockedTowers: readonly TowerType[]
     readonly unlockedBarricades: readonly BarricadeType[]
     readonly excludedAbilities: readonly EnemyAbility[]
+    // In-mission upgrade steps opened with requisitions; null without meta upgrades.
+    private readonly metaUpgradeTier: number | null
     readonly bonuses: MetaBonuses
+    readonly depth: number
+    remembered: TowerType | null = null
+    private readonly waveKills = new Map<TowerType, number>()
+    private readonly towerTypes = new Map<string, TowerType>()
+    private readonly towerDamageMultipliers = new Map<string, number>()
 
     resources: number
     resourceRate = 0
@@ -145,19 +159,27 @@ export class GameSession implements Scene {
     constructor(level: Level, rng: Random, options: SessionOptions = {}) {
         this.level = level
         this.rng = rng
+        this.depth = options.depth ?? sectorDepth(level.id)
         this.difficulty = options.difficulty ?? DEFAULT_DIFFICULTY
         this.unlockedTowers = options.unlockedTowers ?? DEFAULT_TOWERS
         this.unlockedBarricades = options.unlockedBarricades ?? DEFAULT_BARRICADES
-        this.excludedAbilities = options.excludedAbilities ?? []
         this.bonuses = options.bonuses ?? NO_BONUSES
+        // Story consequences and abilities suppressed with requisitions.
+        this.excludedAbilities = [
+            ...new Set([...(options.excludedAbilities ?? []), ...this.bonuses.bannedAbilities]),
+        ]
+        // Without meta upgrades (tests, tools) every in-mission upgrade step is open.
+        this.metaUpgradeTier = options.bonuses ? 1 + options.bonuses.upgradeTier : null
         this.objectives = new ObjectiveTracker(level)
-        this.resources = level.startingResources + this.bonuses.startResources
+        this.resources =
+            Math.round(level.startingResources * DIFFICULTIES[this.difficulty].startResources) +
+            this.bonuses.startResources
         this.damageMultiplier = this.bonuses.towerDamage
         this.barricadeMultiplier = this.bonuses.barricadeHealth
         this.personnel = new Personnel(
             level,
             rng,
-            level.startingMiners,
+            level.startingMiners + this.bonuses.startMiners,
             level.startingMilitary + this.bonuses.startMilitary,
             this.bonuses.conversionSpeed,
         )
@@ -215,6 +237,20 @@ export class GameSession implements Scene {
         return DIFFICULTIES[this.difficulty].maxBreakthroughs + this.bonuses.breakthroughs
     }
 
+    // Whether the rank sends a boss (Средоточие) on this wave of the level.
+    bossOnWave(wave: number): boolean {
+        const bosses = DIFFICULTIES[this.difficulty].bosses
+        return (
+            this.depth >= bosses.minDepth &&
+            ((bosses.finalWave && wave === this.level.totalWaves) ||
+                (bosses.every !== null && wave % bosses.every === 0))
+        )
+    }
+
+    get refundRate(): number {
+        return DIFFICULTIES[this.difficulty].refundRate
+    }
+
     get speed(): number {
         return SPEED_STEPS[this.speedIndex] ?? 1
     }
@@ -252,8 +288,11 @@ export class GameSession implements Scene {
     // Advance by real elapsed frames, applying speed, pause and dialog slow-down.
     advance(realFrames: number): void {
         if (this.ended || this.status === 'paused') return
-        this.story.tick(realFrames)
-        const factor = this.story.active ? DIALOG_SPEED : this.speed
+        const dialogSpeed = DIFFICULTIES[this.difficulty].dialogSpeed
+        if (!(this.story.active && dialogSpeed === 0)) this.story.tick(realFrames)
+        // A dialog can only slow the battle down, never speed it up.
+        const factor =
+            this.story.active && dialogSpeed < 1 ? Math.min(dialogSpeed, this.speed) : this.speed
         let remaining = realFrames * factor
         // Sub-steps of at most one frame keep collisions stable at high speed.
         while (remaining > 0 && !this.ended) {
@@ -353,11 +392,24 @@ export class GameSession implements Scene {
         if (this.currentWave >= this.level.totalWaves) return fail('Все волны пройдены')
         this.currentWave++
         this.waveInProgress = true
-        const path = this.level.getCurrentPath(this.barricades)
-        const wave = generateWave(this.currentWave, this.level.waveDifficulty, this.rng, {
+        this.waveKills.clear()
+        const bosses = DIFFICULTIES[this.difficulty].bosses
+        const horde = this.level.waveDifficulty * this.bonuses.hordeSize
+        const wave = generateWave(this.currentWave, horde, this.rng, {
             excludedAbilities: this.excludedAbilities,
+            boss: {
+                onThisWave: this.bossOnWave(this.currentWave),
+                abilities: bosses.abilities,
+                banned: bosses.banned,
+            },
         })
-        for (const enemy of wave) enemy.setPath(path)
+        const blockers = this.barricades.filter((barricade) => barricade.active)
+        const routes = assignRoutes(this.level, this.currentWave, wave, blockers, this.rng)
+        wave.forEach((enemy, index) => enemy.setPath(routes[index]!.points))
+        for (const route of this.level.routes) {
+            if (route.opensOnWave === this.currentWave && route.opensOnWave > 1 && !route.reserve)
+                this.messages.push(`Открыт новый путь: «${route.label}»`)
+        }
         this.enemies.push(...wave)
         this.story.onWaveStart(this.currentWave)
         return ok
@@ -373,7 +425,12 @@ export class GameSession implements Scene {
                 ? TOWER_CATALOG[type as TowerType]
                 : BARRICADE_CATALOG[type as BarricadeType]
         if (!entry) return
-        this.pointer.build = { category, type, cost: entry.cost, name: entry.name }
+        this.pointer.build = {
+            category,
+            type,
+            cost: this.buildCost(category, type),
+            name: entry.name,
+        }
         this.selectedId = null
         this.refreshPointer()
     }
@@ -416,7 +473,7 @@ export class GameSession implements Scene {
         if (!slot) return fail('Выберите свободный слот')
         if (slot.tower || slot.construction) return fail('Слот занят')
         if (slot.cooldown > 0) return fail('Слот восстанавливается после уничтожения')
-        const cost = TOWER_CATALOG[type].cost
+        const cost = this.buildCost('tower', type)
         if (this.resources < cost) return fail('Недостаточно ресурсов!')
         this.resources -= cost
         slot.startConstruction(type)
@@ -428,7 +485,7 @@ export class GameSession implements Scene {
         const placement = this.barricadePlacement(point)
         if (!placement) return fail('Баррикаду можно ставить только на путь врагов')
         if (this.barricadeAt(placement)) return fail('Здесь уже стоит баррикада')
-        const cost = BARRICADE_CATALOG[type].cost
+        const cost = this.buildCost('barricade', type)
         if (this.resources < cost) return fail('Недостаточно ресурсов!')
         this.resources -= cost
         this.buildBarricadeAt(placement, type)
@@ -478,12 +535,12 @@ export class GameSession implements Scene {
         if (slot) {
             const type = slot.tower?.type ?? slot.construction?.type
             if (!type) return fail('Нечего демонтировать')
-            this.resources += Math.floor(TOWER_CATALOG[type].cost * REFUND_RATE)
+            this.resources += Math.floor(TOWER_CATALOG[type].cost * this.refundRate)
             slot.demolish()
         } else {
             const barricade = this.barricades.find((candidate) => candidate.id === id)
             if (!barricade) return fail('Нечего демонтировать')
-            this.resources += barricadeRefund(barricade)
+            this.resources += barricadeRefund(barricade, this.refundRate)
             this.barricades = this.barricades.filter((candidate) => candidate !== barricade)
         }
         if (this.selectedId === id) this.selectedId = null
@@ -551,9 +608,18 @@ export class GameSession implements Scene {
 
     // ----- Upgrades -----
 
-    // Highest upgrade level unlocked by the campaign tech tree.
+    // Highest in-mission upgrade step: step I, plus those bought at the quartermaster's.
     get upgradeTier(): number {
-        return this.story.flags.tech_upgrade_tier ?? TOWER_MAX_LEVEL
+        return Math.min(TOWER_MAX_LEVEL, this.metaUpgradeTier ?? TOWER_MAX_LEVEL)
+    }
+
+    // Price of building a tower or barricade, after the Synod's favours.
+    buildCost(category: BuildCategory, type: string): number {
+        const entry =
+            category === 'tower'
+                ? TOWER_CATALOG[type as TowerType]
+                : BARRICADE_CATALOG[type as BarricadeType]
+        return Math.round((entry?.cost ?? 0) * this.bonuses.buildCost)
     }
 
     private upgradeTower(slot: TowerSlot): CommandResult {
@@ -601,6 +667,7 @@ export class GameSession implements Scene {
         const buildDt = dt * this.bonuses.buildSpeed
         const towers = this.slots.flatMap((slot) => (slot.tower ? [slot.tower] : []))
         for (const enemy of this.enemies) {
+            enemy.towerDamageMultipliers = this.towerDamageMultipliers
             enemy.exposed = this.overrides.lethal
             if (enemy.alive && enemy.spawned) enemy.prepareCombat(towers, this.rng)
         }
@@ -608,9 +675,16 @@ export class GameSession implements Scene {
             if (slot.updateConstruction(military, buildDt)) this.notifyObjectives('buildTower')
             const tower = slot.tower
             if (!tower) continue
+            // Register even a tower whose construction finished in this very step.
+            this.towerTypes.set(tower.id, tower.type)
+            this.towerDamageMultipliers.set(
+                tower.id,
+                tower.type === this.remembered ? 1 - DIFFICULTIES[this.difficulty].swarmMemory : 1,
+            )
             tower.updateUpgrade(military, buildDt)
             tower.damageMultiplier = this.damageMultiplier
             tower.setRangeMultiplier(this.bonuses.towerRange)
+            this.tune(tower)
             // Towers hold fire while the living quarters are under attack.
             if (!quartersUnderAttack) tower.update(dt, this.enemies, this.rng)
             else tower.holdFire(dt)
@@ -663,7 +737,8 @@ export class GameSession implements Scene {
 
             if (enemy.alive) {
                 this.toughen(enemy)
-                enemy.speed = enemy.baseSpeed * DIFFICULTIES[this.difficulty].speed
+                enemy.speed =
+                    enemy.baseSpeed * DIFFICULTIES[this.difficulty].speed * this.bonuses.enemySpeed
                 enemy._barricadeId = null
                 const before = saveMove(enemy)
                 const teleported = enemy.abilityStates.hasTeleported
@@ -693,6 +768,8 @@ export class GameSession implements Scene {
                 enemy.spawnedEnemies = []
             } else {
                 this.stats.killed++
+                const type = enemy.lastHitBy ? this.towerTypes.get(enemy.lastHitBy) : undefined
+                if (type) this.waveKills.set(type, (this.waveKills.get(type) ?? 0) + 1)
                 if (enemy.splitPending) enemy.onSplit(this.rng)
                 if (enemy.spawnedEnemies.length > 0) spawned.push(...enemy.spawnedEnemies)
                 else this.resources += enemy.reward
@@ -725,7 +802,8 @@ export class GameSession implements Scene {
             // Shields limit how many enemies can damage them at once.
             if (barricade.canAcceptAttacker(enemy.id)) {
                 barricade.registerAttacker(enemy.id)
-                if (!this.overrides.fortified) barricade.takeDamage(enemy.mass * dt * 0.1)
+                if (!this.overrides.fortified)
+                    barricade.takeDamage(enemy.mass * dt * 0.1 * this.bonuses.enemyAttack)
             }
             if (barricade.damageToEnemies > 0) {
                 enemy.takeDamage((barricade.damageToEnemies * dt) / FPS)
@@ -740,11 +818,26 @@ export class GameSession implements Scene {
         return barricade.type === 'filter' && barricade.filterMode && enemy.size === 'small'
     }
 
-    // Scale health once per enemy, including split and spawned offspring.
+    // Meta upgrades of rate of fire and of the towers' last abilities.
+    private tune(tower: Tower): void {
+        const bonuses = this.bonuses
+        tower.setFireRateMultiplier(bonuses.fireRate)
+        if (tower instanceof CannonTower) tower.salvoTargets = 3 + bonuses.salvoTargets
+        if (tower instanceof RocketTower) tower.knockbackDistance = 20 * bonuses.knockback
+        if (tower instanceof MachineGunTower) tower.slowFactor = 0.5 / bonuses.slowStrength
+        if (tower instanceof ShockTower) tower.stunFrames = Math.round(420 * bonuses.stunDuration)
+    }
+
+    // Scale health once per enemy, including split and spawned offspring. Science weakens
+    // every enemy; holy iron hurts nodes and the Focus more (their health is lowered to match).
     private toughen(enemy: Enemy): void {
         if (this.toughened.has(enemy)) return
         this.toughened.add(enemy)
-        const multiplier = DIFFICULTIES[this.difficulty].health
+        const boss = enemy.type === 'boss' || enemy.type === 'miniboss'
+        const multiplier =
+            DIFFICULTIES[this.difficulty].health *
+            this.bonuses.enemyHealth *
+            (boss ? 1 / this.bonuses.bossDamage : 1)
         enemy.maxHealth = Math.round(enemy.maxHealth * multiplier)
         enemy.currentHealth = Math.round(enemy.currentHealth * multiplier)
     }
@@ -766,6 +859,27 @@ export class GameSession implements Scene {
 
     private completeWave(): void {
         this.waveInProgress = false
+        const ranked = [...this.waveKills].sort((a, b) => b[1] - a[1])
+        const top = ranked[0]
+        const remembered =
+            DIFFICULTIES[this.difficulty].swarmMemory > 0 &&
+            top &&
+            top[1] >= SWARM_MEMORY_RULES.minimumKills &&
+            top[1] > (ranked[1]?.[1] ?? 0)
+                ? top[0]
+                : null
+        if (remembered !== this.remembered && remembered) {
+            this.messages.push(
+                SWARM_MEMORY_RULES.message
+                    .replace('{tower}', TOWER_CATALOG[remembered].name)
+                    .replace(
+                        '{percent}',
+                        String(Math.round(DIFFICULTIES[this.difficulty].swarmMemory * 100)),
+                    ),
+            )
+        }
+        if (this.remembered && !remembered) this.messages.push(SWARM_MEMORY_RULES.clearedMessage)
+        this.remembered = remembered
         if (this.currentWave >= this.level.totalWaves) {
             this.victoryCountdown = VICTORY_DELAY
         } else {
@@ -795,11 +909,9 @@ export class GameSession implements Scene {
     }
 }
 
-// Half the price back for a working barricade; nothing for a destroyed one.
-export function barricadeRefund(barricade: Barricade): number {
-    return barricade.destroyed
-        ? 0
-        : Math.floor(BARRICADE_CATALOG[barricade.type].cost * REFUND_RATE)
+// Refund a working barricade at the run’s rate; nothing for a destroyed one.
+export function barricadeRefund(barricade: Barricade, refundRate = REFUND_RATE): number {
+    return barricade.destroyed ? 0 : Math.floor(BARRICADE_CATALOG[barricade.type].cost * refundRate)
 }
 
 function saveMove(enemy: Enemy): MoveState {

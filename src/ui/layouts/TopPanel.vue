@@ -22,6 +22,12 @@
             :value="`${snapshot.breakthroughs.count}/${snapshot.breakthroughs.limit}`"
         />
         <PanelStat
+            v-if="snapshot.swarmMemory"
+            class="top-panel__memory"
+            label="СОНМ ПОМНИТ:"
+            :value="`${snapshot.swarmMemory.tower} −${snapshot.swarmMemory.percent}%`"
+        />
+        <PanelStat
             label="РЕСУРСЫ:"
             :value="Math.floor(snapshot.resources)"
             :rate="`+${snapshot.resourceRate.toFixed(1)}/с`"
@@ -44,6 +50,10 @@
         @include below($breakpoint-compact) {
             gap: $spacing-sm;
             padding: 0 $spacing-sm;
+        }
+
+        &__memory {
+            color: $color-danger;
         }
     }
 </style>

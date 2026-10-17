@@ -16,12 +16,12 @@ import {
     type Viewport,
 } from '@/application'
 import { findDirective } from '@/application/session/directives'
-import { createLevel } from '@/domain'
+import { DIFFICULTIES, createLevel } from '@/domain'
 import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
+import { useProfileStore } from './profileStore'
 import { useRequisitionStore } from './requisitionStore'
 import { useServices } from './services'
-import { useSettingsStore } from './settingsStore'
 import { useUiStore } from './uiStore'
 
 // Bridges the running GameSession and the UI. The session itself is not reactive;
@@ -30,7 +30,6 @@ export const useGameStore = defineStore('game', () => {
     const services = useServices()
     const ui = useUiStore()
     const campaign = useCampaignStore()
-    const settings = useSettingsStore()
     const achievements = useAchievementsStore()
     const requisitions = useRequisitionStore()
     const { sound } = services
@@ -55,7 +54,8 @@ export const useGameStore = defineStore('game', () => {
         if (!level || !campaign.isUnlocked(levelId)) return false
         session = new GameSession(level, services.createRandom(), {
             ...campaign.prepareLevel(level),
-            difficulty: settings.settings.difficulty,
+            // The rank of the profile, fixed at registration.
+            difficulty: services.profiles.difficulty,
             bonuses: requisitions.bonuses(),
         })
         if (!resume || !campaign.restoreCheckpoint(session)) campaign.clearCheckpoint(levelId)
@@ -130,12 +130,18 @@ export const useGameStore = defineStore('game', () => {
                 flags: session.story.flags,
                 objectives: session.objectives.all,
                 survivors: session.personnel.total + session.personnel.inTransit,
+                difficulty: session.difficulty,
             })
             if (!session.overrides.used) {
+                const won = session.result.outcome === 'victory'
                 reward = requisitions.award(
-                    session.result.outcome,
-                    starsFor(session),
-                    resolution.firstVictory,
+                    session.level.id,
+                    {
+                        outcome: session.result.outcome,
+                        stars: starsFor(session),
+                        wavesHeld: Math.max(0, session.currentWave - (won ? 0 : 1)),
+                    },
+                    DIFFICULTIES[session.difficulty].requisitions,
                 )
             }
         }
@@ -144,6 +150,7 @@ export const useGameStore = defineStore('game', () => {
         if (next.result && resolution) {
             next.result.unlocks = resolution.unlocks
             next.result.ending = resolution.ending
+            next.result.advanced = resolution.advanced
             next.result.requisitions = reward
         }
         snapshot.value = next
@@ -160,10 +167,25 @@ export const useGameStore = defineStore('game', () => {
     // Dev console directives; compiled out of production builds.
     function enter(input: string): string {
         if (!import.meta.env.DEV) return ''
-        if (!session) return 'Нет активной миссии'
         const directive = findDirective(input)
         if (!directive) return 'Неизвестная команда'
-        const result = run(directive)
+        if (directive.kind === 'rank') {
+            const label = DIFFICULTIES[directive.difficulty].label
+            void useProfileStore()
+                .overrideRank(directive.difficulty)
+                .then((done) => done && ui.notify(`Код принят: звание «${label}»`))
+            return `Звание «${label}» — со следующей миссии`
+        }
+        if (directive.kind === 'flag') {
+            const value = campaign.setFlag(directive.flag, directive.value)
+            // The mission writes its flags back when it ends: keep its copy in step.
+            if (session) session.story.flags[directive.flag] = value
+            const text = `Код принят: ${directive.label} — ${value ? 'вкл' : 'выкл'}`
+            ui.notify(text)
+            return text
+        }
+        if (!session) return 'Нет активной миссии'
+        const result = run(directive.run)
         if (!result?.ok) return result?.error ?? ''
         const state = 'state' in result ? result.state : undefined
         const text = state === undefined ? 'Код принят' : `Код принят: ${state ? 'вкл' : 'выкл'}`

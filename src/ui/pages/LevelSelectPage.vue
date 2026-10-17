@@ -2,12 +2,38 @@
     import { storeToRefs } from 'pinia'
     import { computed, nextTick, ref, useTemplateRef } from 'vue'
     import { useRouter } from 'vue-router'
+    import type { FacilityRoomView, FacilityView } from '@/application'
     import { useCampaignStore } from '@/stores/campaignStore'
+    import { useRequisitionStore } from '@/stores/requisitionStore'
     import ShipDeckMap from '@/ui/components/ShipDeckMap.vue'
+    import CrewScenes from '@/ui/layouts/CrewScenes.vue'
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
     const router = useRouter()
-    const { levels, savedWaves } = storeToRefs(useCampaignStore())
+    const campaign = useCampaignStore()
+    const { levels, savedWaves, pendingScenes } = storeToRefs(campaign)
+    const { view: requisitions } = storeToRefs(useRequisitionStore())
+
+    // Service rooms with their readouts: waiting conversations, requisitions on account.
+    const facilities = computed<FacilityRoomView[]>(() =>
+        campaign.facilities.map((room) =>
+            room.locked
+                ? { ...room, status: `ПОСЛЕ ${room.prerequisites.join(', ')}`, alert: false }
+                : room.id === 'wardroom'
+                  ? {
+                        ...room,
+                        status: pendingScenes.value.length
+                            ? `РАЗГОВОРОВ: ${pendingScenes.value.length}`
+                            : 'ТИШИНА',
+                        alert: pendingScenes.value.length > 0,
+                    }
+                  : { ...room, status: `НА СЧЁТЕ: ${requisitions.value.balance}`, alert: false },
+        ),
+    )
+
+    function open(id: FacilityView['id']) {
+        if (campaign.isFacilityOpen(id)) router.push({ name: id })
+    }
 
     // Start on the first open sector not won yet: the training briefing for a new officer.
     const selectedId = ref<string | null>(
@@ -27,14 +53,16 @@
         ;(info.value?.$el as HTMLElement | undefined)?.scrollIntoView?.({ behavior: 'smooth' })
     }
 
-    function start(resume: boolean) {
-        if (selected.value) {
-            router.push({
-                name: 'game',
-                params: { levelId: selected.value.id },
-                query: resume ? { resume: '1' } : {},
-            })
-        }
+    async function start(resume: boolean) {
+        const level = selected.value
+        if (!level) return
+        // A resumed mission already had its briefing scenes.
+        if (!resume) await campaign.playScenesBefore(level.id)
+        router.push({
+            name: 'game',
+            params: { levelId: level.id },
+            query: resume ? { resume: '1' } : {},
+        })
     }
 </script>
 
@@ -42,8 +70,15 @@
     <main class="level-select">
         <h2 class="level-select__title">СХЕМА КОРАБЛЯ - ВЫБОР СЕКТОРА</h2>
         <section class="level-select__map">
-            <ShipDeckMap :levels="levels" :selected-id="selectedId" @select="select" />
+            <ShipDeckMap
+                :levels="levels"
+                :facilities="facilities"
+                :selected-id="selectedId"
+                @select="select"
+                @open="open"
+            />
         </section>
+        <CrewScenes />
         <MissionInfo
             ref="info"
             class="level-select__info"

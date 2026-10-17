@@ -7,46 +7,344 @@
     "width": 1700,
     "height": 950,
     "livingQuartersY": 620,
-    "paths": {
-        "base": [
-            { "x": 60, "y": 140 },
-            { "x": 1500, "y": 140 },
-            { "x": 1500, "y": 300 },
-            { "x": 200, "y": 300 },
-            { "x": 200, "y": 460 },
-            { "x": 1600, "y": 460 },
-            { "x": 1600, "y": 700 }
-        ],
-        "alternatives": []
-    },
-    "corridors": [{ "x": 30, "y": 100, "width": 1620, "height": 400 }],
+    "routes": [
+        {
+            "id": "main",
+            "label": "Магистраль топлива",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 100
+                },
+                {
+                    "x": 400,
+                    "y": 100
+                },
+                {
+                    "x": 400,
+                    "y": 300
+                },
+                {
+                    "x": 180,
+                    "y": 300
+                },
+                {
+                    "x": 180,
+                    "y": 520
+                },
+                {
+                    "x": 920,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 680
+                }
+            ],
+            "role": "heavy",
+            "weight": 1,
+            "detour": "bypass"
+        },
+        {
+            "id": "nozzle",
+            "label": "Сопловой канал",
+            "points": [
+                {
+                    "x": 1700,
+                    "y": 260
+                },
+                {
+                    "x": 1460,
+                    "y": 260
+                },
+                {
+                    "x": 1460,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 680
+                }
+            ],
+            "role": "fast"
+        },
+        {
+            "id": "breach",
+            "label": "Пробой кожуха",
+            "points": [
+                {
+                    "x": 1100,
+                    "y": 0
+                },
+                {
+                    "x": 1100,
+                    "y": 180
+                },
+                {
+                    "x": 1260,
+                    "y": 180
+                },
+                {
+                    "x": 1260,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 680
+                }
+            ],
+            "opensOnWave": 4
+        },
+        {
+            "id": "bypass",
+            "label": "Обвод топлива",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 30
+                },
+                {
+                    "x": 800,
+                    "y": 30
+                },
+                {
+                    "x": 800,
+                    "y": 340
+                },
+                {
+                    "x": 1000,
+                    "y": 340
+                },
+                {
+                    "x": 1000,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 520
+                },
+                {
+                    "x": 1460,
+                    "y": 680
+                }
+            ],
+            "weight": 1
+        }
+    ],
+    "corridors": [
+        {
+            "x": 0,
+            "y": 58,
+            "width": 442,
+            "height": 84
+        },
+        {
+            "x": 358,
+            "y": 58,
+            "width": 84,
+            "height": 284
+        },
+        {
+            "x": 138,
+            "y": 258,
+            "width": 304,
+            "height": 84
+        },
+        {
+            "x": 138,
+            "y": 258,
+            "width": 84,
+            "height": 304
+        },
+        {
+            "x": 138,
+            "y": 478,
+            "width": 824,
+            "height": 84
+        },
+        {
+            "x": 878,
+            "y": 478,
+            "width": 624,
+            "height": 84
+        },
+        {
+            "x": 1418,
+            "y": 478,
+            "width": 84,
+            "height": 244
+        },
+        {
+            "x": 1430,
+            "y": 230,
+            "width": 270,
+            "height": 60
+        },
+        {
+            "x": 1430,
+            "y": 230,
+            "width": 60,
+            "height": 320
+        },
+        {
+            "x": 1430,
+            "y": 490,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 1070,
+            "y": 0,
+            "width": 60,
+            "height": 210
+        },
+        {
+            "x": 1070,
+            "y": 150,
+            "width": 220,
+            "height": 60
+        },
+        {
+            "x": 1230,
+            "y": 150,
+            "width": 60,
+            "height": 400
+        },
+        {
+            "x": 1230,
+            "y": 490,
+            "width": 260,
+            "height": 60
+        },
+        {
+            "x": 0,
+            "y": 0,
+            "width": 830,
+            "height": 60
+        },
+        {
+            "x": 770,
+            "y": 0,
+            "width": 60,
+            "height": 370
+        },
+        {
+            "x": 770,
+            "y": 310,
+            "width": 260,
+            "height": 60
+        },
+        {
+            "x": 970,
+            "y": 310,
+            "width": 60,
+            "height": 240
+        },
+        {
+            "x": 970,
+            "y": 490,
+            "width": 520,
+            "height": 60
+        }
+    ],
     "towerSlots": [
-        { "x": 300, "y": 220, "type": "cannon" },
-        { "x": 550, "y": 220, "type": "laser" },
-        { "x": 800, "y": 220, "type": "rocket" },
-        { "x": 1050, "y": 220, "type": "machinegun" },
-        { "x": 1300, "y": 220, "type": "shock" },
-        { "x": 420, "y": 380, "type": "machinegun" },
-        { "x": 670, "y": 380, "type": "cannon" },
-        { "x": 920, "y": 380, "type": "laser" },
-        { "x": 1170, "y": 380, "type": "rocket" },
-        { "x": 1420, "y": 380, "type": "cannon" }
+        {
+            "x": 1370,
+            "y": 575,
+            "type": "cannon"
+        },
+        {
+            "x": 1370,
+            "y": 455,
+            "type": "laser"
+        },
+        {
+            "x": 320,
+            "y": 200,
+            "type": "rocket"
+        },
+        {
+            "x": 230,
+            "y": 410,
+            "type": "machinegun"
+        },
+        {
+            "x": 1175,
+            "y": 110,
+            "type": "shock"
+        },
+        {
+            "x": 890,
+            "y": 395,
+            "type": "machinegun"
+        },
+        {
+            "x": 710,
+            "y": 95,
+            "type": "cannon"
+        },
+        {
+            "x": 1535,
+            "y": 320,
+            "type": "laser"
+        },
+        {
+            "x": 125,
+            "y": 200,
+            "type": "rocket"
+        },
+        {
+            "x": 845,
+            "y": 575,
+            "type": "cannon"
+        },
+        {
+            "x": 1175,
+            "y": 260,
+            "type": "cannon"
+        },
+        {
+            "x": 380,
+            "y": 410,
+            "type": "laser"
+        },
+        {
+            "x": 905,
+            "y": 290,
+            "type": "rocket"
+        }
     ],
     "start": { "miners": 20, "military": 12, "resources": 420 },
     "waves": { "total": 7, "difficulty": 1.3 },
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "decide_engines",
+            "id": "decision",
             "text": "Решить судьбу двигателей",
-            "kind": "flag",
-            "flag": "engines_decided"
+            "kind": "decision",
+            "events": ["engines_with_chen", "engines_without_chen"]
         },
         {
             "id": "save_reactor",
             "text": "Допустить не более 3 прорывов в жилой отсек",
             "kind": "maxBreaches",
-            "target": 3
+            "target": 3,
+            "optional": true
+        },
+        {
+            "id": "max_losses",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -136,7 +434,14 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "draft_told", "value": 1 },
-                                { "type": "convert", "count": 3 }
+                                { "type": "convert", "count": 3 },
+                                { "type": "relationship", "character": "gorban", "disposition": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "silva",
+                                    "disposition": 1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     },
@@ -151,6 +456,7 @@
             }
         },
         {
+            "id": "engines_with_chen",
             "wave": 3,
             "trigger": "start",
             "when": [{ "flag": "engineer_saved", "atLeast": 1 }],
@@ -168,7 +474,14 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "engines_restored", "value": 1 },
-                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                                { "type": "flag", "name": "engines_decided", "value": 1 },
+                                { "type": "relationship", "character": "chen", "disposition": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "diana",
+                                    "disposition": 1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     },
@@ -180,7 +493,19 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "engines_stripped", "value": 1 },
-                                { "type": "flag", "name": "engines_decided", "value": 1 }
+                                { "type": "flag", "name": "engines_decided", "value": 1 },
+                                {
+                                    "type": "relationship",
+                                    "character": "hale",
+                                    "disposition": 1,
+                                    "affection": 0
+                                },
+                                {
+                                    "type": "relationship",
+                                    "character": "diana",
+                                    "disposition": -1,
+                                    "affection": 0
+                                }
                             ]
                         }
                     }
@@ -190,6 +515,7 @@
             }
         },
         {
+            "id": "engines_without_chen",
             "wave": 3,
             "trigger": "start",
             "when": [{ "flag": "engineer_saved", "below": 1 }],

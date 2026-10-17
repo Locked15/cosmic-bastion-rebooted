@@ -60,17 +60,14 @@ describe('story content', () => {
         )
     })
 
-    it('unlocks types and all upgrade tiers linearly, with early flags', () => {
+    it('unlocks tower and barricade types linearly, with early flags', () => {
         expect(technologyUnlocks(0, {}).towers).toEqual(['cannon', 'machinegun'])
         expect(technologyUnlocks(0, {}).barricades).toEqual(['wall'])
-        expect(technologyUnlocks(0, {}).upgradeTier).toBe(1)
         expect(technologyUnlocks(1, {}).towers).toContain('rocket')
         expect(technologyUnlocks(1, {}).barricades).toContain('filter')
-        expect(technologyUnlocks(1, {}).upgradeTier).toBe(2)
         const all = technologyUnlocks(2, {})
         expect(all.towers).toEqual(['cannon', 'machinegun', 'rocket', 'laser', 'shock'])
         expect(all.barricades).toContain('shield')
-        expect(all.upgradeTier).toBe(3)
         expect(technologyUnlocks(0, { tech_laser: 1 }).towers).toContain('laser')
         expect(technologyUnlocks(1, { tech_shield: 1 }).barricades).toContain('shield')
         expect(technologyUnlocks(0, { tech_laser: 0 }).towers).not.toContain('laser')

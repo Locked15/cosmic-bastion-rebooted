@@ -2,6 +2,7 @@ import { parseContent } from '../content/parse'
 import { Level } from '../model/Level'
 import { CAMPAIGN } from '../story/campaign'
 import { musicTrack } from '../story/soundtrack'
+import type { EnemyAbility } from '../rules/enemyRules'
 import { levelSchema, type LevelDefinition } from './schema'
 
 // Every file in content/levels is bundled and validated at startup.
@@ -37,3 +38,14 @@ export function createLevel(id: string): Level | null {
     const definition = definitions.get(id)
     return definition ? Level.fromDefinition(definition) : null
 }
+
+// Abilities some story consequence removes from a level's waves (carry-over).
+export const STORY_EXCLUDED_ABILITIES: readonly EnemyAbility[] = [
+    ...new Set(
+        [...definitions.values()].flatMap((definition) =>
+            definition.carryOver.flatMap((rule) =>
+                rule.type === 'excludeAbility' ? [rule.ability] : [],
+            ),
+        ),
+    ),
+]

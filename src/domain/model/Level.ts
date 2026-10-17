@@ -1,7 +1,12 @@
 import { lineIntersectsRect, projectOntoPath } from '../geometry'
 import type { Point, Rect } from '../geometry'
-import type { CarryOver, LevelDefinition, LevelEvent, Objective } from '../levels/schema'
-import type { Barricade } from './Barricade'
+import type {
+    CarryOver,
+    LevelDefinition,
+    LevelEvent,
+    Objective,
+    RouteDefinition,
+} from '../levels/schema'
 
 export type {
     CarryOver,
@@ -15,6 +20,8 @@ export type {
     StoryChoice,
     StoryDialog,
     StoryFlags,
+    RouteDefinition,
+    RouteRole,
 } from '../levels/schema'
 
 export type TowerSlotData = LevelDefinition['towerSlots'][number]
@@ -27,8 +34,8 @@ export class Level {
     width = 1200
     height = 700
     livingQuartersY = 450
-    basePath: Point[] = []
-    alternativePaths: Point[][] = []
+    // The first route is the main one.
+    routes: RouteDefinition[] = []
     corridors: Rect[] = []
     towerSlots: TowerSlotData[] = []
     totalWaves = 5
@@ -56,8 +63,7 @@ export class Level {
         level.width = data.width
         level.height = data.height
         level.livingQuartersY = data.livingQuartersY
-        level.basePath = data.paths.base
-        level.alternativePaths = data.paths.alternatives
+        level.routes = data.routes
         level.corridors = data.corridors
         level.towerSlots = data.towerSlots
         level.totalWaves = data.waves.total
@@ -72,23 +78,34 @@ export class Level {
         return level
     }
 
-    getCurrentPath(barricades: Barricade[]): Point[] {
-        for (const barricade of barricades) {
-            if (barricade.active && this.pathIntersectsBarricade(this.basePath, barricade)) {
-                const alternative = this.alternativePaths[0]
-                if (alternative) return alternative.map((point) => ({ ...point }))
-            }
-        }
-        return this.basePath.map((point) => ({ ...point }))
+    // Points of the main route.
+    get basePath(): Point[] {
+        return this.routes[0]?.points ?? []
     }
-    pathIntersectsBarricade(path: Point[], barricade: Rect): boolean {
-        return path
-            .slice(1)
-            .some((point, index) => lineIntersectsRect(path[index]!, point, barricade))
+
+    // Points of every other route.
+    get alternativePaths(): Point[][] {
+        return this.routes.slice(1).map((route) => route.points)
     }
-    // All routes enemies can take.
+
+    // All routes enemies can take, open or not.
     get paths(): Point[][] {
-        return [this.basePath, ...this.alternativePaths]
+        return this.routes.map((route) => route.points)
+    }
+
+    route(id: string): RouteDefinition | null {
+        return this.routes.find((route) => route.id === id) ?? null
+    }
+
+    // Routes enemies of `wave` may be sent along directly (reserve routes are only detours).
+    openRoutes(wave: number): RouteDefinition[] {
+        return this.routes.filter((route) => !route.reserve && route.opensOnWave <= wave)
+    }
+
+    // Whether `rect` (an intact barricade) stands on the route.
+    blocks(route: RouteDefinition, rect: Rect): boolean {
+        const path = route.points
+        return path.slice(1).some((point, index) => lineIntersectsRect(path[index]!, point, rect))
     }
 
     // Where a barricade of `size` may stand when the player points at `point`:

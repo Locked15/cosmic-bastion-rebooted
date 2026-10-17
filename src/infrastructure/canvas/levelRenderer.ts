@@ -1,6 +1,10 @@
-import type { Level } from '@/domain'
+import type { Level, RouteDefinition } from '@/domain'
 
-export function drawLevel(ctx: CanvasRenderingContext2D, level: Level): void {
+// Route tints in order of the level's routes (RGB, alpha added per use).
+const ROUTE_TINTS = ['255, 40, 40', '255, 150, 30', '190, 90, 255', '40, 190, 255']
+
+// `wave` is the wave whose routes matter: the running one, or the next between waves.
+export function drawLevel(ctx: CanvasRenderingContext2D, level: Level, wave = 1): void {
     if (!ctx) return
 
     ctx.fillStyle = '#0a0a0a'
@@ -24,7 +28,11 @@ export function drawLevel(ctx: CanvasRenderingContext2D, level: Level): void {
 
     drawTowerSlots(ctx, level)
 
-    drawEnemyPath(ctx, level)
+    level.routes.forEach((route, index) => {
+        const tint = ROUTE_TINTS[index % ROUTE_TINTS.length]!
+        const state = route.reserve ? 'reserve' : route.opensOnWave > wave ? 'closed' : 'open'
+        drawRoute(ctx, level, route, tint, state)
+    })
 }
 
 function drawCorridors(ctx: CanvasRenderingContext2D, level: Level): void {
@@ -99,44 +107,87 @@ function drawTowerSlots(ctx: CanvasRenderingContext2D, level: Level): void {
     ctx.restore()
 }
 
-function drawEnemyPath(ctx: CanvasRenderingContext2D, level: Level): void {
-    if (!ctx || !level.basePath || level.basePath.length < 2) return
+type RouteState = 'open' | 'closed' | 'reserve'
 
+function drawRoute(
+    ctx: CanvasRenderingContext2D,
+    level: Level,
+    route: RouteDefinition,
+    tint: string,
+    state: RouteState,
+): void {
+    const points = route.points
+    if (points.length < 2) return
     ctx.save()
-    ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)'
-    ctx.lineWidth = 35
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
-
+    ctx.strokeStyle = `rgba(${tint}, ${state === 'open' ? 0.3 : 0.18})`
+    ctx.lineWidth = state === 'open' ? 35 : 14
+    ctx.setLineDash(state === 'open' ? [] : [18, 14])
     ctx.beginPath()
-    ctx.moveTo(level.basePath[0]!.x, level.basePath[0]!.y)
-    for (let i = 1; i < level.basePath.length; i++) {
-        ctx.lineTo(level.basePath[i]!.x, level.basePath[i]!.y)
-    }
+    ctx.moveTo(points[0]!.x, points[0]!.y)
+    for (const point of points.slice(1)) ctx.lineTo(point.x, point.y)
     ctx.stroke()
+    ctx.setLineDash([])
 
-    ctx.fillStyle = 'rgba(255, 0, 0, 0.4)'
-    for (let i = 0; i < level.basePath.length - 1; i++) {
-        const p1 = level.basePath[i]!
-        const p2 = level.basePath[i + 1]!
-        const midX = (p1.x + p2.x) / 2
-        const midY = (p1.y + p2.y) / 2
+    if (state === 'open') drawArrows(ctx, points, `rgba(${tint}, 0.45)`)
+    drawSpawn(ctx, level, route, tint, state)
+    ctx.restore()
+}
 
-        const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x)
-
+function drawArrows(
+    ctx: CanvasRenderingContext2D,
+    points: RouteDefinition['points'],
+    fill: string,
+) {
+    ctx.fillStyle = fill
+    for (let i = 0; i < points.length - 1; i++) {
+        const p1 = points[i]!
+        const p2 = points[i + 1]!
         ctx.save()
-        ctx.translate(midX, midY)
-        ctx.rotate(angle)
-
+        ctx.translate((p1.x + p2.x) / 2, (p1.y + p2.y) / 2)
+        ctx.rotate(Math.atan2(p2.y - p1.y, p2.x - p1.x))
         ctx.beginPath()
         ctx.moveTo(12, 0)
         ctx.lineTo(-6, -10)
         ctx.lineTo(-6, 10)
         ctx.closePath()
         ctx.fill()
-
         ctx.restore()
     }
+}
 
-    ctx.restore()
+// Breach marker where the route enters the map, with its name and state.
+function drawSpawn(
+    ctx: CanvasRenderingContext2D,
+    level: Level,
+    route: RouteDefinition,
+    tint: string,
+    state: RouteState,
+): void {
+    if (state === 'reserve') return
+    const start = route.points[0]!
+    const next = route.points[1]!
+    const open = state === 'open'
+    ctx.strokeStyle = `rgba(${tint}, ${open ? 0.9 : 0.5})`
+    ctx.lineWidth = 3
+    ctx.beginPath()
+    ctx.arc(start.x, start.y, 22, 0, Math.PI * 2)
+    ctx.stroke()
+    if (open) {
+        ctx.beginPath()
+        ctx.arc(start.x, start.y, 30, 0, Math.PI * 2)
+        ctx.stroke()
+    }
+    // The label sits on the side away from the route, kept inside the map.
+    const label = open ? route.label : `${route.label} · с волны ${route.opensOnWave}`
+    const below = next.y >= start.y ? -1 : 1
+    ctx.font = 'bold 13px "Courier New", monospace'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    const width = ctx.measureText(label).width
+    const x = Math.min(level.width - width / 2 - 6, Math.max(width / 2 + 6, start.x))
+    const y = Math.min(level.height - 14, Math.max(14, start.y + below * 44))
+    ctx.fillStyle = `rgba(${tint}, ${open ? 1 : 0.6})`
+    ctx.fillText(label, x, y)
 }

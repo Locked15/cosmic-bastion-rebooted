@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import { MAX_PROFILES, PROFILE_NAME_MAX, type ProfileSummary } from '@/application'
+import {
+    MAX_PROFILES,
+    PROFILE_NAME_MAX,
+    rankView,
+    type ProfileSummary,
+    type RankView,
+} from '@/application'
+import { DEFAULT_DIFFICULTY, DIFFICULTY_IDS, type DifficultyId } from '@/domain'
 import { useAchievementsStore } from './achievementsStore'
 import { useCampaignStore } from './campaignStore'
 import { useRequisitionStore } from './requisitionStore'
@@ -11,6 +18,7 @@ import { useUiStore } from './uiStore'
 export interface ProfileSlotView extends ProfileSummary {
     progress: string
     lastPlayed: string
+    rank: string
 }
 
 // Profiles (save slots) and the security dialog that manages them.
@@ -20,6 +28,9 @@ export const useProfileStore = defineStore('profiles', () => {
     const profiles = ref<ProfileSlotView[]>([])
     const briefing = ref<string | null>(null)
     const activeName = ref<string | null>(null)
+    const activeRank = ref<RankView>(rankView(DEFAULT_DIFFICULTY))
+    // Ranks offered at registration, from the most forgiving to the hardest.
+    const ranks: RankView[] = DIFFICULTY_IDS.map(rankView)
     const canCreate = ref(false)
     const hasLegacySaves = ref(false)
     const busy = ref(false)
@@ -33,9 +44,11 @@ export const useProfileStore = defineStore('profiles', () => {
             ...profile,
             progress: `Секторов: ${profile.completedLevels}/${profile.totalLevels} · ★ ${profile.stars}`,
             lastPlayed: new Date(profile.lastPlayedAt).toLocaleDateString('ru-RU'),
+            rank: rankView(profile.difficulty).label,
         }))
         briefing.value = service.briefing()
         activeName.value = service.active?.name ?? null
+        activeRank.value = rankView(service.difficulty)
         canCreate.value = service.canCreate
         hasLegacySaves.value = service.hasLegacySaves
         if (required.value) dialogOpen.value = true
@@ -63,12 +76,16 @@ export const useProfileStore = defineStore('profiles', () => {
         }
     }
 
-    async function create(name: string): Promise<boolean> {
-        const created = await run(() => service.create(name))
+    async function create(
+        name: string,
+        difficulty: DifficultyId = DEFAULT_DIFFICULTY,
+        romance = false,
+    ): Promise<boolean> {
+        const created = await run(() => service.create(name, difficulty, romance))
         if (created) {
             switched()
             dialogOpen.value = false
-            ui.notify(`Офицер ${activeName.value} зарегистрирован`)
+            ui.notify(`${activeRank.value.label} ${activeName.value} зарегистрирован`)
         }
         return created
     }
@@ -92,6 +109,16 @@ export const useProfileStore = defineStore('profiles', () => {
         }
     }
 
+    // Dev console only: the game never lets a profile change its rank.
+    async function overrideRank(difficulty: DifficultyId): Promise<boolean> {
+        const done = await run(() => service.overrideDifficulty(difficulty))
+        if (done) {
+            useCampaignStore().reload()
+            refresh()
+        }
+        return done
+    }
+
     function open() {
         refresh()
         dialogOpen.value = true
@@ -105,6 +132,9 @@ export const useProfileStore = defineStore('profiles', () => {
         profiles,
         briefing,
         activeName,
+        activeRank,
+        ranks,
+        defaultRank: DEFAULT_DIFFICULTY,
         canCreate,
         hasLegacySaves,
         busy,
@@ -114,6 +144,7 @@ export const useProfileStore = defineStore('profiles', () => {
         nameMaxLength: PROFILE_NAME_MAX,
         refresh,
         create,
+        overrideRank,
         select,
         remove,
         open,

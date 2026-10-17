@@ -7,44 +7,304 @@
     "width": 1250,
     "height": 760,
     "livingQuartersY": 520,
-    "paths": {
-        "base": [
-            { "x": 60, "y": 100 },
-            { "x": 360, "y": 100 },
-            { "x": 560, "y": 300 },
-            { "x": 860, "y": 300 },
-            { "x": 1060, "y": 100 },
-            { "x": 1160, "y": 100 },
-            { "x": 1160, "y": 620 }
-        ],
-        "alternatives": []
-    },
-    "corridors": [{ "x": 20, "y": 60, "width": 1180, "height": 420 }],
+    "routes": [
+        {
+            "id": "main",
+            "label": "Северные гряды",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 80
+                },
+                {
+                    "x": 300,
+                    "y": 80
+                },
+                {
+                    "x": 300,
+                    "y": 240
+                },
+                {
+                    "x": 150,
+                    "y": 240
+                },
+                {
+                    "x": 150,
+                    "y": 410
+                },
+                {
+                    "x": 570,
+                    "y": 410
+                },
+                {
+                    "x": 570,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 580
+                }
+            ]
+        },
+        {
+            "id": "beds",
+            "label": "Южные гряды",
+            "points": [
+                {
+                    "x": 1250,
+                    "y": 60
+                },
+                {
+                    "x": 730,
+                    "y": 60
+                },
+                {
+                    "x": 730,
+                    "y": 220
+                },
+                {
+                    "x": 1050,
+                    "y": 220
+                },
+                {
+                    "x": 1050,
+                    "y": 340
+                },
+                {
+                    "x": 850,
+                    "y": 340
+                },
+                {
+                    "x": 850,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 580
+                }
+            ]
+        },
+        {
+            "id": "drain",
+            "label": "Дренаж",
+            "points": [
+                {
+                    "x": 1250,
+                    "y": 410
+                },
+                {
+                    "x": 1140,
+                    "y": 410
+                },
+                {
+                    "x": 1140,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 460
+                },
+                {
+                    "x": 1010,
+                    "y": 580
+                }
+            ],
+            "role": "fast"
+        }
+    ],
+    "corridors": [
+        {
+            "x": 0,
+            "y": 50,
+            "width": 330,
+            "height": 60
+        },
+        {
+            "x": 270,
+            "y": 50,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 120,
+            "y": 210,
+            "width": 210,
+            "height": 60
+        },
+        {
+            "x": 120,
+            "y": 210,
+            "width": 60,
+            "height": 230
+        },
+        {
+            "x": 120,
+            "y": 380,
+            "width": 480,
+            "height": 60
+        },
+        {
+            "x": 540,
+            "y": 380,
+            "width": 60,
+            "height": 110
+        },
+        {
+            "x": 540,
+            "y": 430,
+            "width": 500,
+            "height": 60
+        },
+        {
+            "x": 980,
+            "y": 430,
+            "width": 60,
+            "height": 180
+        },
+        {
+            "x": 700,
+            "y": 30,
+            "width": 550,
+            "height": 60
+        },
+        {
+            "x": 700,
+            "y": 30,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 700,
+            "y": 190,
+            "width": 380,
+            "height": 60
+        },
+        {
+            "x": 1020,
+            "y": 190,
+            "width": 60,
+            "height": 180
+        },
+        {
+            "x": 820,
+            "y": 310,
+            "width": 260,
+            "height": 60
+        },
+        {
+            "x": 820,
+            "y": 310,
+            "width": 60,
+            "height": 180
+        },
+        {
+            "x": 820,
+            "y": 430,
+            "width": 220,
+            "height": 60
+        },
+        {
+            "x": 1110,
+            "y": 380,
+            "width": 140,
+            "height": 60
+        },
+        {
+            "x": 1110,
+            "y": 380,
+            "width": 60,
+            "height": 110
+        },
+        {
+            "x": 980,
+            "y": 430,
+            "width": 190,
+            "height": 60
+        }
+    ],
     "towerSlots": [
-        { "x": 200, "y": 180, "type": "cannon" },
-        { "x": 300, "y": 330, "type": "machinegun" },
-        { "x": 460, "y": 400, "type": "rocket" },
-        { "x": 600, "y": 160, "type": "laser" },
-        { "x": 710, "y": 380, "type": "cannon" },
-        { "x": 820, "y": 160, "type": "machinegun" },
-        { "x": 960, "y": 380, "type": "shock" },
-        { "x": 1080, "y": 220, "type": "rocket" }
+        {
+            "x": 950,
+            "y": 410,
+            "type": "cannon"
+        },
+        {
+            "x": 1085,
+            "y": 380,
+            "type": "machinegun"
+        },
+        {
+            "x": 215,
+            "y": 170,
+            "type": "rocket"
+        },
+        {
+            "x": 800,
+            "y": 140,
+            "type": "laser"
+        },
+        {
+            "x": 980,
+            "y": 140,
+            "type": "cannon"
+        },
+        {
+            "x": 230,
+            "y": 350,
+            "type": "machinegun"
+        },
+        {
+            "x": 485,
+            "y": 470,
+            "type": "shock"
+        },
+        {
+            "x": 665,
+            "y": 410,
+            "type": "rocket"
+        },
+        {
+            "x": 65,
+            "y": 170,
+            "type": "cannon"
+        },
+        {
+            "x": 1115,
+            "y": 155,
+            "type": "machinegun"
+        }
     ],
     "start": { "miners": 18, "military": 9, "resources": 340 },
     "waves": { "total": 5, "difficulty": 0.95 },
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "save_gardens",
-            "text": "Сохранить оранжерею",
-            "kind": "flag",
-            "flag": "gardens_saved"
+            "id": "decision",
+            "text": "Решить судьбу оранжереи",
+            "kind": "decision",
+            "events": ["last_harvest"]
         },
         {
             "id": "max_towers",
             "text": "Иметь минимум 6 активных башен",
             "kind": "activeTowers",
-            "target": 6
+            "target": 6,
+            "optional": true
+        },
+        {
+            "id": "max_losses",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -82,7 +342,12 @@
                             "cost": {},
                             "effects": [
                                 { "type": "flag", "name": "gardens_burned", "value": 1 },
-                                { "type": "resources", "value": 60 }
+                                { "type": "resources", "value": 60 },
+                                {
+                                    "type": "relationship",
+                                    "character": "zaremba",
+                                    "disposition": -2
+                                }
                             ]
                         }
                     },
@@ -143,6 +408,7 @@
             }
         },
         {
+            "id": "last_harvest",
             "wave": 4,
             "trigger": "delay",
             "delay": 120,
@@ -155,7 +421,14 @@
                         "text": "Защитить оранжерею",
                         "cost": { "resources": 100 },
                         "consequence": "Оранжерея спасена. В следующих секторах шахтёров станет больше на пятерых. Потрачено 100 ресурсов.",
-                        "effect": { "type": "flag", "name": "gardens_saved", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "gardens_saved", "value": 1 },
+                                { "type": "relationship", "character": "zaremba", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Снять урожай и уйти",

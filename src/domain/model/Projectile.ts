@@ -7,6 +7,8 @@ export class Projectile {
     damage: number
     speed: number
     slowEffect: boolean
+    // Speed of a slowed target relative to its own.
+    slowFactor = 0.5
     target: Enemy
     type: ProjectileType
     active: boolean = false
@@ -70,7 +72,7 @@ export class Projectile {
             if (target.dodgeProjectile()) continue
             target.takeDamage(this.damage, this.sourceId)
             if (this.slowEffect && target.alive) {
-                target.slowMultiplier = 0.5
+                target.slowMultiplier = this.slowFactor
                 target.slowTimer = 120
             }
         }
@@ -81,6 +83,7 @@ export class Projectile {
 export class ExplosiveProjectile extends Projectile {
     explosionRadius: number
     knockback: boolean
+    knockbackDistance = 20
     allEnemies: Enemy[]
 
     constructor(
@@ -116,7 +119,7 @@ export class ExplosiveProjectile extends Projectile {
                         enemy.takeDamage(this.damage * damageMult, this.sourceId)
                     }
 
-                    if (this.knockback && enemy.alive) enemy.knockBack(20)
+                    if (this.knockback && enemy.alive) enemy.knockBack(this.knockbackDistance)
                 }
             })
         }

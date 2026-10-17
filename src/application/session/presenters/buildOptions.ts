@@ -15,14 +15,10 @@ export function presentBuildOptions(session: GameSession): BuildOption[] {
         type,
         ...BARRICADE_CATALOG[type],
     }))
-    return [...towers, ...barricades].map(({ category, type, name, description, cost }) => ({
-        category,
-        type,
-        name,
-        description,
-        cost,
-        affordable: resources >= cost,
-    }))
+    return [...towers, ...barricades].map(({ category, type, name, description }) => {
+        const cost = session.buildCost(category, type)
+        return { category, type, name, description, cost, affordable: resources >= cost }
+    })
 }
 
 // Campaign upgrade tiers also gate commands, including the keyboard shortcut.

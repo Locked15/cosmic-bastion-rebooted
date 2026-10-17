@@ -1,5 +1,3 @@
-import { DEFAULT_DIFFICULTY, type DifficultyId } from '@/domain'
-
 // Plain view models handed from the application layer to the UI.
 // They hold no references to domain objects.
 
@@ -77,12 +75,71 @@ export interface ObjectiveView {
     id: string
     text: string
     completed: boolean
+    // Optional objectives add stars; main ones decide whether the sector counts as held.
+    optional: boolean
 }
 
 export interface EndingView {
     id: string
     title: string
     paragraphs: string[]
+    // What became of the cast, by their standing with the player.
+    epilogue: string[]
+    // Name of the player's partner, if any.
+    partner: string | null
+}
+
+// A visual-novel scene between missions.
+export interface SceneView {
+    id: string
+    // Character id of the speaker; null when several speak (the partner choice).
+    speakerId: string | null
+    speaker: string
+    place: string
+    lines: string[]
+    choices: string[]
+}
+
+export interface CrewMemberView {
+    id: string
+    name: string
+    role: string
+    disposition: number
+    standing: string
+    // Null for characters without romance, or when the profile declined it at registration.
+    affection: number | null
+    partner: boolean
+    // Aboard and reachable; otherwise the cabin is sealed ("no contact").
+    present: boolean
+    // Scenes with this character waiting in the wardroom.
+    pendingScenes: number
+    cabin: { code: string; map: MapRect }
+}
+
+// The wardroom's crew deck plan: the common room in the middle, cabins around it.
+export interface CrewDeckView {
+    wardroom: { code: string; name: string; map: MapRect }
+    members: CrewMemberView[]
+}
+
+// A service room on the ship map (not a mission).
+export interface FacilityView {
+    id: 'wardroom' | 'quartermaster'
+    code: string
+    name: string
+    map: MapRect
+    // Conduits from the sectors whose victory opens the room.
+    routes: { from: string; open: boolean; points: [number, number][] }[]
+    // Closed until the required sectors are won.
+    locked: boolean
+    // Names of those sectors, for the readout.
+    prerequisites: string[]
+}
+
+// A service room with its live readout ("РАЗГОВОРОВ: 2"); `alert` makes it pulse.
+export interface FacilityRoomView extends FacilityView {
+    status: string
+    alert: boolean
 }
 
 export interface CampaignResolution {
@@ -100,6 +157,8 @@ export interface ResultView {
     ending: EndingView | null
     // Requisitions paid for this mission.
     requisitions: number | null
+    // The campaign moved on: the sector counts as held (after a defeat too, in A-7).
+    advanced: boolean
     outcome: 'victory' | 'defeat'
     reason: string
     stats: StatRow[]
@@ -107,12 +166,21 @@ export interface ResultView {
 }
 
 export interface GameSnapshot {
+    swarmMemory: { tower: string; percent: number } | null
     levelId: string
     levelName: string
     status: GameStatus
     view: GameView
     speed: number
-    wave: { current: number; total: number; inProgress: boolean }
+    wave: {
+        current: number
+        total: number
+        inProgress: boolean
+        // Routes of the running wave, or of the next one between waves (none after the last).
+        routes: { label: string; opening: boolean }[]
+        // Whether that wave brings a boss (Средоточие).
+        boss: boolean
+    }
     resources: number
     resourceRate: number
     personnel: { miners: number; military: number; lost: number }
@@ -134,6 +202,8 @@ export interface MapRect {
 }
 
 export interface LevelSummary {
+    // Hardest rank the level was won on, if any.
+    rank: string | null
     sector: string
     // Deck code on the ship map (A-7…).
     code: string
@@ -157,7 +227,7 @@ export interface LevelSummary {
     locked: boolean
     completed: boolean
     stars: number
-    objectives: string[]
+    objectives: { text: string; optional: boolean }[]
     startingMiners: number
     startingMilitary: number
     startingResources: number
@@ -169,13 +239,13 @@ export interface Settings {
     // Sound effects and music, 0..100.
     volume: number
     music: number
-    // Applied when a level starts.
-    difficulty: DifficultyId
+    // Character scenes between missions on the ship map; off hides them all.
+    crewScenes: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
     brightness: 100,
     volume: 50,
     music: 40,
-    difficulty: DEFAULT_DIFFICULTY,
+    crewScenes: true,
 }

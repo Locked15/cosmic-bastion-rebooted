@@ -7,52 +7,340 @@
     "width": 1200,
     "height": 760,
     "livingQuartersY": 520,
-    "paths": {
-        "base": [
-            { "x": 60, "y": 330 },
-            { "x": 420, "y": 330 },
-            { "x": 420, "y": 130 },
-            { "x": 780, "y": 130 },
-            { "x": 780, "y": 330 },
-            { "x": 1140, "y": 330 },
-            { "x": 1140, "y": 620 }
-        ],
-        "alternatives": [
-            [
-                { "x": 60, "y": 330 },
-                { "x": 1140, "y": 330 },
-                { "x": 1140, "y": 620 }
+    "routes": [
+        {
+            "id": "main",
+            "label": "Западный притвор",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 140
+                },
+                {
+                    "x": 230,
+                    "y": 140
+                },
+                {
+                    "x": 230,
+                    "y": 310
+                },
+                {
+                    "x": 600,
+                    "y": 440
+                },
+                {
+                    "x": 600,
+                    "y": 580
+                }
+            ],
+            "detour": "bypass"
+        },
+        {
+            "id": "east",
+            "label": "Восточный притвор",
+            "points": [
+                {
+                    "x": 1200,
+                    "y": 220
+                },
+                {
+                    "x": 1000,
+                    "y": 220
+                },
+                {
+                    "x": 1000,
+                    "y": 310
+                },
+                {
+                    "x": 600,
+                    "y": 440
+                },
+                {
+                    "x": 600,
+                    "y": 580
+                }
             ]
-        ]
-    },
-    "corridors": [{ "x": 20, "y": 90, "width": 1160, "height": 380 }],
+        },
+        {
+            "id": "altar",
+            "label": "Алтарные врата",
+            "points": [
+                {
+                    "x": 600,
+                    "y": 0
+                },
+                {
+                    "x": 600,
+                    "y": 180
+                },
+                {
+                    "x": 600,
+                    "y": 440
+                },
+                {
+                    "x": 600,
+                    "y": 580
+                }
+            ],
+            "opensOnWave": 3
+        },
+        {
+            "id": "bypass",
+            "label": "Обход часовни",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 30
+                },
+                {
+                    "x": 360,
+                    "y": 30
+                },
+                {
+                    "x": 360,
+                    "y": 130
+                },
+                {
+                    "x": 430,
+                    "y": 130
+                },
+                {
+                    "x": 430,
+                    "y": 330
+                },
+                {
+                    "x": 600,
+                    "y": 440
+                },
+                {
+                    "x": 600,
+                    "y": 580
+                }
+            ],
+            "reserve": true
+        }
+    ],
+    "corridors": [
+        {
+            "x": 0,
+            "y": 110,
+            "width": 260,
+            "height": 60
+        },
+        {
+            "x": 200,
+            "y": 110,
+            "width": 60,
+            "height": 230
+        },
+        {
+            "x": 200,
+            "y": 280,
+            "width": 134,
+            "height": 86
+        },
+        {
+            "x": 274,
+            "y": 306,
+            "width": 134,
+            "height": 86
+        },
+        {
+            "x": 348,
+            "y": 332,
+            "width": 134,
+            "height": 86
+        },
+        {
+            "x": 422,
+            "y": 358,
+            "width": 134,
+            "height": 86
+        },
+        {
+            "x": 496,
+            "y": 384,
+            "width": 134,
+            "height": 86
+        },
+        {
+            "x": 570,
+            "y": 410,
+            "width": 60,
+            "height": 200
+        },
+        {
+            "x": 970,
+            "y": 190,
+            "width": 230,
+            "height": 60
+        },
+        {
+            "x": 970,
+            "y": 190,
+            "width": 60,
+            "height": 150
+        },
+        {
+            "x": 890,
+            "y": 280,
+            "width": 140,
+            "height": 86
+        },
+        {
+            "x": 810,
+            "y": 306,
+            "width": 140,
+            "height": 86
+        },
+        {
+            "x": 730,
+            "y": 332,
+            "width": 140,
+            "height": 86
+        },
+        {
+            "x": 650,
+            "y": 358,
+            "width": 140,
+            "height": 86
+        },
+        {
+            "x": 570,
+            "y": 384,
+            "width": 140,
+            "height": 86
+        },
+        {
+            "x": 570,
+            "y": 0,
+            "width": 60,
+            "height": 210
+        },
+        {
+            "x": 570,
+            "y": 150,
+            "width": 60,
+            "height": 320
+        },
+        {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 60
+        },
+        {
+            "x": 330,
+            "y": 0,
+            "width": 60,
+            "height": 160
+        },
+        {
+            "x": 330,
+            "y": 100,
+            "width": 130,
+            "height": 60
+        },
+        {
+            "x": 400,
+            "y": 100,
+            "width": 60,
+            "height": 260
+        },
+        {
+            "x": 400,
+            "y": 300,
+            "width": 117,
+            "height": 97
+        },
+        {
+            "x": 457,
+            "y": 337,
+            "width": 116,
+            "height": 96
+        },
+        {
+            "x": 513,
+            "y": 373,
+            "width": 117,
+            "height": 97
+        }
+    ],
     "towerSlots": [
-        { "x": 500, "y": 230, "type": "cannon" },
-        { "x": 600, "y": 230, "type": "shock" },
-        { "x": 700, "y": 230, "type": "cannon" },
-        { "x": 200, "y": 250, "type": "machinegun" },
-        { "x": 960, "y": 250, "type": "machinegun" },
-        { "x": 160, "y": 410, "type": "rocket" },
-        { "x": 330, "y": 410, "type": "laser" },
-        { "x": 600, "y": 410, "type": "rocket" },
-        { "x": 870, "y": 410, "type": "laser" },
-        { "x": 1040, "y": 410, "type": "cannon" }
+        {
+            "x": 530,
+            "y": 470,
+            "type": "cannon"
+        },
+        {
+            "x": 665,
+            "y": 350,
+            "type": "shock"
+        },
+        {
+            "x": 320,
+            "y": 230,
+            "type": "cannon"
+        },
+        {
+            "x": 260,
+            "y": 80,
+            "type": "machinegun"
+        },
+        {
+            "x": 1055,
+            "y": 275,
+            "type": "machinegun"
+        },
+        {
+            "x": 530,
+            "y": 125,
+            "type": "rocket"
+        },
+        {
+            "x": 65,
+            "y": 80,
+            "type": "laser"
+        },
+        {
+            "x": 380,
+            "y": 305,
+            "type": "rocket"
+        },
+        {
+            "x": 905,
+            "y": 275,
+            "type": "laser"
+        },
+        {
+            "x": 500,
+            "y": 215,
+            "type": "cannon"
+        }
     ],
     "start": { "miners": 18, "military": 11, "resources": 380 },
     "waves": { "total": 6, "difficulty": 1.1 },
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "judge_cult",
+            "id": "decision",
             "text": "Решить судьбу Причастников",
-            "kind": "flag",
-            "flag": "cult_decided"
+            "kind": "decision",
+            "events": ["communicants_trial"]
         },
         {
             "id": "upgrade_tower",
             "text": "Улучшить башню до 3 уровня",
             "kind": "towerLevel",
-            "target": 2
+            "target": 2,
+            "optional": true
+        },
+        {
+            "id": "max_breaches",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [
@@ -134,7 +422,14 @@
                     {
                         "text": "Передать лист капитану",
                         "consequence": "Восс получила лист. Правда дошла до неё раньше двигательного отсека.",
-                        "effect": { "type": "flag", "name": "truth_told", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "truth_told", "value": 1 },
+                                { "type": "relationship", "character": "voss", "disposition": 1 }
+                            ]
+                        }
                     },
                     {
                         "text": "Сжечь лист",
@@ -147,6 +442,7 @@
             }
         },
         {
+            "id": "communicants_trial",
             "wave": 4,
             "trigger": "delay",
             "delay": 120,

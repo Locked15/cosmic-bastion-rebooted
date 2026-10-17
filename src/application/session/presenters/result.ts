@@ -2,9 +2,12 @@ import type { ResultView } from '../../dto/views'
 import type { GameSession } from '../GameSession'
 import { row } from './format'
 
+// One star for the main objectives (nothing without them), one per optional objective, up to 3.
 export function starsFor(session: GameSession): number {
     session.objectives.update(session)
-    return Math.min(3, session.level.objectives.filter((objective) => objective.completed).length)
+    const { objectives } = session.level
+    if (!objectives.every((objective) => objective.optional || objective.completed)) return 0
+    return Math.min(3, 1 + objectives.filter((o) => o.optional && o.completed).length)
 }
 
 export function presentResult(session: GameSession): ResultView | null {
@@ -12,12 +15,13 @@ export function presentResult(session: GameSession): ResultView | null {
     if (!result) return null
     session.objectives.update(session)
     const { level, stats } = session
-    const objectives = session.objectives.all.map(({ id, text, completed }) => ({
+    const objectives = session.objectives.all.map(({ id, text, completed, optional }) => ({
         id,
         text,
         completed,
+        optional,
     }))
-    const detail = { objectives, unlocks: [], ending: null, requisitions: null }
+    const detail = { objectives, unlocks: [], ending: null, requisitions: null, advanced: false }
     if (result.outcome === 'victory') {
         const done = level.objectives.filter((objective) => objective.completed).length
         return {

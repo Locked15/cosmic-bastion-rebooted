@@ -1,11 +1,17 @@
 <script setup lang="ts">
     import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
     import { useProfileStore } from '@/stores/profileStore'
+    import type { DifficultyId } from '@/application'
     import AppButton from '@/ui/components/AppButton.vue'
     import ProfileSlot from '@/ui/components/ProfileSlot.vue'
+    import RankCard from '@/ui/components/RankCard.vue'
 
     const profiles = useProfileStore()
     const name = ref('')
+    // The terminal suggests the standard rank.
+    const rank = ref<DifficultyId>(profiles.defaultRank)
+    // Personal relationships on duty: romance is off unless the officer accepts them.
+    const romance = ref<'no' | 'yes'>('no')
     const creating = ref(false)
     const input = useTemplateRef<HTMLInputElement>('name-input')
 
@@ -32,12 +38,15 @@
 
     function startCreating() {
         name.value = ''
+        rank.value = profiles.defaultRank
+        romance.value = 'no'
         creating.value = true
     }
 
     async function submit() {
-        if (await profiles.create(name.value)) {
+        if (await profiles.create(name.value, rank.value, romance.value === 'yes')) {
             name.value = ''
+            romance.value = 'no'
             creating.value = false
         }
     }
@@ -77,6 +86,7 @@
                     :key="profile?.id ?? `empty-${index}`"
                     :index="index + 1"
                     :name="profile?.name ?? null"
+                    :rank="profile?.rank"
                     :progress="profile?.progress"
                     :last-played="profile?.lastPlayed"
                     :active="profile?.active"
@@ -88,6 +98,37 @@
             </div>
 
             <form v-if="showForm" class="profiles-modal__form" @submit.prevent="submit">
+                <div class="profiles-modal__terminal" aria-hidden="true">
+                    <span>ТЕРМИНАЛ КАДРОВОЙ СЛУЖБЫ · «ТЯЖЕСТЬ ОБЕТА» · КП-41</span>
+                    <span class="profiles-modal__led">● СВЯЗЬ</span>
+                </div>
+                <p class="profiles-modal__prompt">&gt; Добро пожаловать, офицер.</p>
+                <p class="profiles-modal__prompt">
+                    &gt; Назовите звание и представьтесь.<span class="profiles-modal__cursor"
+                        >_</span
+                    >
+                </p>
+
+                <p id="profile-rank" class="profiles-modal__label">ЗВАНИЕ:</p>
+                <div class="profiles-modal__ranks" role="radiogroup" aria-labelledby="profile-rank">
+                    <RankCard
+                        v-for="option in profiles.ranks"
+                        :key="option.id"
+                        :label="option.label"
+                        :description="option.description"
+                        :effects="option.effects"
+                        :stripes="option.insignia.stripes"
+                        :stars="option.insignia.stars"
+                        :general="option.insignia.general"
+                        :selected="rank === option.id"
+                        @select="rank = option.id"
+                    />
+                </div>
+                <p class="profiles-modal__warning">
+                    Звание вносится в личное дело навсегда. Сменить его можно только новым личным
+                    делом.
+                </p>
+
                 <label class="profiles-modal__label" for="profile-name">ИМЯ ОФИЦЕРА:</label>
                 <input
                     id="profile-name"
@@ -99,6 +140,16 @@
                     :maxlength="profiles.nameMaxLength"
                     placeholder="Позывной или фамилия"
                 />
+                <label class="profiles-modal__label" for="profile-romance">
+                    ВЫ ПРИЕМЛЕТЕ ЛИЧНЫЕ ОТНОШЕНИЯ НА СЛУЖБЕ?
+                </label>
+                <select id="profile-romance" v-model="romance" class="profiles-modal__input">
+                    <option value="no">Нет. Только служба</option>
+                    <option value="yes">Да</option>
+                </select>
+                <p class="profiles-modal__hint">
+                    Касается только романтических линий. Репутация у экипажа учитывается всегда.
+                </p>
                 <p v-if="profiles.hasLegacySaves" class="profiles-modal__note">
                     Найден прежний прогресс. Он будет перенесён в это личное дело.
                 </p>
@@ -127,6 +178,11 @@
     .profiles-modal {
         &__box {
             width: 600px;
+            max-width: 100%;
+        }
+
+        &__box:has(.profiles-modal__form) {
+            width: 920px;
         }
 
         &__intro {
@@ -148,8 +204,54 @@
             border: 1px solid $color-primary;
         }
 
+        &__terminal {
+            display: flex;
+            justify-content: space-between;
+            gap: $spacing-sm;
+            margin: (-$spacing-md) (-$spacing-md) $spacing-md;
+            padding: $spacing-xs $spacing-md;
+            border-bottom: 1px solid $color-primary;
+            background-color: rgba($color-primary, 0.08);
+            color: $color-secondary;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        &__led {
+            color: $color-success;
+        }
+
+        &__prompt {
+            color: $color-primary;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        &__cursor {
+            animation: profiles-modal-blink 1s steps(1) infinite;
+        }
+
+        &__ranks {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: $spacing-sm;
+            margin-bottom: $spacing-sm;
+
+            @media (max-width: 760px) {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        &__warning {
+            margin-bottom: $spacing-md;
+            color: $color-danger;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
         &__label {
             display: block;
+            margin-top: $spacing-md;
             margin-bottom: $spacing-sm;
             color: $color-secondary;
             font-size: 12px;
@@ -172,6 +274,12 @@
             }
         }
 
+        &__hint {
+            margin-top: $spacing-xs;
+            color: $color-secondary;
+            font-size: 11px;
+        }
+
         &__note {
             margin-top: $spacing-sm;
             color: $color-success;
@@ -187,6 +295,12 @@
                 flex: 1;
                 margin: 0;
             }
+        }
+    }
+
+    @keyframes profiles-modal-blink {
+        50% {
+            opacity: 0;
         }
     }
 </style>

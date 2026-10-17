@@ -49,8 +49,6 @@ const wavesSchema = v.strictObject({
     abilityFromWave: count,
     miniBossChance: chanceSchema,
     miniBossFromWave: count,
-    // A boss closes every N-th wave.
-    bossEvery: v.pipe(count, v.minValue(1)),
     // Frames after the last regular spawn.
     bossDelay: positive,
     regularAbilities: v.pipe(v.array(enemyAbilitySchema), v.nonEmpty()),
@@ -79,3 +77,6 @@ export const ENEMY_KIND_MODIFIERS: Record<
 > = rules.kinds
 export const ABILITY_DESCRIPTIONS: Record<EnemyAbility, string> = rules.abilities
 export const WAVE_RULES: WaveRules = rules.waves
+
+// Abilities only bosses get.
+export const BOSS_ABILITIES: readonly EnemyAbility[] = WAVE_RULES.bossAbilities

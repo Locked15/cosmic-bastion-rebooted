@@ -51,6 +51,8 @@ function createScene(): Scene {
     }
     return {
         level,
+        currentWave: 1,
+        waveInProgress: true,
         view: 'corridor',
         slots,
         barricades: [barricade],

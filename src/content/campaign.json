@@ -1,5 +1,5 @@
 {
-    "contentVersion": 3,
+    "contentVersion": 4,
     "finale": "level_5",
     "sectors": [
         {
@@ -234,6 +234,38 @@
                     [270, 636],
                     [360, 636],
                     [360, 445]
+                ]
+            }
+        }
+    ],
+    "facilities": [
+        {
+            "id": "wardroom",
+            "code": "КК-3",
+            "name": "Кают-компания",
+            "requires": ["level_2"],
+            "map": { "x": 360, "y": 16, "width": 160, "height": 56 },
+            "routes": {
+                "level_2": [
+                    [720, 210],
+                    [720, 44],
+                    [520, 44]
+                ]
+            }
+        },
+        {
+            "id": "quartermaster",
+            "code": "ИТ-41",
+            "name": "Интендантство",
+            "requires": ["level_10"],
+            "map": { "x": 180, "y": 16, "width": 160, "height": 56 },
+            "routes": {
+                "level_10": [
+                    [520, 152],
+                    [360, 152],
+                    [360, 116],
+                    [260, 116],
+                    [260, 72]
                 ]
             }
         }

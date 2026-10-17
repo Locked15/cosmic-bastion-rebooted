@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import { ref } from 'vue'
 
-    // The furnace lever: burns every requisition form for a partial refund.
+    // The recall lever: revokes every approved requisition form for a partial refund.
     const {
         refund,
         percent,
@@ -33,12 +33,12 @@
             <span class="reset-lever__rivet" />
             <span class="reset-lever__rivet" />
             <span class="reset-lever__rivet" />
-            <p class="reset-lever__title">ПЕЧЬ НАРЯДОВ</p>
+            <p class="reset-lever__title">ОТЗЫВ НАРЯДОВ</p>
             <button
                 type="button"
                 class="reset-lever__slot"
                 :disabled="disabled"
-                :aria-label="`Сжечь все наряды, вернуть ${refund} реквизиций`"
+                :aria-label="`Отозвать все наряды, вернуть ${refund} реквизиций`"
                 @click="pull"
             >
                 <span

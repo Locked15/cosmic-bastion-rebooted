@@ -1,5 +1,7 @@
 <script setup lang="ts">
     import { storeToRefs } from 'pinia'
+    import { computed } from 'vue'
+    import { useProfileStore } from '@/stores/profileStore'
     import { useSettingsStore } from '@/stores/settingsStore'
     import { useUiStore } from '@/stores/uiStore'
     import AppButton from '@/ui/components/AppButton.vue'
@@ -9,6 +11,17 @@
     const settingsStore = useSettingsStore()
     const { settings } = storeToRefs(settingsStore)
     const ui = useUiStore()
+
+    // Optional story content: on/off switches shown as option buttons.
+    const toggleOptions: { value: 'on' | 'off'; text: string }[] = [
+        { value: 'on', text: 'ВКЛ' },
+        { value: 'off', text: 'ВЫКЛ' },
+    ]
+    const crewScenes = computed({
+        get: () => (settings.value.crewScenes ? 'on' : 'off'),
+        set: (value: 'on' | 'off') => (settings.value.crewScenes = value === 'on'),
+    })
+    const profiles = useProfileStore()
 </script>
 
 <template>
@@ -18,18 +31,24 @@
             <SettingsSlider v-model="settings.brightness" label="ЯРКОСТЬ:" :min="50" :max="150" />
             <SettingsSlider v-model="settings.volume" label="ЗВУКИ:" :min="0" :max="100" />
             <SettingsSlider v-model="settings.music" label="МУЗЫКА:" :min="0" :max="100" />
-            <OptionGroup
-                v-model="settings.difficulty"
-                label="СЛОЖНОСТЬ:"
-                :options="settingsStore.difficultyOptions"
-            />
             <div class="settings-modal__difficulty">
-                <p class="settings-modal__description">
-                    {{ settingsStore.difficultyDetails.description }}
+                <p class="settings-modal__rank">ЗВАНИЕ: {{ profiles.activeRank.label }}</p>
+                <p class="settings-modal__description">{{ profiles.activeRank.description }}</p>
+                <p
+                    v-for="effect in profiles.activeRank.effects"
+                    :key="effect"
+                    class="settings-modal__effects"
+                >
+                    {{ effect }}
                 </p>
-                <p class="settings-modal__effects">{{ settingsStore.difficultyDetails.effects }}</p>
-                <p class="settings-modal__hint">Применяется при запуске уровня.</p>
+                <p class="settings-modal__hint">
+                    Звание закреплено в личном деле. Для другого звания заведите новое личное дело.
+                </p>
             </div>
+            <OptionGroup v-model="crewScenes" label="СЦЕНЫ С ЭКИПАЖЕМ:" :options="toggleOptions" />
+            <p class="settings-modal__hint settings-modal__story">
+                Разговоры между миссиями необязательны: любую сцену можно пропустить.
+            </p>
             <div class="modal__footer">
                 <AppButton variant="secondary" @click="settingsStore.reset()">
                     СБРОСИТЬ НАСТРОЙКИ
@@ -45,9 +64,16 @@
         width: 560px;
 
         &__difficulty {
-            margin: -$spacing-md 0 $spacing-lg;
+            margin: 0 0 $spacing-lg;
             padding: $spacing-sm $spacing-md;
             border-left: 2px solid $color-accent;
+        }
+
+        &__rank {
+            margin-bottom: $spacing-xs;
+            color: $color-primary;
+            font-size: 13px;
+            letter-spacing: 2px;
         }
 
         &__description {
@@ -63,8 +89,13 @@
         }
 
         &__hint {
+            margin-top: $spacing-xs;
             color: $color-secondary;
             font-size: 11px;
+        }
+
+        &__story {
+            margin: -$spacing-md 0 $spacing-lg;
         }
     }
 </style>

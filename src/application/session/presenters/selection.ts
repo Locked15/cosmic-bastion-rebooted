@@ -8,19 +8,19 @@ import {
     type TowerSlot,
 } from '@/domain'
 import type { SelectionView } from '../../dto/views'
-import { REFUND_RATE, barricadeRefund, type GameSession } from '../GameSession'
+import { barricadeRefund, type GameSession } from '../GameSession'
 import { percent, row } from './format'
 
 export function presentSelection(session: GameSession): SelectionView | null {
     const id = session.selectedId ?? session.pointer.hoverId
     if (!id) return null
     const slot = session.slots.find((candidate) => candidate.id === id)
-    const view = slot ? presentSlot(slot, session.resources) : null
+    const view = slot ? presentSlot(slot, session.resources, session.refundRate) : null
     if (slot) return view && limitByTier(view, slot.tower?.level ?? 0, session.upgradeTier)
     const barricade = session.barricades.find((candidate) => candidate.id === id)
     return barricade
         ? limitByTier(
-              presentBarricade(barricade, session.resources),
+              presentBarricade(barricade, session.resources, session.refundRate),
               barricade.level,
               session.upgradeTier,
           )
@@ -40,7 +40,7 @@ function limitByTier(view: SelectionView, level: number, tier: number): Selectio
     }
 }
 
-function presentSlot(slot: TowerSlot, resources: number): SelectionView | null {
+function presentSlot(slot: TowerSlot, resources: number, refundRate: number): SelectionView | null {
     const tower = slot.tower
     const construction = slot.construction
     const type = tower?.type ?? construction?.type
@@ -88,12 +88,16 @@ function presentSlot(slot: TowerSlot, resources: number): SelectionView | null {
         canUpgrade: upgradeCost !== null && resources >= upgradeCost,
         repairCost: null,
         canRepair: false,
-        refund: Math.floor(entry.cost * REFUND_RATE),
+        refund: Math.floor(entry.cost * refundRate),
         canDemolish: true,
     }
 }
 
-function presentBarricade(barricade: Barricade, resources: number): SelectionView {
+function presentBarricade(
+    barricade: Barricade,
+    resources: number,
+    refundRate: number,
+): SelectionView {
     const entry = BARRICADE_CATALOG[barricade.type]
     const level = barricade.level
     const upgradeCost =
@@ -143,7 +147,7 @@ function presentBarricade(barricade: Barricade, resources: number): SelectionVie
         canUpgrade: upgradeCost !== null && resources >= upgradeCost,
         repairCost,
         canRepair: repairCost !== null && resources >= repairCost,
-        refund: barricadeRefund(barricade),
+        refund: barricadeRefund(barricade, refundRate),
         canDemolish: true,
     }
 }

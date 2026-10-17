@@ -32,6 +32,7 @@ export abstract class Tower {
     abilities: { name: string; description: string }[]
     showShockEffect = 0
     damageMultiplier = 1
+    fireRateMultiplier = 1
     // Multiplies the range from the catalog (meta upgrades).
     rangeMultiplier = 1
     blindTimer = 0
@@ -119,12 +120,20 @@ export abstract class Tower {
     protected applyStats(stats: TowerStats): void {
         Object.assign(this, stats)
         if (stats.range !== undefined) this.range = stats.range * this.rangeMultiplier
+        if (stats.fireRate !== undefined) this.fireRate = stats.fireRate / this.fireRateMultiplier
     }
 
     setRangeMultiplier(multiplier: number): void {
         if (multiplier === this.rangeMultiplier) return
         this.range = (this.range / this.rangeMultiplier) * multiplier
         this.rangeMultiplier = multiplier
+    }
+
+    // Above 1 fires more often (meta upgrades): `fireRate` is the interval between shots.
+    setFireRateMultiplier(multiplier: number): void {
+        if (multiplier === this.fireRateMultiplier || multiplier <= 0) return
+        this.fireRate = (this.fireRate * this.fireRateMultiplier) / multiplier
+        this.fireRateMultiplier = multiplier
     }
 
     resetAbilities(): void {
@@ -311,6 +320,8 @@ export abstract class Tower {
 }
 export class CannonTower extends Tower {
     multiTarget = false
+    // Targets of the salvo (meta upgrades add more).
+    salvoTargets = 3
 
     constructor(x: number, y: number, id: string) {
         super('cannon', x, y, id)
@@ -326,7 +337,7 @@ export class CannonTower extends Tower {
             const targets = this.eligibleTargets(allEnemies)
                 .filter((e) => e.alive && this.distanceTo(e.x, e.y) <= this.range)
                 .sort((a, b) => this.distanceTo(a.x, a.y) - this.distanceTo(b.x, b.y))
-                .slice(0, 3)
+                .slice(0, this.salvoTargets)
 
             targets.forEach((t) => {
                 const projectile = new Projectile(
@@ -359,6 +370,8 @@ export class CannonTower extends Tower {
 export class RocketTower extends Tower {
     explosionRadius = 40
     knockback = false
+    // How far the shock wave throws enemies back along their route.
+    knockbackDistance = 20
 
     constructor(x: number, y: number, id: string) {
         super('rocket', x, y, id)
@@ -381,11 +394,14 @@ export class RocketTower extends Tower {
             rng.id('projectile'),
             this.id,
         )
+        projectile.knockbackDistance = this.knockbackDistance
         this.projectiles.push(projectile)
     }
 }
 export class MachineGunTower extends Tower {
     slowEffect = false
+    // Speed of a slowed enemy relative to its own.
+    slowFactor = 0.5
 
     constructor(x: number, y: number, id: string) {
         super('machinegun', x, y, id)
@@ -407,6 +423,7 @@ export class MachineGunTower extends Tower {
             this.slowEffect,
             this.id,
         )
+        projectile.slowFactor = this.slowFactor
         this.projectiles.push(projectile)
     }
 }
@@ -520,6 +537,8 @@ export class LaserTower extends Tower {
 export class ShockTower extends Tower {
     stunEffect = false
     stunCooldown = 600
+    // How long the impulse stuns a group.
+    stunFrames = 420
 
     constructor(x: number, y: number, id: string) {
         super('shock', x, y, id)
@@ -568,7 +587,7 @@ export class ShockTower extends Tower {
                     )
                     if (group.length >= 3)
                         group.forEach((other) => {
-                            other.stunTimer = Math.max(other.stunTimer, 420)
+                            other.stunTimer = Math.max(other.stunTimer, this.stunFrames)
                         })
                 }
                 this.stunCooldown = 600

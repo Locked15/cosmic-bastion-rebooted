@@ -3,31 +3,104 @@
     "levels": {
         "simple": {
             "label": "Младший лейтенант",
+            "insignia": {
+                "stripes": 1,
+                "stars": 1,
+                "general": false
+            },
             "description": "Учебная тревога для младших офицеров. Твари вялые и хрупкие, а жилой отсек выдержит не один прорыв — есть время освоиться с орудиями и баррикадами.",
             "health": 0.7,
             "speed": 0.85,
-            "maxBreakthroughs": 15
+            "maxBreakthroughs": 15,
+            "dialogSpeed": 0,
+            "refundRate": 0.9,
+            "startResources": 1.5,
+            "requisitions": 0.8,
+            "swarmMemory": 0,
+            "bosses": {
+                "minDepth": 5,
+                "every": null,
+                "finalWave": true,
+                "abilities": 1,
+                "banned": ["destroy", "blind", "absorb"]
+            }
         },
         "modest": {
             "label": "Лейтенант",
+            "insignia": {
+                "stripes": 1,
+                "stars": 2,
+                "general": false
+            },
             "description": "Штатный режим обороны. Рой бьёт в полную силу, но экипаж знает своё дело: каждая ошибка заметна, но ещё не смертельна.",
             "health": 1,
             "speed": 1,
-            "maxBreakthroughs": 10
+            "maxBreakthroughs": 10,
+            "dialogSpeed": 0.5,
+            "refundRate": 0.5,
+            "startResources": 1,
+            "requisitions": 1,
+            "swarmMemory": 0,
+            "bosses": {
+                "minDepth": 3,
+                "every": 4,
+                "finalWave": true,
+                "abilities": 1,
+                "banned": ["destroy"]
+            }
         },
         "complex": {
             "label": "Майор",
+            "insignia": {
+                "stripes": 2,
+                "stars": 1,
+                "general": false
+            },
             "description": "Улей адаптировался: существа живучее и быстрее, а оборона отсека трещит по швам. Баррикады и улучшения нужны с первых волн.",
             "health": 1.35,
             "speed": 1.15,
-            "maxBreakthroughs": 6
+            "maxBreakthroughs": 6,
+            "dialogSpeed": 0.75,
+            "refundRate": 0.5,
+            "startResources": 1,
+            "requisitions": 1.3,
+            "swarmMemory": 0.15,
+            "bosses": {
+                "minDepth": 2,
+                "every": 3,
+                "finalWave": true,
+                "abilities": 1,
+                "banned": []
+            }
         },
         "xhard": {
             "label": "Генерал",
+            "insignia": {
+                "stripes": 0,
+                "stars": 1,
+                "general": true
+            },
             "description": "Последний рубеж. Рой стремителен и почти неуязвим, жилой отсек падёт после нескольких прорывов. Ошибок командование не прощает.",
             "health": 1.8,
             "speed": 1.3,
-            "maxBreakthroughs": 3
+            "maxBreakthroughs": 3,
+            "dialogSpeed": 1,
+            "refundRate": 0.3,
+            "startResources": 0.85,
+            "requisitions": 1.6,
+            "swarmMemory": 0.25,
+            "bosses": {
+                "minDepth": 1,
+                "every": 3,
+                "finalWave": true,
+                "abilities": 2,
+                "banned": []
+            }
         }
+    },
+    "swarmMemory": {
+        "minimumKills": 3,
+        "message": "Сонм запомнил: {tower} (−{percent}% урона)",
+        "clearedMessage": "Сонм забыл прежний урок: сопротивление снято"
     }
 }

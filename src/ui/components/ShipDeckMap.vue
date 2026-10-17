@@ -1,13 +1,18 @@
 <script setup lang="ts">
     import { computed } from 'vue'
-    import type { LevelSummary } from '@/application'
+    import type { FacilityRoomView as FacilityRoom, LevelSummary } from '@/application'
 
-    const { levels, selectedId = null } = defineProps<{
+    const {
+        levels,
+        facilities = [],
+        selectedId = null,
+    } = defineProps<{
         levels: LevelSummary[]
+        facilities?: FacilityRoom[]
         selectedId?: string | null
     }>()
 
-    const emit = defineEmits<{ select: [id: string] }>()
+    const emit = defineEmits<{ select: [id: string]; open: [id: FacilityRoom['id']] }>()
 
     // Hull, bulkheads and engines of the cruiser, top-down, bow to the right (viewBox units).
     // Room positions come from content/campaign.json in the same units; the simulator room
@@ -79,6 +84,21 @@
         const x = level.map.x + 20 + level.code.length * 12
         const y = level.map.y + 14
         return `${x},${y - 6} ${x + 6},${y} ${x},${y + 6} ${x - 6},${y}`
+    }
+
+    // Service rooms are tethered to the sectors that open them, by the same kind of conduit.
+    const facilityLinks = computed(() =>
+        facilities.flatMap((room) =>
+            room.routes.map((route) => ({
+                key: `${route.from}-${room.id}`,
+                points: route.points.map(([x, y]) => `${x},${y}`).join(' '),
+                open: route.open,
+            })),
+        ),
+    )
+
+    function open(room: FacilityRoom) {
+        if (!room.locked) emit('open', room.id)
     }
 
     function select(level: LevelSummary) {
@@ -154,6 +174,70 @@
             <text class="deck-map__layer" x="268" y="330">ТЕХНИЧЕСКИЙ СЛОЙ</text>
             <text class="deck-map__layer deck-map__layer--bow" x="1150" y="394">НОС</text>
             <text class="deck-map__layer deck-map__layer--sim" x="970" y="48">СИМУЛЯТОР ›</text>
+            <text
+                v-if="facilities.length"
+                class="deck-map__layer deck-map__layer--sim"
+                x="170"
+                y="48"
+            >
+                СЛУЖБЫ ›
+            </text>
+
+            <!-- Service rooms: drawn outside the hull, tethered to the sectors that open them. -->
+            <polyline
+                v-for="link in facilityLinks"
+                :key="link.key"
+                class="deck-map__link deck-map__link--service"
+                :class="{ 'deck-map__link--open': link.open }"
+                :points="link.points"
+                marker-end="url(#deck-map-arrow)"
+            />
+            <g
+                v-for="room in facilities"
+                :key="room.id"
+                class="deck-map__facility"
+                :class="{
+                    'deck-map__facility--alert': room.alert,
+                    'deck-map__facility--locked': room.locked,
+                }"
+                role="button"
+                :tabindex="room.locked ? -1 : 0"
+                :aria-label="`${room.code} ${room.name}: ${room.status}`"
+                :aria-disabled="room.locked"
+                @click="open(room)"
+                @keydown.enter.prevent="open(room)"
+                @keydown.space.prevent="open(room)"
+            >
+                <title>{{ room.name }}</title>
+                <rect
+                    class="deck-map__room-body"
+                    :x="room.map.x"
+                    :y="room.map.y"
+                    :width="room.map.width"
+                    :height="room.map.height"
+                />
+                <rect
+                    v-if="room.locked"
+                    class="deck-map__room-hatch"
+                    :x="room.map.x"
+                    :y="room.map.y"
+                    :width="room.map.width"
+                    :height="room.map.height"
+                />
+                <text class="deck-map__code" :x="room.map.x + 10" :y="room.map.y + 20">
+                    {{ room.code }}
+                </text>
+                <text class="deck-map__name" :x="room.map.x + 10" :y="room.map.y + 35">
+                    {{ room.name }}
+                </text>
+                <text
+                    class="deck-map__status"
+                    :x="room.map.x + 10"
+                    :y="room.map.y + room.map.height - 9"
+                >
+                    {{ room.status }}
+                </text>
+            </g>
 
             <!-- Conduits between sectors: which victory opens which sector. -->
             <polyline
@@ -256,6 +340,9 @@
             <span>◆ сюжетный</span>
             <span>▪▪▪ угроза</span>
             <span>→ проход открывается победой</span>
+            <span v-if="facilities.length">
+                <i class="deck-map__key deck-map__key--facility" />служебное помещение
+            </span>
         </figcaption>
     </figure>
 </template>
@@ -342,6 +429,10 @@
                 stroke: $color-primary;
                 stroke-dasharray: none;
             }
+
+            &--service.deck-map__link--open {
+                stroke: $color-accent;
+            }
         }
 
         &__arrow {
@@ -387,10 +478,35 @@
                 stroke-dasharray: 6 3;
             }
 
+            .deck-map__facility & {
+                stroke: $color-accent;
+                stroke-dasharray: 2 3;
+            }
+
+            .deck-map__facility--alert & {
+                stroke: $color-primary;
+                animation: deck-map-pulse 2s ease-in-out infinite;
+            }
+
             .deck-map__room--active & {
                 stroke: $color-primary;
                 stroke-width: 3;
                 animation: none;
+            }
+        }
+
+        &__facility {
+            cursor: pointer;
+            outline: none;
+
+            &--locked {
+                cursor: not-allowed;
+                opacity: 0.55;
+            }
+
+            &:focus-visible .deck-map__room-body,
+            &:hover:not(.deck-map__facility--locked) .deck-map__room-body {
+                fill: rgba($color-primary, 0.12);
             }
         }
 
@@ -438,6 +554,14 @@
             .deck-map__room--locked & {
                 fill: $color-danger;
             }
+
+            .deck-map__facility--alert & {
+                fill: $color-primary;
+            }
+
+            .deck-map__facility--locked & {
+                fill: $color-danger;
+            }
         }
 
         &__pip {
@@ -478,6 +602,11 @@
 
             &--available {
                 border-color: $color-primary;
+            }
+
+            &--facility {
+                border-color: $color-accent;
+                border-style: dotted;
             }
 
             &--completed {

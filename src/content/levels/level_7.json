@@ -7,50 +7,215 @@
     "width": 1200,
     "height": 750,
     "livingQuartersY": 480,
-    "paths": {
-        "base": [
-            { "x": 60, "y": 60 },
-            { "x": 60, "y": 380 },
-            { "x": 260, "y": 380 },
-            { "x": 260, "y": 100 },
-            { "x": 460, "y": 100 },
-            { "x": 460, "y": 380 },
-            { "x": 660, "y": 380 },
-            { "x": 660, "y": 100 },
-            { "x": 860, "y": 100 },
-            { "x": 860, "y": 380 },
-            { "x": 1060, "y": 380 },
-            { "x": 1060, "y": 600 }
-        ],
-        "alternatives": []
-    },
-    "corridors": [{ "x": 20, "y": 40, "width": 1080, "height": 380 }],
+    "routes": [
+        {
+            "id": "main",
+            "label": "Палатный коридор",
+            "points": [
+                {
+                    "x": 0,
+                    "y": 100
+                },
+                {
+                    "x": 280,
+                    "y": 100
+                },
+                {
+                    "x": 280,
+                    "y": 340
+                },
+                {
+                    "x": 650,
+                    "y": 340
+                },
+                {
+                    "x": 650,
+                    "y": 180
+                },
+                {
+                    "x": 880,
+                    "y": 180
+                },
+                {
+                    "x": 880,
+                    "y": 400
+                },
+                {
+                    "x": 1040,
+                    "y": 400
+                },
+                {
+                    "x": 1040,
+                    "y": 540
+                }
+            ]
+        },
+        {
+            "id": "quarantine",
+            "label": "Карантинный шлюз",
+            "points": [
+                {
+                    "x": 1200,
+                    "y": 240
+                },
+                {
+                    "x": 1120,
+                    "y": 240
+                },
+                {
+                    "x": 1120,
+                    "y": 400
+                },
+                {
+                    "x": 1040,
+                    "y": 400
+                },
+                {
+                    "x": 1040,
+                    "y": 540
+                }
+            ],
+            "opensOnWave": 3
+        }
+    ],
+    "corridors": [
+        {
+            "x": 0,
+            "y": 70,
+            "width": 310,
+            "height": 60
+        },
+        {
+            "x": 250,
+            "y": 70,
+            "width": 60,
+            "height": 300
+        },
+        {
+            "x": 250,
+            "y": 310,
+            "width": 430,
+            "height": 60
+        },
+        {
+            "x": 620,
+            "y": 150,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 620,
+            "y": 150,
+            "width": 290,
+            "height": 60
+        },
+        {
+            "x": 850,
+            "y": 150,
+            "width": 60,
+            "height": 280
+        },
+        {
+            "x": 850,
+            "y": 370,
+            "width": 220,
+            "height": 60
+        },
+        {
+            "x": 1010,
+            "y": 370,
+            "width": 60,
+            "height": 200
+        },
+        {
+            "x": 1090,
+            "y": 210,
+            "width": 110,
+            "height": 60
+        },
+        {
+            "x": 1090,
+            "y": 210,
+            "width": 60,
+            "height": 220
+        },
+        {
+            "x": 1010,
+            "y": 370,
+            "width": 140,
+            "height": 60
+        }
+    ],
     "towerSlots": [
-        { "x": 160, "y": 180, "type": "cannon" },
-        { "x": 160, "y": 300, "type": "machinegun" },
-        { "x": 360, "y": 200, "type": "rocket" },
-        { "x": 360, "y": 320, "type": "laser" },
-        { "x": 560, "y": 180, "type": "cannon" },
-        { "x": 560, "y": 300, "type": "shock" },
-        { "x": 760, "y": 200, "type": "machinegun" },
-        { "x": 760, "y": 320, "type": "rocket" },
-        { "x": 960, "y": 200, "type": "laser" }
+        {
+            "x": 980,
+            "y": 350,
+            "type": "cannon"
+        },
+        {
+            "x": 1070,
+            "y": 290,
+            "type": "machinegun"
+        },
+        {
+            "x": 575,
+            "y": 260,
+            "type": "rocket"
+        },
+        {
+            "x": 350,
+            "y": 260,
+            "type": "laser"
+        },
+        {
+            "x": 785,
+            "y": 230,
+            "type": "cannon"
+        },
+        {
+            "x": 170,
+            "y": 155,
+            "type": "shock"
+        },
+        {
+            "x": 710,
+            "y": 290,
+            "type": "machinegun"
+        },
+        {
+            "x": 380,
+            "y": 395,
+            "type": "rocket"
+        },
+        {
+            "x": 320,
+            "y": 65,
+            "type": "laser"
+        }
     ],
     "start": { "miners": 16, "military": 8, "resources": 320 },
     "waves": { "total": 5, "difficulty": 0.9 },
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу сестры Ренн",
+            "kind": "decision",
+            "events": ["surgeon_evacuation", "surgeon_release"]
+        },
+        {
             "id": "save_surgeon",
             "text": "Эвакуировать сестру Ренн",
             "kind": "flag",
-            "flag": "surgeon_saved"
+            "flag": "surgeon_saved",
+            "optional": true
         },
         {
             "id": "save_ward",
             "text": "Допустить не более 3 прорывов в жилой отсек",
             "kind": "maxBreaches",
-            "target": 3
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [
@@ -84,13 +249,27 @@
                         "text": "Продолжить лечение",
                         "cost": { "resources": 60 },
                         "consequence": "Ренн продолжает лечение. Потрачено 60 ресурсов. Сонм не отступит от палаты.",
-                        "effect": { "type": "flag", "name": "ward_treated", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ward_treated", "value": 1 },
+                                { "type": "relationship", "character": "renn", "disposition": 2 }
+                            ]
+                        }
                     },
                     {
                         "text": "Очистить палату",
                         "cost": { "miners": 4 },
                         "consequence": "Палата очищена. Четверо Отяжелевших больше не встанут. «Пыль в контурах» исчезнет из следующих секторов.",
-                        "effect": { "type": "flag", "name": "ward_purged", "value": 1 }
+                        "effect": {
+                            "type": "transaction",
+                            "cost": {},
+                            "effects": [
+                                { "type": "flag", "name": "ward_purged", "value": 1 },
+                                { "type": "relationship", "character": "renn", "disposition": -3 }
+                            ]
+                        }
                     }
                 ],
                 "timed": true,
@@ -123,6 +302,7 @@
             }
         },
         {
+            "id": "surgeon_evacuation",
             "wave": 3,
             "trigger": "delay",
             "delay": 180,
@@ -149,6 +329,7 @@
             }
         },
         {
+            "id": "surgeon_release",
             "wave": 3,
             "trigger": "delay",
             "delay": 180,

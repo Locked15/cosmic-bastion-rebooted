@@ -14,6 +14,12 @@
     const { snapshot } = storeToRefs(game)
 
     const result = computed(() => snapshot.value?.result ?? null)
+    const mainObjectives = computed(() => result.value?.objectives.filter((o) => !o.optional) ?? [])
+    const optionalObjectives = computed(
+        () => result.value?.objectives.filter((o) => o.optional) ?? [],
+    )
+    // A victory counts for the campaign only with every main objective done.
+    const held = computed(() => mainObjectives.value.every((objective) => objective.completed))
     const visible = computed(() => !!result.value || snapshot.value?.status === 'paused')
 
     const title = computed(() => {
@@ -44,9 +50,18 @@
             <p v-for="(paragraph, index) in result.ending.paragraphs" :key="index">
                 {{ paragraph }}
             </p>
+            <template v-if="result.ending.epilogue.length">
+                <p class="game-menu__ending-label game-menu__epilogue">ЭКИПАЖ</p>
+                <p v-for="(paragraph, index) in result.ending.epilogue" :key="`crew-${index}`">
+                    {{ paragraph }}
+                </p>
+            </template>
         </section>
         <div v-if="result" class="game-menu__stats">
             <p v-if="result.outcome === 'defeat'" class="game-menu__reason">{{ result.reason }}</p>
+            <p v-if="result.outcome === 'defeat' && result.advanced" class="game-menu__onward">
+                Сектор потерян, но кампания продолжается: Сонм прорвался вглубь корабля.
+            </p>
             <StatItem
                 v-for="row in result.stats"
                 :key="row.label"
@@ -54,13 +69,24 @@
                 :value="row.value"
             />
             <div class="game-menu__objectives">
-                <h4>ЗАДАЧИ МИССИИ</h4>
+                <h4>ОСНОВНЫЕ ЗАДАЧИ</h4>
                 <ObjectiveItem
-                    v-for="objective in result.objectives"
+                    v-for="objective in mainObjectives"
                     :key="objective.id"
                     :text="objective.text"
                     :completed="objective.completed"
                 />
+                <h4 v-if="optionalObjectives.length" class="game-menu__optional">ДОПОЛНИТЕЛЬНО</h4>
+                <ObjectiveItem
+                    v-for="objective in optionalObjectives"
+                    :key="objective.id"
+                    :text="objective.text"
+                    :completed="objective.completed"
+                    optional
+                />
+                <p v-if="result.outcome === 'victory' && !held" class="game-menu__reason">
+                    Основные задачи не выполнены: сектор не засчитан.
+                </p>
             </div>
             <p v-if="result.requisitions" class="game-menu__requisitions">
                 Начислено: + {{ result.requisitions }}
@@ -78,7 +104,9 @@
             </div>
         </div>
         <AppButton v-if="!result" @click="game.togglePause()">ПРОДОЛЖИТЬ</AppButton>
-        <AppButton v-if="result?.outcome === 'victory'" @click="quit">К СХЕМЕ КОРАБЛЯ</AppButton>
+        <AppButton v-if="result?.outcome === 'victory' || result?.advanced" @click="quit">
+            К СХЕМЕ КОРАБЛЯ
+        </AppButton>
         <AppButton v-if="result?.outcome === 'defeat'" @click="restart">ПОВТОРИТЬ</AppButton>
         <AppButton v-if="!result" variant="secondary" @click="restart">ПЕРЕЗАПУСТИТЬ</AppButton>
         <AppButton variant="secondary" @click="quit">ВЫХОД В МЕНЮ</AppButton>
@@ -117,6 +145,12 @@
             font-size: 14px;
         }
 
+        &__onward {
+            margin-bottom: 15px;
+            color: $color-warning;
+            text-align: center;
+        }
+
         &__reason {
             margin-bottom: 15px;
             color: $color-danger;
@@ -128,6 +162,10 @@
             margin-top: $spacing-md;
             padding-top: $spacing-md;
             border-top: 1px solid $color-border;
+        }
+
+        &__optional {
+            margin-top: $spacing-sm;
         }
 
         &__unlocks ul {
@@ -156,6 +194,12 @@
             color: $color-accent;
             font-size: 10px;
             letter-spacing: 2px;
+        }
+
+        &__epilogue {
+            margin-top: $spacing-md;
+            padding-top: $spacing-sm;
+            border-top: 1px solid $color-border;
         }
 
         &__ending-title {

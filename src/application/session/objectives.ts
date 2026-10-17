@@ -71,6 +71,11 @@ export class ObjectiveTracker {
                 case 'survive':
                     done = session.result?.outcome === 'victory'
                     break
+                case 'decision':
+                    done =
+                        objective.events!.some((id) => session.story.isResolved(id)) ||
+                        session.result?.outcome === 'victory'
+                    break
             }
             if (done) {
                 const text = this.mark(objective.id)

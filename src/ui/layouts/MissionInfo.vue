@@ -23,17 +23,25 @@
             </p>
             <p class="mission-info__description">{{ level.description }}</p>
             <div class="mission-info__objectives">
-                <h4>ЗАДАЧИ:</h4>
+                <h4>ОСНОВНЫЕ ЗАДАЧИ:</h4>
                 <ObjectiveItem
-                    v-for="objective in level.objectives"
-                    :key="objective"
-                    :text="objective"
+                    v-for="objective in level.objectives.filter((o) => !o.optional)"
+                    :key="objective.text"
+                    :text="objective.text"
+                />
+                <h4 class="mission-info__optional">ДОПОЛНИТЕЛЬНО (★ ЗА КАЖДУЮ):</h4>
+                <ObjectiveItem
+                    v-for="objective in level.objectives.filter((o) => o.optional)"
+                    :key="objective.text"
+                    :text="objective.text"
+                    optional
                 />
                 <div class="mission-info__start">
                     <StatItem label="⚒ Шахтёры" :value="level.startingMiners" />
                     <StatItem label="⚔ Военные" :value="level.startingMilitary" />
                     <StatItem label="💎 Ресурсы" :value="level.startingResources" />
                     <StatItem label="🌊 Волн" :value="level.totalWaves" />
+                    <StatItem v-if="level.rank" label="🎖 Удержан в звании" :value="level.rank" />
                 </div>
             </div>
         </div>
@@ -102,6 +110,10 @@
             margin: $spacing-md 0;
             padding: $spacing-md;
             border: 1px solid $color-border;
+        }
+
+        &__optional {
+            margin-top: $spacing-md;
         }
 
         &__start {

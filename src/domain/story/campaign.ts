@@ -28,6 +28,27 @@ const sectorSchema = v.strictObject({
 })
 export type CampaignSector = v.InferOutput<typeof sectorSchema>
 
+// Service rooms on the ship map: not missions, but places the officer can visit between them.
+export const FACILITY_IDS = ['wardroom', 'quartermaster'] as const
+export type FacilityId = (typeof FACILITY_IDS)[number]
+
+const facilitySchema = v.strictObject({
+    id: v.picklist(FACILITY_IDS),
+    code: text,
+    name: text,
+    // Sectors whose victory opens the room (the wardroom after the living quarters…).
+    requires: v.array(levelId),
+    // Drawn outside the hull above the bow, like the simulator (viewBox units of the ship map).
+    map: rect,
+    // Conduit drawn from each required sector to the room: [x, y] points; a straight line
+    // between room centres when omitted. It ties the room to the victory that opens it.
+    routes: v.optional(
+        v.record(levelId, v.pipe(v.array(v.tuple([v.number(), v.number()])), v.minLength(2))),
+        {},
+    ),
+})
+export type CampaignFacility = v.InferOutput<typeof facilitySchema>
+
 const campaignSchema = v.pipe(
     v.strictObject({
         // Bump when level layouts change: older level checkpoints are then discarded.
@@ -35,7 +56,28 @@ const campaignSchema = v.pipe(
         // The last mission; its result decides the ending.
         finale: levelId,
         sectors: v.pipe(v.array(sectorSchema), v.nonEmpty()),
+        facilities: v.array(facilitySchema),
     }),
+    v.check(
+        (campaign) =>
+            campaign.facilities.length === FACILITY_IDS.length &&
+            FACILITY_IDS.every((id) => campaign.facilities.some((room) => room.id === id)),
+        'Every service room appears once on the map',
+    ),
+    v.check(
+        (campaign) =>
+            campaign.facilities.every((room) =>
+                room.requires.every((id) => campaign.sectors.some((s) => s.level === id)),
+            ),
+        'Service rooms may only require sectors on the map',
+    ),
+    v.check(
+        (campaign) =>
+            campaign.facilities.every((room) =>
+                Object.keys(room.routes).every((id) => room.requires.includes(id)),
+            ),
+        'Service room routes may only lead from required sectors',
+    ),
     v.check(
         (campaign) =>
             new Set(campaign.sectors.map((sector) => sector.level)).size ===
@@ -87,4 +129,11 @@ export function missionIndex(levelId: string): number {
 
 export function campaignSector(levelId: string): CampaignSector | null {
     return CAMPAIGN.sectors.find((sector) => sector.level === levelId) ?? null
+}
+
+// Longest prerequisite chain; training and unknown levels have no campaign depth.
+export function sectorDepth(levelId: string): number {
+    const sector = campaignSector(levelId)
+    if (!sector || sector.layer === 'training') return 0
+    return 1 + Math.max(0, ...sector.requires.map(sectorDepth))
 }

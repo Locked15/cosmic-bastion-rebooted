@@ -3,6 +3,7 @@
     const {
         index,
         name = null,
+        rank = '',
         progress = '',
         lastPlayed = '',
         active = false,
@@ -10,6 +11,7 @@
     } = defineProps<{
         index: number
         name?: string | null
+        rank?: string
         progress?: string
         lastPlayed?: string
         active?: boolean
@@ -29,6 +31,7 @@
             <span v-if="active" class="profile-slot__badge">НА ДЕЖУРСТВЕ</span>
         </header>
         <template v-if="name">
+            <p class="profile-slot__rank">{{ rank }}</p>
             <p class="profile-slot__name">{{ name }}</p>
             <p class="profile-slot__meta">{{ progress }}</p>
             <p class="profile-slot__meta">Последний вход: {{ lastPlayed }}</p>
@@ -95,6 +98,13 @@
 
         &__badge {
             color: $color-success;
+        }
+
+        &__rank {
+            color: $color-secondary;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         &__name {

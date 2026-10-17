@@ -44,6 +44,9 @@ export class Enemy {
     alive = true
     // Positive tower damage bypasses defenses while exposed.
     exposed = false
+    // Only a killing blow records a source; environmental/quarters deaths have no tower.
+    lastHitBy: string | null = null
+    towerDamageMultipliers: ReadonlyMap<string, number> = new Map()
     reached = false
     spawned = true
     spawnDelay = 0
@@ -140,6 +143,7 @@ export class Enemy {
         if (!this.alive) return
         if (this.exposed && sourceId !== undefined && damage > 0) {
             this.currentHealth = 0
+            this.lastHitBy = sourceId
             this.die()
             return
         }
@@ -153,6 +157,8 @@ export class Enemy {
         )
             return
 
+        damage *= sourceId ? (this.towerDamageMultipliers.get(sourceId) ?? 1) : 1
+
         if (this.hasAbility('weakImmunity')) {
             const threshold = this.maxHealth * 0.005
             if (damage < threshold) {
@@ -165,6 +171,7 @@ export class Enemy {
         this.flashTimer = 5
 
         if (this.currentHealth <= 0) {
+            this.lastHitBy = sourceId ?? null
             this.die()
         }
     }

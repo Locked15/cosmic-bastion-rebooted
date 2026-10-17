@@ -1,24 +1,221 @@
 {
     "earning": {
-        "victory": 40,
-        "perStar": 15,
+        "victory": 80,
         "firstVictory": 40,
-        "replayFactor": 0.5,
-        "defeat": 10
+        "newStar": 30,
+        "replayShares": [1.0, 0.9, 0.8],
+        "defeatPerWave": 5
     },
-    "costGrowth": 1.25,
+    "costGrowth": 1.1,
+    "priceRise": 0.025,
     "resetRefund": 0.75,
     "tiers": [
-        { "rank": 1, "title": "РАЗРЯД I — ХОЗЯЙСТВЕННЫЙ", "baseCost": 25 },
-        { "rank": 2, "title": "РАЗРЯД II — ОБОРОНИТЕЛЬНЫЙ", "baseCost": 45 },
-        { "rank": 3, "title": "РАЗРЯД III — БОЕВОЙ", "baseCost": 80 },
-        { "rank": 4, "title": "РАЗРЯД IV — ОСОБЫЙ", "baseCost": 140 }
+        {
+            "tier": 1,
+            "numeral": "I",
+            "baseCost": 14
+        },
+        {
+            "tier": 2,
+            "numeral": "II",
+            "baseCost": 29
+        },
+        {
+            "tier": 3,
+            "numeral": "III",
+            "baseCost": 50
+        },
+        {
+            "tier": 4,
+            "numeral": "IV",
+            "baseCost": 81
+        },
+        {
+            "tier": 5,
+            "numeral": "V",
+            "baseCost": 126
+        }
+    ],
+    "transitions": [
+        {
+            "tier": 2,
+            "numeral": "I–II"
+        },
+        {
+            "tier": 4,
+            "numeral": "III–IV"
+        }
+    ],
+    "trees": [
+        {
+            "id": "machinery",
+            "title": "МАШИНЕРИЯ",
+            "form": "СТ-М",
+            "description": "Башни и баррикады: калибр, оптика, приводы и ступени улучшений.",
+            "gates": [0, 3, 7, 12, 17]
+        },
+        {
+            "id": "crew",
+            "title": "ЭКИПАЖ",
+            "form": "СТ-Э",
+            "description": "Тягло и Стража: выработка, стройка, присяга и выучка.",
+            "gates": [0, 3, 7, 12, 17]
+        },
+        {
+            "id": "science",
+            "title": "НАУКА",
+            "form": "СТ-Н",
+            "description": "Как ослабить Сонм: всё, что лаборатория узнала о заряде, держащем пыль.",
+            "opensAfter": "level_3",
+            "gates": [0, 3, 6, 9, 13],
+            "sealed": "РАЗДЕЛ ОПЕЧАТАН. Данные о Сонме остались в лабораториях C-9, за линией фронта. Интендантство не выдаёт нарядов на то, чего никто не изучил: сначала удержите лабораторию и вынесите журналы."
+        },
+        {
+            "id": "special",
+            "title": "ОСОБЫЕ",
+            "form": "СТ-С",
+            "description": "Милости Синода для старших офицеров: долги верфям, лишние переборки, набор людей.",
+            "costFactor": 1.6,
+            "opensAfter": "level_4",
+            "ranks": ["complex", "xhard"],
+            "gates": [0, 2, 3, 5, 8],
+            "sealed": "РАЗДЕЛ ОПЕЧАТАН ПЕЧАТЬЮ НОСИТЕЛЕЙ. Милости Синода подписывают только старшие офицеры — майоры и генералы, — и только когда техническое ядро D-1 в руках Стражи: без ядра Синоду нечего беречь."
+        }
     ],
     "upgrades": [
         {
+            "id": "tower_damage",
+            "tree": "machinery",
+            "tier": 1,
+            "form": "СТ-М-03",
+            "effect": "towerDamage",
+            "perLevel": 0.05,
+            "maxLevel": 5,
+            "name": "Литургия калибра",
+            "description": "Снаряды отливают из свинца балластных цистерн и отпевают перед подачей. Урон всех башен выше."
+        },
+        {
+            "id": "tower_range",
+            "tree": "machinery",
+            "tier": 1,
+            "form": "СТ-М-07",
+            "effect": "towerRange",
+            "perLevel": 0.04,
+            "maxLevel": 5,
+            "name": "Оптика наведения",
+            "description": "Линзы прицелов шлифуют из стёкол верхней палубы и освящают на каждой вахте. Все башни бьют дальше."
+        },
+        {
+            "id": "upgrade_step_two",
+            "tree": "machinery",
+            "tier": 2,
+            "form": "СТ-М-12",
+            "effect": "upgradeTier",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "name": "Чертежи второй ступени",
+            "description": "Технический архив выдаёт схемы усиления под подпись Носителя. В бою башни и баррикады можно улучшить до второй ступени.",
+            "transition": true
+        },
+        {
+            "id": "barricade_health",
+            "tree": "machinery",
+            "tier": 2,
+            "form": "СТ-М-14",
+            "effect": "barricadeHealth",
+            "perLevel": 0.08,
+            "maxLevel": 5,
+            "name": "Освящённая обшивка",
+            "description": "Листы для баррикад режут из старой брони Бастиона, каждый с печатью Синода. Баррикады прочнее."
+        },
+        {
+            "id": "fire_rate",
+            "tree": "machinery",
+            "tier": 3,
+            "form": "СТ-М-19",
+            "effect": "fireRate",
+            "perLevel": 0.04,
+            "maxLevel": 5,
+            "name": "Синхронные приводы",
+            "description": "Затворы смазывают маслом из лампад часовни, а приводы гоняют по уставу. Башни стреляют чаще."
+        },
+        {
+            "id": "upgrade_step_three",
+            "tree": "machinery",
+            "tier": 4,
+            "form": "СТ-М-21",
+            "effect": "upgradeTier",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "requires": "upgrade_step_two",
+            "name": "Чертежи третьей ступени",
+            "description": "Запечатанный раздел архива: последние ступени, которые Синод доверяет только линейным крейсерам. В бою открывается третья ступень улучшения.",
+            "transition": true
+        },
+        {
+            "id": "salvo",
+            "tree": "machinery",
+            "tier": 4,
+            "form": "СТ-М-26",
+            "effect": "salvoTargets",
+            "perLevel": 1,
+            "maxLevel": 2,
+            "requires": "upgrade_step_three",
+            "name": "Расширенный залп",
+            "description": "Пушкам третьей ступени ставят дополнительные стволы. «Залповый режим» поражает больше целей."
+        },
+        {
+            "id": "shockwave",
+            "tree": "machinery",
+            "tier": 4,
+            "form": "СТ-М-28",
+            "effect": "knockback",
+            "perLevel": 0.25,
+            "maxLevel": 3,
+            "requires": "upgrade_step_three",
+            "name": "Тяжёлые боеголовки",
+            "description": "Боеголовки начиняют балластной дробью. «Шоковая волна» ракетниц отбрасывает тварей дальше."
+        },
+        {
+            "id": "suppression",
+            "tree": "machinery",
+            "tier": 4,
+            "form": "СТ-М-31",
+            "effect": "slowStrength",
+            "perLevel": 0.15,
+            "maxLevel": 3,
+            "requires": "upgrade_step_three",
+            "name": "Вязкий заряд",
+            "description": "Пули пулемётов окунают в смолу из гидропоники. «Подавляющий огонь» замедляет сильнее."
+        },
+        {
+            "id": "thunder",
+            "tree": "machinery",
+            "tier": 4,
+            "form": "СТ-М-33",
+            "effect": "stunDuration",
+            "perLevel": 0.15,
+            "maxLevel": 3,
+            "requires": "upgrade_step_three",
+            "name": "Грозовые катушки",
+            "description": "Катушки электрошока перематывают медью из жилого слоя. «Импульсное оглушение» держит тварей дольше."
+        },
+        {
+            "id": "holy_iron",
+            "tree": "machinery",
+            "tier": 5,
+            "form": "СТ-М-40",
+            "effect": "bossDamage",
+            "perLevel": 0.1,
+            "maxLevel": 3,
+            "name": "Святое железо",
+            "description": "Железо с обшивки «Неусыпного», отпетое заново. Узлы и Средоточие получают больше урона от всех башен."
+        },
+        {
             "id": "mining",
-            "rank": 1,
-            "form": "СТ-Х-02",
+            "tree": "crew",
+            "tier": 1,
+            "form": "СТ-Э-02",
             "effect": "mining",
             "perLevel": 0.06,
             "maxLevel": 5,
@@ -27,8 +224,9 @@
         },
         {
             "id": "start_resources",
-            "rank": 1,
-            "form": "СТ-Х-05",
+            "tree": "crew",
+            "tier": 1,
+            "form": "СТ-Э-05",
             "effect": "startResources",
             "perLevel": 30,
             "maxLevel": 5,
@@ -36,9 +234,22 @@
             "description": "Интендантство заранее завозит в сектор ящики с ресурсами."
         },
         {
+            "id": "shift_roster",
+            "tree": "crew",
+            "tier": 2,
+            "transition": true,
+            "form": "СТ-Э-07",
+            "effect": "mining",
+            "perLevel": 0.05,
+            "maxLevel": 1,
+            "name": "Табель смен",
+            "description": "Интендантство заводит единый табель Тягла: кто, где и сколько копает. Без табеля дальнейшие наряды на людей не подписывают. Шахтёры добывают чуть быстрее."
+        },
+        {
             "id": "build_speed",
-            "rank": 1,
-            "form": "СТ-Х-09",
+            "tree": "crew",
+            "tier": 2,
+            "form": "СТ-Э-09",
             "effect": "buildSpeed",
             "perLevel": 0.1,
             "maxLevel": 5,
@@ -46,74 +257,291 @@
             "description": "Стража учится строить по уставу: башни, баррикады, ремонт и улучшения идут быстрее."
         },
         {
-            "id": "tower_range",
-            "rank": 2,
-            "form": "СТ-О-11",
-            "effect": "towerRange",
-            "perLevel": 0.04,
-            "maxLevel": 5,
-            "name": "Оптика наведения",
-            "description": "Освящённые линзы прицелов. Все башни бьют дальше."
-        },
-        {
-            "id": "barricade_health",
-            "rank": 2,
-            "form": "СТ-О-14",
-            "effect": "barricadeHealth",
-            "perLevel": 0.08,
-            "maxLevel": 5,
-            "name": "Освящённая обшивка",
-            "description": "Листы для баррикад режут из старой брони Бастиона. Баррикады прочнее."
-        },
-        {
-            "id": "soldier_damage",
-            "rank": 2,
-            "form": "СТ-О-17",
-            "effect": "soldierDamage",
-            "perLevel": 0.15,
-            "maxLevel": 5,
-            "name": "Стрелковая подготовка Стражи",
-            "description": "Учения в тренажёре не прошли даром. Военные сильнее бьют пыль в жилом отсеке."
-        },
-        {
             "id": "conversion_speed",
-            "rank": 2,
-            "form": "СТ-О-20",
+            "tree": "crew",
+            "tier": 2,
+            "form": "СТ-Э-11",
             "effect": "conversionSpeed",
             "perLevel": 0.1,
             "maxLevel": 4,
             "name": "Ускоренная присяга",
-            "description": "Короткий обряд облегчения. Переобучение персонала занимает меньше времени."
+            "description": "Короткий обряд облегчения. Переобучение шахтёров в Стражу занимает меньше времени."
         },
         {
-            "id": "tower_damage",
-            "rank": 3,
-            "form": "СТ-Б-03",
-            "effect": "towerDamage",
-            "perLevel": 0.05,
+            "id": "soldier_damage",
+            "tree": "crew",
+            "tier": 3,
+            "form": "СТ-Э-17",
+            "effect": "soldierDamage",
+            "perLevel": 0.15,
             "maxLevel": 5,
-            "name": "Литургия калибра",
-            "description": "Снаряды отливают из свинца балластных цистерн. Урон всех башен выше."
+            "name": "Стрелковая подготовка",
+            "description": "Учения в тренажёре не прошли даром. Военные сильнее бьют пыль в жилом отсеке."
+        },
+        {
+            "id": "guard_charter",
+            "tree": "crew",
+            "tier": 4,
+            "transition": true,
+            "form": "СТ-Э-20",
+            "effect": "soldierDamage",
+            "perLevel": 0.1,
+            "maxLevel": 1,
+            "name": "Устав караульной службы",
+            "description": "Хейл переписал устав Стражи под бой в отсеках. Старшие наряды на людей выдают только по новому уставу. Военные бьют точнее."
         },
         {
             "id": "start_military",
-            "rank": 3,
-            "form": "СТ-Б-07",
+            "tree": "crew",
+            "tier": 4,
+            "form": "СТ-Э-22",
             "effect": "startMilitary",
             "perLevel": 1,
-            "maxLevel": 4,
+            "maxLevel": 2,
             "name": "Призыв",
             "description": "Интендантство приписывает к сектору дополнительных бойцов Стражи."
         },
         {
+            "id": "start_miners",
+            "tree": "crew",
+            "tier": 5,
+            "form": "СТ-Э-27",
+            "effect": "startMiners",
+            "perLevel": 2,
+            "maxLevel": 2,
+            "name": "Вторая смена",
+            "description": "С нижних палуб поднимают вторую смену Тягла. В секторе больше шахтёров с самого начала."
+        },
+        {
+            "id": "enemy_health",
+            "tree": "science",
+            "tier": 1,
+            "form": "СТ-Н-01",
+            "effect": "enemyHealth",
+            "perLevel": 0.03,
+            "maxLevel": 5,
+            "name": "Разряд в сцепке",
+            "description": "Лаборатория C-9 доказала: Сонм держится на заряде. Стража бьёт по сцепке частиц, и твари теряют здоровье."
+        },
+        {
+            "id": "lab_journals",
+            "tree": "science",
+            "tier": 2,
+            "transition": true,
+            "form": "СТ-Н-03",
+            "effect": "enemyHealth",
+            "perLevel": 0.03,
+            "maxLevel": 1,
+            "name": "Журналы C-9",
+            "description": "Журналы лаборатории разобраны и переписаны для Стражи. Без них наука остаётся догадкой. Твари ещё немного слабее."
+        },
+        {
+            "id": "enemy_attack",
+            "tree": "science",
+            "tier": 2,
+            "form": "СТ-Н-04",
+            "effect": "enemyAttack",
+            "perLevel": 0.05,
+            "maxLevel": 3,
+            "name": "Глушение сцепки",
+            "description": "Генераторы помех сбивают заряд у самой обшивки. Твари слабее бьют по баррикадам."
+        },
+        {
+            "id": "enemy_speed",
+            "tree": "science",
+            "tier": 3,
+            "form": "СТ-Н-08",
+            "effect": "enemySpeed",
+            "perLevel": 0.03,
+            "maxLevel": 4,
+            "name": "Вязкое поле",
+            "description": "Вдоль коридоров тянут кабель под током. Пыль вязнет, и твари идут медленнее."
+        },
+        {
+            "id": "lesson_catalogue",
+            "tree": "science",
+            "tier": 4,
+            "transition": true,
+            "form": "СТ-Н-11",
+            "effect": "enemyAttack",
+            "perLevel": 0.05,
+            "maxLevel": 1,
+            "name": "Каталог уроков",
+            "description": "Полный перечень того, чему Сонм научился на корабле. Ни один урок нельзя заставить забыть, пока он не записан. Твари слабее бьют по баррикадам."
+        },
+        {
+            "id": "horde_size",
+            "tree": "science",
+            "tier": 4,
+            "form": "СТ-Н-12",
+            "effect": "hordeSize",
+            "perLevel": 0.04,
+            "maxLevel": 4,
+            "name": "Изоляция пластов",
+            "description": "Шахтёры закладывают свинцом разбуженные пласты руды. Сонм просыпается медленнее: в волнах меньше тварей."
+        },
+        {
+            "id": "ban_ambush",
+            "tree": "science",
+            "tier": 4,
+            "form": "СТ-Н-15",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "ambush",
+            "name": "Урок забыт: засада",
+            "description": "Датчики массы под палубами выдают тех, кто ждёт в шахтах. Средоточия и Узлы больше не устраивают засад."
+        },
+        {
+            "id": "ban_dodge",
+            "tree": "science",
+            "tier": 5,
+            "form": "СТ-Н-21",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "dodge",
+            "name": "Урок забыт: уклонение",
+            "description": "Сетка прицелов учитывает рывки пыли. Узлы и Средоточия больше не уворачиваются от снарядов."
+        },
+        {
+            "id": "ban_confuse",
+            "tree": "science",
+            "tier": 5,
+            "form": "СТ-Н-22",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "confuse",
+            "name": "Урок забыт: замешательство",
+            "description": "Наводчики сверяют цели по метке массы, а не по силуэту. Твари больше не путают башни."
+        },
+        {
+            "id": "ban_blind",
+            "tree": "science",
+            "tier": 5,
+            "form": "СТ-Н-23",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "blind",
+            "name": "Урок забыт: ослепление",
+            "description": "Прицелы получают второй, тепловой канал. Средоточия больше не слепят башни."
+        },
+        {
+            "id": "ban_destroy",
+            "tree": "science",
+            "tier": 5,
+            "form": "СТ-Н-24",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "destroy",
+            "name": "Урок забыт: разрушение",
+            "description": "Основания башен заливают свинцом на всю глубину. Средоточия больше не могут разрушить башню целиком."
+        },
+        {
+            "id": "ban_absorb",
+            "tree": "science",
+            "tier": 5,
+            "form": "СТ-Н-25",
+            "effect": "banAbility",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "ability": "absorb",
+            "name": "Урок забыт: сгущение",
+            "description": "Разряд разрывает связи между тварями. Средоточия больше не поглощают своих, чтобы залечить раны."
+        },
+        {
+            "id": "build_cost",
+            "tree": "special",
+            "tier": 1,
+            "form": "СТ-С-02",
+            "effect": "buildCost",
+            "perLevel": 0.04,
+            "maxLevel": 3,
+            "name": "Подряд верфей Удела",
+            "description": "Верфи Удела 12 записывают поставки в долг Синоду. Башни и баррикады обходятся дешевле."
+        },
+        {
+            "id": "bearer_seal",
+            "tree": "special",
+            "tier": 2,
+            "transition": true,
+            "form": "СТ-С-04",
+            "effect": "startResources",
+            "perLevel": 30,
+            "maxLevel": 1,
+            "name": "Печать Носителя",
+            "description": "Наряды на милости Синода заверяет печать Носителя. Пока её нет, верфи и отряды не слушают. К печати прилагается ящик с резервом."
+        },
+        {
             "id": "breach_tolerance",
-            "rank": 4,
-            "form": "СТ-С-01",
+            "tree": "special",
+            "tier": 2,
+            "form": "СТ-С-05",
             "effect": "breakthroughs",
             "perLevel": 1,
-            "maxLevel": 3,
+            "maxLevel": 1,
             "name": "Запасная переборка",
-            "description": "Вторая переборка перед жилым отсеком. Сектор выдерживает больше прорывов."
+            "description": "Вторая переборка перед жилым отсеком. Сектор выдерживает ещё один прорыв."
+        },
+        {
+            "id": "levy_military",
+            "tree": "special",
+            "tier": 3,
+            "form": "СТ-С-09",
+            "effect": "startMilitary",
+            "perLevel": 1,
+            "maxLevel": 2,
+            "name": "Приписной отряд",
+            "description": "Синод приписывает к Бастиону отряд Стражи с других палуб. В секторе больше бойцов с самого начала."
+        },
+        {
+            "id": "levy_miners",
+            "tree": "special",
+            "tier": 3,
+            "form": "СТ-С-11",
+            "effect": "startMiners",
+            "perLevel": 2,
+            "maxLevel": 3,
+            "name": "Этап Тягла",
+            "description": "Должников Тягла переводят в сектор целыми бригадами. В начале боя больше шахтёров."
+        },
+        {
+            "id": "synod_warrant",
+            "tree": "special",
+            "tier": 4,
+            "transition": true,
+            "form": "СТ-С-13",
+            "effect": "buildCost",
+            "perLevel": 0.03,
+            "maxLevel": 1,
+            "name": "Доверенность Синода",
+            "description": "Синод выдаёт Бастиону доверенность на собственный счёт. Старшие милости подписываются только с ней. Постройки ещё немного дешевле."
+        },
+        {
+            "id": "synod_reserve",
+            "tree": "special",
+            "tier": 4,
+            "form": "СТ-С-14",
+            "effect": "startResources",
+            "perLevel": 50,
+            "maxLevel": 3,
+            "name": "Резерв Синода",
+            "description": "Носители открывают святой резерв: ящики с печатями, которые не вскрывали с постройки корабля."
+        },
+        {
+            "id": "second_bulkhead",
+            "tree": "special",
+            "tier": 5,
+            "form": "СТ-С-20",
+            "effect": "breakthroughs",
+            "perLevel": 1,
+            "maxLevel": 1,
+            "requires": "breach_tolerance",
+            "name": "Третья переборка",
+            "description": "Последняя переборка, сваренная из обшивки «Неусыпного». Сектор выдерживает ещё один прорыв."
         }
     ]
 }
