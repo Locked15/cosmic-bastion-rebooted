@@ -17,14 +17,10 @@
         { value: 'on', text: 'ВКЛ' },
         { value: 'off', text: 'ВЫКЛ' },
     ]
-    function toggle(key: 'crewScenes' | 'romance') {
-        return computed({
-            get: () => (settings.value[key] ? 'on' : 'off'),
-            set: (value: 'on' | 'off') => (settings.value[key] = value === 'on'),
-        })
-    }
-    const crewScenes = toggle('crewScenes')
-    const romance = toggle('romance')
+    const crewScenes = computed({
+        get: () => (settings.value.crewScenes ? 'on' : 'off'),
+        set: (value: 'on' | 'off') => (settings.value.crewScenes = value === 'on'),
+    })
     const profiles = useProfileStore()
 </script>
 
@@ -50,12 +46,6 @@
                 </p>
             </div>
             <OptionGroup v-model="crewScenes" label="СЦЕНЫ С ЭКИПАЖЕМ:" :options="toggleOptions" />
-            <OptionGroup
-                v-if="settings.crewScenes"
-                v-model="romance"
-                label="РОМАНТИЧЕСКИЕ ЛИНИИ:"
-                :options="toggleOptions"
-            />
             <p class="settings-modal__hint settings-modal__story">
                 Разговоры между миссиями необязательны: любую сцену можно пропустить.
             </p>

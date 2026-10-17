@@ -17,10 +17,10 @@ import { useSettingsStore } from './settingsStore'
 export const useCampaignStore = defineStore('campaign', () => {
     const { storage, profiles } = useServices()
     const settingsStore = useSettingsStore()
-    // Romance needs the scenes it is built in; either switch turns it off.
+    // Romance needs the officer's consent at registration and the scenes it is built in.
     const createService = () =>
         new CampaignService(storage, {
-            romance: () => settingsStore.settings.crewScenes && settingsStore.settings.romance,
+            romance: () => settingsStore.settings.crewScenes && profiles.romance,
         })
     let service = createService()
     const checkpoints = new CheckpointService(storage)
@@ -46,7 +46,7 @@ export const useCampaignStore = defineStore('campaign', () => {
         )
     }
     refresh()
-    watch(() => [settingsStore.settings.crewScenes, settingsStore.settings.romance], refresh)
+    watch(() => settingsStore.settings.crewScenes, refresh)
 
     function saveCheckpoint(session: GameSession) {
         if (checkpoints.save(session)) refresh()

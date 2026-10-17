@@ -10,6 +10,8 @@
     const name = ref('')
     // The terminal suggests the standard rank.
     const rank = ref<DifficultyId>(profiles.defaultRank)
+    // Personal relationships on duty: romance is off unless the officer accepts them.
+    const romance = ref<'no' | 'yes'>('no')
     const creating = ref(false)
     const input = useTemplateRef<HTMLInputElement>('name-input')
 
@@ -37,12 +39,14 @@
     function startCreating() {
         name.value = ''
         rank.value = profiles.defaultRank
+        romance.value = 'no'
         creating.value = true
     }
 
     async function submit() {
-        if (await profiles.create(name.value, rank.value)) {
+        if (await profiles.create(name.value, rank.value, romance.value === 'yes')) {
             name.value = ''
+            romance.value = 'no'
             creating.value = false
         }
     }
@@ -136,6 +140,16 @@
                     :maxlength="profiles.nameMaxLength"
                     placeholder="Позывной или фамилия"
                 />
+                <label class="profiles-modal__label" for="profile-romance">
+                    ВЫ ПРИЕМЛЕТЕ ЛИЧНЫЕ ОТНОШЕНИЯ НА СЛУЖБЕ?
+                </label>
+                <select id="profile-romance" v-model="romance" class="profiles-modal__input">
+                    <option value="no">Нет. Только служба</option>
+                    <option value="yes">Да</option>
+                </select>
+                <p class="profiles-modal__hint">
+                    Касается только романтических линий. Репутация у экипажа учитывается всегда.
+                </p>
                 <p v-if="profiles.hasLegacySaves" class="profiles-modal__note">
                     Найден прежний прогресс. Он будет перенесён в это личное дело.
                 </p>
@@ -258,6 +272,12 @@
                 border-color: $color-primary;
                 outline: none;
             }
+        }
+
+        &__hint {
+            margin-top: $spacing-xs;
+            color: $color-secondary;
+            font-size: 11px;
         }
 
         &__note {

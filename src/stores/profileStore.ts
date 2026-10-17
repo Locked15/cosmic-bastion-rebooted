@@ -79,8 +79,9 @@ export const useProfileStore = defineStore('profiles', () => {
     async function create(
         name: string,
         difficulty: DifficultyId = DEFAULT_DIFFICULTY,
+        romance = false,
     ): Promise<boolean> {
-        const created = await run(() => service.create(name, difficulty))
+        const created = await run(() => service.create(name, difficulty, romance))
         if (created) {
             switched()
             dialogOpen.value = false

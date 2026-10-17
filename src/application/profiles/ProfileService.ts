@@ -25,6 +25,7 @@ export interface ProfileSummary {
     stars: number
     active: boolean
     difficulty: DifficultyId
+    romance: boolean
 }
 
 export interface ProfileServiceOptions {
@@ -113,6 +114,7 @@ export class ProfileService {
                 stars: campaign?.totalStars ?? 0,
                 active: profile.id === this.activeId,
                 difficulty: rankOf(profile),
+                romance: profile.romance === true,
             }
         })
     }
@@ -133,9 +135,16 @@ export class ProfileService {
         return this.active ? rankOf(this.active) : DEFAULT_DIFFICULTY
     }
 
+    // Whether the active officer accepted personal relationships at registration (off by
+    // default). It gates romance only; reputation with the crew always works.
+    get romance(): boolean {
+        return this.active?.romance === true
+    }
+
     async create(
         rawName: string,
         difficulty: DifficultyId = DEFAULT_DIFFICULTY,
+        romance = false,
     ): Promise<CommandResult> {
         const name = rawName.trim().replace(/\s+/g, ' ')
         if (!name) return { ok: false, error: 'Введите имя офицера' }
@@ -153,6 +162,7 @@ export class ProfileService {
             createdAt: now,
             lastPlayedAt: now,
             difficulty,
+            romance,
         }
         const imported = this.profiles.length === 0 ? this.legacyProfileSaves() : {}
         await this.repository.putProfile(profile)

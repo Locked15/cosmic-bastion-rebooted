@@ -102,7 +102,7 @@ export interface CrewMemberView {
     role: string
     disposition: number
     standing: string
-    // Null for characters without romance, or when romance is turned off.
+    // Null for characters without romance, or when the profile declined it at registration.
     affection: number | null
     partner: boolean
 }
@@ -204,8 +204,6 @@ export interface Settings {
     music: number
     // Character scenes between missions on the ship map; off hides them all.
     crewScenes: boolean
-    // Romantic lines, the partner choice and the partner's epilogue.
-    romance: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -213,5 +211,4 @@ export const DEFAULT_SETTINGS: Settings = {
     volume: 50,
     music: 40,
     crewScenes: true,
-    romance: true,
 }

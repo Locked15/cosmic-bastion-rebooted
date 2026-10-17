@@ -13,12 +13,13 @@ beforeEach(async () => {
 })
 
 describe('settingsStore', () => {
-    it('drops removed settings (enemy speed, difficulty) from old saves', () => {
+    it('drops removed settings (enemy speed, difficulty, romance) from old saves', () => {
         storage.write('settings', {
             brightness: 80,
             volume: 20,
             enemySpeed: 1.3,
             difficulty: 'xhard',
+            romance: true,
         })
         const { settings } = useSettingsStore()
         expect(settings).toEqual({
@@ -26,7 +27,6 @@ describe('settingsStore', () => {
             volume: 20,
             music: 40,
             crewScenes: true,
-            romance: true,
         })
     })
 })

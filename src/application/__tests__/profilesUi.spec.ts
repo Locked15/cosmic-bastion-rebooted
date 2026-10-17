@@ -92,6 +92,34 @@ describe('profiles on the main menu', () => {
         expect(wrapper!.find('.profile-slot__rank').text()).toBe('Генерал')
     })
 
+    it('asks about personal relationships at registration, declining by default', async () => {
+        await mountMenu()
+        expect(wrapper!.text()).toContain('ВЫ ПРИЕМЛЕТЕ ЛИЧНЫЕ ОТНОШЕНИЯ НА СЛУЖБЕ?')
+        const select = wrapper!.find<HTMLSelectElement>('#profile-romance')
+        expect(select.element.value).toBe('no')
+        await register('Кирх')
+        expect(profiles.romance).toBe(false)
+        expect(profiles.list()[0]!.romance).toBe(false)
+
+        await wrapper!.find('.main-menu__identity button').trigger('click')
+        await button('НОВЫЙ ПРОФИЛЬ').trigger('click')
+        await wrapper!.find('#profile-romance').setValue('yes')
+        await register('Хейл')
+        expect(profiles.romance).toBe(true)
+        expect(profiles.list().map((profile) => profile.romance)).toEqual([false, true])
+    })
+
+    it('gates romance by the profile, never reputation', async () => {
+        await profiles.create('Без романов')
+        const campaign = useCampaignStore()
+        const kirch = () => campaign.crew.find((member) => member.id === 'kirch')!
+        expect(kirch().affection).toBeNull()
+        await profiles.create('С романами', undefined, true)
+        campaign.reload()
+        expect(kirch().affection).toBe(0)
+        expect(kirch().standing).toBeTruthy()
+    })
+
     it('switches profiles through the security link and reloads their progress', async () => {
         await profiles.create('Альфа')
         profiles.storage.write('campaign', {

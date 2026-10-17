@@ -8,6 +8,8 @@ export interface ProfileRecord {
     lastPlayedAt: number
     // Rank chosen at registration; it sets the difficulty for good. Absent in old records.
     difficulty?: DifficultyId
+    // Answer at registration: romance is available to this officer. Absent (old records): no.
+    romance?: boolean
 }
 
 // Asynchronous persistence of profiles (IndexedDB in the browser, memory in tests).

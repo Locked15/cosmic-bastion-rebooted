@@ -65,7 +65,8 @@ export interface MissionReport {
 }
 
 export interface CampaignOptions {
-    // The player's romance setting (on by default).
+    // Whether romance is available: the profile's answer at registration (off by default
+    // there); without the option it is on, for tests and tools.
     romance?: () => boolean
 }
 

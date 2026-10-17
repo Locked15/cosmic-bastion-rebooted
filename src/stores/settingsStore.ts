@@ -15,7 +15,6 @@ export const useSettingsStore = defineStore('settings', () => {
         music: saved.music ?? DEFAULT_SETTINGS.music,
         crewScenes:
             typeof saved.crewScenes === 'boolean' ? saved.crewScenes : DEFAULT_SETTINGS.crewScenes,
-        romance: typeof saved.romance === 'boolean' ? saved.romance : DEFAULT_SETTINGS.romance,
     })
 
     watch(settings, (value) => storage.write(SETTINGS_KEY, value), { deep: true })
