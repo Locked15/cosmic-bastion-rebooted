@@ -55,12 +55,6 @@
                     >
                         {{ campaign.hasProgress ? 'ПРОДОЛЖИТЬ' : 'НАЧАТЬ МИССИЮ' }}
                     </AppButton>
-                    <AppButton
-                        :disabled="profiles.required"
-                        @click="router.push({ name: 'quartermaster' })"
-                    >
-                        ИНТЕНДАНТСТВО
-                    </AppButton>
                     <AppButton @click="ui.helpOpen = true">ИНСТРУКЦИИ</AppButton>
                     <AppButton @click="ui.achievementsOpen = true">ДОСТИЖЕНИЯ</AppButton>
                     <AppButton @click="ui.openSettings()">НАСТРОЙКИ</AppButton>

@@ -131,6 +131,8 @@ export function sceneFlag(id: string): string {
 // A playable scene: content scenes and the generated commitment scene look the same.
 export interface StoryScene {
     id: string
+    // Character id of the speaker; null for the commitment scene (several speak).
+    speakerId: string | null
     speaker: string
     place: string
     lines: string[]
@@ -148,6 +150,7 @@ function seen(flags: Readonly<StoryFlags>, id: string): boolean {
 function playable(scene: SceneDefinition, progress: SceneProgress): StoryScene {
     return {
         id: scene.id,
+        speakerId: scene.speaker,
         speaker: character(scene.speaker)!.name,
         place: scene.place,
         lines: scene.lines,
@@ -190,6 +193,7 @@ export function commitmentScene(flags: Readonly<StoryFlags>): StoryScene {
     const candidates = romanceCandidates(flags)
     return {
         id: COMMITMENT_SCENE_ID,
+        speakerId: null,
         speaker: candidates.map((id) => character(id)!.name).join(' · '),
         place: COMMITMENT.place,
         lines: COMMITMENT.lines,

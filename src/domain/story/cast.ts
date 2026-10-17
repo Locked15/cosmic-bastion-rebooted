@@ -1,6 +1,6 @@
 import * as v from 'valibot'
 import data from '@/content/cast.json'
-import { parseContent, text } from '../content/parse'
+import { parseContent, rect, text } from '../content/parse'
 import { flagConditionSchema, flagsMatch, inRange, type StoryFlags } from '../levels/flags'
 
 // The cast and their relationship with the player. Values live in the campaign's story flags
@@ -15,6 +15,8 @@ const characterSchema = v.strictObject({
     romance: v.boolean(),
     // Flags that keep the character aboard (saved, not left behind); always present when empty.
     present: v.optional(v.array(flagConditionSchema), []),
+    // The character's cabin on the crew deck plan (ui/components/CrewDeckMap.vue units).
+    cabin: v.strictObject({ code: text, map: rect }),
 })
 export type CharacterDefinition = v.InferOutput<typeof characterSchema>
 
@@ -31,6 +33,8 @@ const castSchema = v.pipe(
             v.array(v.strictObject({ atLeast: v.number(), label: text })),
             v.nonEmpty(),
         ),
+        // The common room in the middle of the crew deck plan.
+        wardroom: v.strictObject({ code: text, name: text, map: rect }),
         // Listed order breaks ties between partners with equal affection.
         characters: v.pipe(v.array(characterSchema), v.nonEmpty()),
     }),
@@ -42,6 +46,10 @@ const castSchema = v.pipe(
     v.check(
         (cast) => new Set(cast.characters.map((c) => c.id)).size === cast.characters.length,
         'Character ids must be unique',
+    ),
+    v.check(
+        (cast) => new Set(cast.characters.map((c) => c.cabin.code)).size === cast.characters.length,
+        'Every character has a cabin of their own',
     ),
     v.check(
         (cast) =>

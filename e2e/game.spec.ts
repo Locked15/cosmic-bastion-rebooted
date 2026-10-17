@@ -23,6 +23,37 @@ async function register(page: Page, name = 'Испытатель') {
     await expect(page.locator('.main-menu__briefing')).toHaveText(`Экстренный рапорт, ${name}.`)
 }
 
+// Writes campaign progress for the active profile straight into IndexedDB, then reloads.
+async function winSectors(page: Page, levels: string[]) {
+    await page.evaluate(async (completed) => {
+        const db = await new Promise<IDBDatabase>((resolve, reject) => {
+            const request = indexedDB.open('cosmic-bastion')
+            request.onsuccess = () => resolve(request.result)
+            request.onerror = () => reject(request.error)
+        })
+        const read = <T>(store: string, key: string) =>
+            new Promise<T>((resolve) => {
+                const request = db.transaction(store).objectStore(store).get(key)
+                request.onsuccess = () => resolve(request.result as T)
+            })
+        const profileId = await read<string>('device', 'activeProfile')
+        const value = {
+            flags: {},
+            completedLevels: completed,
+            totalStars: completed.length,
+            currentLevelIndex: 0,
+            levels: completed.map((id) => ({ id, completed: true, stars: 1, locked: false })),
+        }
+        await new Promise<void>((resolve) => {
+            const tx = db.transaction('saves', 'readwrite')
+            tx.objectStore('saves').put({ profileId, key: 'campaign', value })
+            tx.oncomplete = () => resolve()
+        })
+        db.close()
+    }, levels)
+    await page.reload()
+}
+
 async function answerDialog(page: Page) {
     await page.locator('.story-dialog .choice-button').first().click()
     const ok = page.locator('.story-dialog').getByRole('button', { name: 'ОК', exact: true })
@@ -148,15 +179,33 @@ test('keeps profiles in IndexedDB, switches between them and deletes them', asyn
     await expect(dialog).toContainText('Бета')
 })
 
-test('opens the quartermaster terminal from the menu', async ({ page }) => {
+test('opens the quartermaster terminal from the ship map', async ({ page }) => {
     await register(page)
     await expect(page.getByRole('img', { name: 'Реквизиции: 0' })).toBeVisible()
-    await page.getByRole('button', { name: 'ИНТЕНДАНТСТВО' }).click()
+    // Closed until the bridge is retaken; the route leads back to the ship map.
+    await page.goto('/quartermaster')
+    await expect(page).toHaveURL(/\/levels$/)
+    await expect(page.getByRole('button', { name: 'ИТ-41 Интендантство: ПОСЛЕ S-1' })).toBeVisible()
+    await winSectors(page, ['level_1', 'level_10'])
+    await page.getByRole('button', { name: /^ИТ-41 Интендантство: НА СЧЁТЕ/ }).click()
     await expect(page).toHaveURL(/\/quartermaster$/)
     await expect(page.getByRole('option')).toHaveCount(10)
-    await expect(page.getByRole('img', { name: 'РЕКВИЗИЦИИ НА СЧЁТЕ 0' })).toBeVisible()
-    // Nothing to spend yet: the approve key is locked.
-    await expect(page.getByRole('button', { name: /УТВЕРДИТЬ/ })).toBeDisabled()
+    // The two won sectors are paid for when the account is opened.
+    await expect(page.getByRole('img', { name: /^РЕКВИЗИЦИИ НА СЧЁТЕ [1-9]\d*$/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /УТВЕРДИТЬ/ })).toBeEnabled()
     await page.keyboard.press('Escape')
-    await expect(page).toHaveURL(/\/$/)
+    await expect(page).toHaveURL(/\/levels$/)
+})
+
+test('opens the wardroom from the ship map', async ({ page }) => {
+    await register(page)
+    await page.goto('/wardroom')
+    await expect(page).toHaveURL(/\/levels$/)
+    await expect(page.getByRole('button', { name: 'КК-3 Кают-компания: ПОСЛЕ B-3' })).toBeVisible()
+    await winSectors(page, ['level_1', 'level_2'])
+    await page.getByRole('button', { name: /^КК-3 Кают-компания/ }).click()
+    await expect(page).toHaveURL(/\/wardroom$/)
+    await expect(page.getByRole('button', { name: /^К-01 Лейтенант Ода Кирх/ })).toBeVisible()
+    await page.getByRole('button', { name: 'К СХЕМЕ КОРАБЛЯ' }).click()
+    await expect(page).toHaveURL(/\/levels$/)
 })

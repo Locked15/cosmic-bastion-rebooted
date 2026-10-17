@@ -32,7 +32,9 @@ import {
 import { technologyUnlocks, type TechnologyUnlocks } from '@/domain/story/technology'
 import type {
     CampaignResolution,
+    CrewDeckView,
     CrewMemberView,
+    FacilityView,
     LevelSummary,
     ObjectiveView,
     SceneView,
@@ -43,7 +45,7 @@ import type { SessionOptions } from './session/GameSession'
 const CAMPAIGN_KEY = 'campaign'
 
 // Conduit from a required sector to `sector`: its drawn route or a line between room centres.
-function route(from: string, sector: CampaignSector): [number, number][] {
+function route(from: string, sector: Pick<CampaignSector, 'map' | 'routes'>): [number, number][] {
     const drawn = sector.routes[from]
     if (drawn) return drawn.map(([x, y]) => [x, y])
     const source = campaignSector(from)!.map
@@ -73,6 +75,7 @@ export interface CampaignOptions {
 function sceneView(scene: StoryScene): SceneView {
     return {
         id: scene.id,
+        speakerId: scene.speakerId,
         speaker: scene.speaker,
         place: scene.place,
         lines: [...scene.lines],
@@ -244,21 +247,53 @@ export class CampaignService {
         return true
     }
 
-    // Present characters in cast order with their standing toward the player.
-    crew(): CrewMemberView[] {
+    // The cast in cast order with their standing toward the player and their cabins.
+    // `scenes` counts waiting scenes per speaker (none when crew scenes are off).
+    crew(scenes: readonly SceneView[] = this.scenesAfterMissions()): CrewMemberView[] {
         const flags = this.campaign.flags
         const partner = romancePartner(flags, this.romance)
-        return CAST.characters
-            .filter((member) => isPresent(flags, member.id))
-            .map((member) => ({
-                id: member.id,
-                name: member.name,
-                role: member.role,
-                disposition: disposition(flags, member.id),
-                standing: standing(disposition(flags, member.id)),
-                affection: member.romance && this.romance ? affection(flags, member.id) : null,
-                partner: partner === member.id,
-            }))
+        return CAST.characters.map((member) => ({
+            id: member.id,
+            name: member.name,
+            role: member.role,
+            disposition: disposition(flags, member.id),
+            standing: standing(disposition(flags, member.id)),
+            affection: member.romance && this.romance ? affection(flags, member.id) : null,
+            partner: partner === member.id,
+            present: isPresent(flags, member.id),
+            pendingScenes: scenes.filter((scene) => scene.speakerId === member.id).length,
+            cabin: { code: member.cabin.code, map: { ...member.cabin.map } },
+        }))
+    }
+
+    crewDeck(scenes?: readonly SceneView[]): CrewDeckView {
+        const { code, name, map } = CAST.wardroom
+        return { wardroom: { code, name, map: { ...map } }, members: this.crew(scenes) }
+    }
+
+    // Service rooms drawn on the ship map.
+    facilities(): FacilityView[] {
+        return CAMPAIGN.facilities.map((room) => ({
+            id: room.id,
+            code: room.code,
+            name: room.name,
+            map: { ...room.map },
+            routes: room.requires.map((from) => ({
+                from,
+                open: this.campaign.completedLevels.includes(from),
+                points: route(from, room),
+            })),
+            locked: !this.isFacilityOpen(room.id),
+            prerequisites: room.requires.map((id) => campaignSector(id)!.code),
+        }))
+    }
+
+    // A service room opens with the victories it requires.
+    isFacilityOpen(id: string): boolean {
+        const room = CAMPAIGN.facilities.find((candidate) => candidate.id === id)
+        return (
+            !!room && room.requires.every((level) => this.campaign.completedLevels.includes(level))
+        )
     }
 
     reset(): void {

@@ -13,6 +13,7 @@ import { MemoryStore } from '@/infrastructure/storage/MemoryStore'
 import { useCampaignStore } from '@/stores/campaignStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 import LevelSelectPage from '@/ui/pages/LevelSelectPage.vue'
+import WardroomPage from '@/ui/pages/WardroomPage.vue'
 import { CampaignService, type CampaignOptions } from '../CampaignService'
 import { applyEffect } from '../session/effects'
 import { GameSession } from '../session/GameSession'
@@ -76,7 +77,11 @@ describe('CampaignService relationships', () => {
     it('hides affection when romance is off', () => {
         const { service } = serviceWith({ aff_kirch: 6 }, [], { romance: () => false })
         expect(service.crew().find((member) => member.id === 'kirch')!.affection).toBeNull()
-        expect(service.crew().map((member) => member.id)).not.toContain('silva')
+        // Silva is not aboard yet: listed with a sealed cabin.
+        expect(service.crew().find((member) => member.id === 'silva')).toMatchObject({
+            present: false,
+            cabin: { code: 'К-04' },
+        })
     })
 
     it('resolves the finale with the partner and the difficulty records', () => {
@@ -133,7 +138,7 @@ describe('CampaignService relationships', () => {
     })
 })
 
-describe('crew scenes on the ship map', () => {
+describe('crew scenes in the wardroom', () => {
     let wrapper: VueWrapper | null = null
 
     function router() {
@@ -142,6 +147,12 @@ describe('crew scenes on the ship map', () => {
             routes: [
                 { path: '/', name: 'menu', component: { template: '<main />' } },
                 { path: '/levels', name: 'levels', component: LevelSelectPage },
+                { path: '/wardroom', name: 'wardroom', component: WardroomPage },
+                {
+                    path: '/quartermaster',
+                    name: 'quartermaster',
+                    component: { template: '<main />' },
+                },
                 { path: '/game/:levelId', name: 'game', component: { template: '<main />' } },
             ],
         })
@@ -157,47 +168,135 @@ describe('crew scenes on the ship map', () => {
         wrapper = null
     })
 
-    async function mountMap() {
+    async function mountAt(path: '/levels' | '/wardroom') {
         const navigation = router()
-        await navigation.push('/levels')
-        wrapper = mount(LevelSelectPage, { global: { plugins: [navigation] } })
+        await navigation.push(path)
+        wrapper = mount(path === '/levels' ? LevelSelectPage : WardroomPage, {
+            global: { plugins: [navigation] },
+        })
         return { navigation, page: wrapper }
     }
 
     const button = (page: VueWrapper, text: string) =>
         page.findAll('button').find((candidate) => candidate.text().includes(text))
+    const facility = (page: VueWrapper, code: string) =>
+        page
+            .findAll('.deck-map__facility')
+            .find((room) => room.attributes('aria-label')?.startsWith(code))!
+    const cabin = (page: VueWrapper, code: string) =>
+        page
+            .findAll('.crew-deck__room')
+            .find((room) => room.attributes('aria-label')?.startsWith(code))!
 
-    it('waits for the player to open a scene, then plays a choice and the reply', async () => {
+    it('locks the service rooms until the living quarters and the bridge are won', async () => {
+        const campaign = useCampaignStore()
+        campaign.completeLevel('level_1', 1)
+        const { navigation, page } = await mountAt('/levels')
+        expect(facility(page, 'КК-3').attributes('aria-label')).toBe(
+            'КК-3 Кают-компания: ПОСЛЕ B-3',
+        )
+        expect(facility(page, 'ИТ-41').attributes('aria-label')).toBe(
+            'ИТ-41 Интендантство: ПОСЛЕ S-1',
+        )
+        expect(facility(page, 'КК-3').attributes('aria-disabled')).toBe('true')
+        await facility(page, 'КК-3').trigger('click')
+        await facility(page, 'ИТ-41').trigger('click')
+        expect(navigation.currentRoute.value.name).toBe('levels')
+        expect(campaign.isFacilityOpen('wardroom')).toBe(false)
+
+        campaign.completeLevel('level_2', 1)
+        expect(campaign.isFacilityOpen('wardroom')).toBe(true)
+        expect(campaign.isFacilityOpen('quartermaster')).toBe(false)
+        campaign.completeLevel('level_10', 1)
+        expect(campaign.isFacilityOpen('quartermaster')).toBe(true)
+    })
+
+    it('puts the wardroom and the quartermaster on the ship map as service rooms', async () => {
+        const campaign = useCampaignStore()
+        for (const id of ['level_1', 'level_2', 'level_10']) campaign.completeLevel(id, 1)
+        const { navigation, page } = await mountAt('/levels')
+        // Service rooms are not missions.
+        expect(page.findAll('.deck-map__room')).toHaveLength(campaign.levels.length)
+        expect(facility(page, 'КК-3').attributes('aria-label')).toMatch(
+            /^КК-3 Кают-компания: РАЗГОВОРОВ: \d+$/,
+        )
+        expect(facility(page, 'КК-3').classes()).toContain('deck-map__facility--alert')
+        expect(facility(page, 'ИТ-41').attributes('aria-label')).toMatch(
+            /^ИТ-41 Интендантство: НА СЧЁТЕ: \d+$/,
+        )
+        // Nothing opens by itself, and the old button is gone.
+        expect(page.find('.scene-screen').exists()).toBe(false)
+        expect(button(page, 'КАЮТ-КОМПАНИЯ')).toBeUndefined()
+
+        await facility(page, 'ИТ-41').trigger('click')
+        await vi.waitFor(() => expect(navigation.currentRoute.value.name).toBe('quartermaster'))
+        await navigation.push('/levels')
+        await facility(page, 'КК-3').trigger('keydown', { key: 'Enter' })
+        await vi.waitFor(() => expect(navigation.currentRoute.value.name).toBe('wardroom'))
+    })
+
+    it('shows a cabin for every character and talks to one of them', async () => {
         const campaign = useCampaignStore()
         campaign.completeLevel('level_1', 1)
         campaign.completeLevel('level_2', 1)
-        const { page } = await mountMap()
-        // Nothing opens by itself.
-        expect(page.find('.scene-screen').exists()).toBe(false)
-        await button(page, 'КАЮТ-КОМПАНИЯ')!.trigger('click')
+        const { navigation, page } = await mountAt('/wardroom')
+        expect(page.findAll('.crew-deck__room')).toHaveLength(campaign.crewDeck.members.length + 1)
+        // Silva is not aboard yet: her cabin is sealed.
+        expect(cabin(page, 'К-04').classes()).toContain('crew-deck__room--absent')
+        expect(cabin(page, 'К-04').text()).toContain('НЕТ НА СВЯЗИ')
+        // The page opens on whoever waits to talk.
+        expect(cabin(page, 'К-01').attributes('aria-pressed')).toBe('true')
+        expect(cabin(page, 'К-01').text()).toContain('● 1')
+        expect(page.find('.cabin-info__title').text()).toBe('Лейтенант Ода Кирх')
+
+        await button(page, 'ПОГОВОРИТЬ')!.trigger('click')
         expect(page.find('.scene-screen__speaker').text()).toBe('Лейтенант Ода Кирх')
         await page.findAll('.scene-screen__choice')[0]!.trigger('click')
         expect(page.find('.scene-screen__reply').text()).toContain('Принято')
         await button(page, 'ДАЛЕЕ')!.trigger('click')
         expect(page.find('.scene-screen').exists()).toBe(false)
-        expect(page.find('.crew-roster').text()).toContain('Расположение')
-        expect(button(page, 'КАЮТ-КОМПАНИЯ')).toBeUndefined()
+        expect(cabin(page, 'К-01').text()).toContain('Расположение')
+        expect(cabin(page, 'К-01').text()).not.toContain('●')
+        // Romance was not accepted at registration: no hearts.
+        expect(cabin(page, 'К-01').text()).not.toContain('♥')
+        expect(button(page, 'ПОГОВОРИТЬ')!.attributes('disabled')).toBeDefined()
+
+        await cabin(page, 'К-03').trigger('click')
+        expect(page.find('.cabin-info__title').text()).toBe('Капитан-Носитель Ирена Восс')
+        await button(page, 'К СХЕМЕ КОРАБЛЯ')!.trigger('click')
+        await vi.waitFor(() => expect(navigation.currentRoute.value.name).toBe('levels'))
     })
 
-    it('hides every scene when crew scenes are turned off', async () => {
+    it('plays every waiting conversation at the common table', async () => {
+        const campaign = useCampaignStore()
+        for (const id of ['level_0', 'level_1', 'level_2']) campaign.completeLevel(id, 1)
+        const { page } = await mountAt('/wardroom')
+        expect(campaign.pendingScenes.map((scene) => scene.speakerId)).toEqual(['hale', 'kirch'])
+        await page.find('.crew-deck__room--wardroom').trigger('click')
+        expect(page.find('.scene-screen__speaker').text()).toBe('Командор Маркус Хейл')
+        await button(page, 'ПРОПУСТИТЬ')!.trigger('click')
+        expect(page.find('.scene-screen__speaker').text()).toBe('Лейтенант Ода Кирх')
+        await button(page, 'ПОЗЖЕ')!.trigger('click')
+        expect(campaign.pendingScenes.map((scene) => scene.speakerId)).toEqual(['kirch'])
+    })
+
+    it('stays quiet when crew scenes are turned off', async () => {
         useSettingsStore().settings.crewScenes = false
         const campaign = useCampaignStore()
         campaign.completeLevel('level_1', 1)
         campaign.completeLevel('level_2', 1)
-        const { page } = await mountMap()
-        expect(button(page, 'КАЮТ-КОМПАНИЯ')).toBeUndefined()
-        expect(page.find('.crew-roster').text()).not.toContain('♥')
+        const map = await mountAt('/levels')
+        expect(facility(map.page, 'КК-3').attributes('aria-label')).toContain('ТИШИНА')
+        wrapper!.unmount()
+        const { page } = await mountAt('/wardroom')
+        expect(page.text()).toContain('Сцены с экипажем отключены в настройках.')
+        expect(page.findAll('.crew-deck__badge')).toHaveLength(0)
     })
 
     it('plays briefing scenes before the mission and lets the player skip them', async () => {
         const campaign = useCampaignStore()
         for (const id of ['level_1', 'level_2', 'level_3', 'level_4']) campaign.completeLevel(id, 1)
-        const { navigation, page } = await mountMap()
+        const { navigation, page } = await mountAt('/levels')
         await page
             .findAll('.deck-map__room')
             .find((room) => room.attributes('aria-label')?.startsWith('E-0'))!
@@ -206,6 +305,7 @@ describe('crew scenes on the ship map', () => {
         expect(page.find('.scene-screen__speaker').text()).toBe('Командор Маркус Хейл')
         await button(page, 'ПРОПУСТИТЬ')!.trigger('click')
         await vi.waitFor(() => expect(navigation.currentRoute.value.fullPath).toBe('/game/level_9'))
-        expect(campaign.crew.find((member) => member.id === 'hale')!.disposition).toBe(0)
+        const hale = campaign.crewDeck.members.find((member) => member.id === 'hale')!
+        expect(hale.disposition).toBe(0)
     })
 })

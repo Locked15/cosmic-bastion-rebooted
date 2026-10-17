@@ -29,7 +29,7 @@
     })
     onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 
-    // ↑/↓ move the cursor, Enter approves, Esc leaves the terminal.
+    // ↑/↓ move the cursor, Enter approves, Esc leaves the terminal for the ship map.
     function onKey(event: KeyboardEvent) {
         if (ui.confirmRequest) return
         const index = upgrades.value.findIndex((upgrade) => upgrade.id === selectedId.value)
@@ -42,7 +42,7 @@
             event.preventDefault()
             approve()
         } else if (event.key === 'Escape' && !ui.confirmRequest) {
-            router.push({ name: 'menu' })
+            router.push({ name: 'levels' })
         }
     }
 
@@ -123,7 +123,11 @@
                         :disabled="!selected?.affordable"
                         @press="approve"
                     />
-                    <KeycapButton label="ВЫХОД" hint="ESC" @press="router.push({ name: 'menu' })" />
+                    <KeycapButton
+                        label="ВЫХОД"
+                        hint="ESC"
+                        @press="router.push({ name: 'levels' })"
+                    />
                 </div>
                 <ResetLever
                     :refund="view.refund"

@@ -90,6 +90,8 @@ export interface EndingView {
 // A visual-novel scene between missions.
 export interface SceneView {
     id: string
+    // Character id of the speaker; null when several speak (the partner choice).
+    speakerId: string | null
     speaker: string
     place: string
     lines: string[]
@@ -105,6 +107,37 @@ export interface CrewMemberView {
     // Null for characters without romance, or when the profile declined it at registration.
     affection: number | null
     partner: boolean
+    // Aboard and reachable; otherwise the cabin is sealed ("no contact").
+    present: boolean
+    // Scenes with this character waiting in the wardroom.
+    pendingScenes: number
+    cabin: { code: string; map: MapRect }
+}
+
+// The wardroom's crew deck plan: the common room in the middle, cabins around it.
+export interface CrewDeckView {
+    wardroom: { code: string; name: string; map: MapRect }
+    members: CrewMemberView[]
+}
+
+// A service room on the ship map (not a mission).
+export interface FacilityView {
+    id: 'wardroom' | 'quartermaster'
+    code: string
+    name: string
+    map: MapRect
+    // Conduits from the sectors whose victory opens the room.
+    routes: { from: string; open: boolean; points: [number, number][] }[]
+    // Closed until the required sectors are won.
+    locked: boolean
+    // Names of those sectors, for the readout.
+    prerequisites: string[]
+}
+
+// A service room with its live readout ("РАЗГОВОРОВ: 2"); `alert` makes it pulse.
+export interface FacilityRoomView extends FacilityView {
+    status: string
+    alert: boolean
 }
 
 export interface CampaignResolution {

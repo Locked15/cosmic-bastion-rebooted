@@ -256,6 +256,46 @@ describe('endings with relationships', () => {
     })
 })
 
+describe('service rooms and cabins', () => {
+    type Rect = { x: number; y: number; width: number; height: number }
+    const overlaps = (a: Rect, b: Rect) =>
+        a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+    const inside = ([x, y]: [number, number], r: Rect) =>
+        x >= r.x && x <= r.x + r.width && y >= r.y && y <= r.y + r.height
+
+    it('keeps service rooms clear of the sectors and tethers them to what opens them', () => {
+        expect(CAMPAIGN.facilities.map((room) => room.id).sort()).toEqual([
+            'quartermaster',
+            'wardroom',
+        ])
+        const required = Object.fromEntries(
+            CAMPAIGN.facilities.map((room) => [room.id, room.requires]),
+        )
+        // The wardroom opens with the living quarters (B-3), the quartermaster with the bridge.
+        expect(required).toEqual({ wardroom: ['level_2'], quartermaster: ['level_10'] })
+        for (const room of CAMPAIGN.facilities) {
+            for (const sector of CAMPAIGN.sectors)
+                expect(overlaps(room.map, sector.map)).toBe(false)
+            for (const id of room.requires) {
+                const points = room.routes[id]!
+                // From the edge of the required sector's room to the edge of the service room.
+                expect(inside(points[0]!, CAMPAIGN.sectors.find((s) => s.level === id)!.map)).toBe(
+                    true,
+                )
+                expect(inside(points[points.length - 1]!, room.map)).toBe(true)
+            }
+        }
+    })
+
+    it('gives every character a separate cabin around the wardroom', () => {
+        const cabins = CAST.characters.map((member) => member.cabin.map)
+        cabins.forEach((cabin, index) => {
+            expect(overlaps(cabin, CAST.wardroom.map)).toBe(false)
+            for (const other of cabins.slice(index + 1)) expect(overlaps(cabin, other)).toBe(false)
+        })
+    })
+})
+
 describe('relationship content', () => {
     it('rejects affection for characters without romance and unknown characters', () => {
         const ok = (effect: unknown) => v.safeParse(effectSchema, effect).success

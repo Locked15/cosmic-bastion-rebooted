@@ -31,18 +31,46 @@
             "label": "Вражда"
         }
     ],
+    "wardroom": {
+        "code": "КК-3",
+        "name": "Кают-компания",
+        "map": {
+            "x": 300,
+            "y": 245,
+            "width": 400,
+            "height": 130
+        }
+    },
     "characters": [
         {
             "id": "kirch",
             "name": "Лейтенант Ода Кирх",
             "role": "Тактический офицер",
-            "romance": true
+            "romance": true,
+            "cabin": {
+                "code": "К-01",
+                "map": {
+                    "x": 40,
+                    "y": 40,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "hale",
             "name": "Командор Маркус Хейл",
             "role": "Командор Стражи",
-            "romance": true
+            "romance": true,
+            "cabin": {
+                "code": "К-02",
+                "map": {
+                    "x": 228,
+                    "y": 40,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "silva",
@@ -54,19 +82,46 @@
                     "flag": "scientist_saved",
                     "atLeast": 1
                 }
-            ]
+            ],
+            "cabin": {
+                "code": "К-04",
+                "map": {
+                    "x": 604,
+                    "y": 40,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "diana",
             "name": "Пилот Диана Корвин",
             "role": "Пилот челноков ангара H-2",
-            "romance": true
+            "romance": true,
+            "cabin": {
+                "code": "К-05",
+                "map": {
+                    "x": 792,
+                    "y": 40,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "voss",
             "name": "Капитан-Носитель Ирена Восс",
             "role": "Капитан «Тяжести Обета»",
-            "romance": false
+            "romance": false,
+            "cabin": {
+                "code": "К-03",
+                "map": {
+                    "x": 416,
+                    "y": 40,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "chen",
@@ -78,13 +133,31 @@
                     "flag": "engineer_saved",
                     "atLeast": 1
                 }
-            ]
+            ],
+            "cabin": {
+                "code": "К-06",
+                "map": {
+                    "x": 40,
+                    "y": 450,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "petrov",
             "name": "Инженер Глеб Петров",
             "role": "Инженер технического ядра",
-            "romance": false
+            "romance": false,
+            "cabin": {
+                "code": "К-07",
+                "map": {
+                    "x": 228,
+                    "y": 450,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "renn",
@@ -96,7 +169,16 @@
                     "flag": "surgeon_saved",
                     "atLeast": 1
                 }
-            ]
+            ],
+            "cabin": {
+                "code": "К-08",
+                "map": {
+                    "x": 416,
+                    "y": 450,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "gorban",
@@ -108,13 +190,31 @@
                     "flag": "foreman_lost",
                     "below": 1
                 }
-            ]
+            ],
+            "cabin": {
+                "code": "К-09",
+                "map": {
+                    "x": 604,
+                    "y": 450,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         },
         {
             "id": "zaremba",
             "name": "Агроном Лидия Заремба",
             "role": "Гидропоника",
-            "romance": false
+            "romance": false,
+            "cabin": {
+                "code": "К-10",
+                "map": {
+                    "x": 792,
+                    "y": 450,
+                    "width": 168,
+                    "height": 130
+                }
+            }
         }
     ]
 }

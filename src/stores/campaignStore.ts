@@ -5,7 +5,8 @@ import {
     CheckpointService,
     type GameSession,
     type LevelSummary,
-    type CrewMemberView,
+    type CrewDeckView,
+    type FacilityView,
     type MissionReport,
     type SceneView,
 } from '@/application'
@@ -28,9 +29,12 @@ export const useCampaignStore = defineStore('campaign', () => {
     const hasProgress = ref(service.hasProgress)
     // Wave each level can be resumed after (between-wave checkpoint), or null.
     const savedWaves = ref<Record<string, number | null>>({})
-    const crew = ref<CrewMemberView[]>([])
-    // Scenes waiting on the ship map (none when crew scenes are off).
+    // Scenes waiting in the wardroom (none when crew scenes are off).
     const pendingScenes = ref<SceneView[]>([])
+    // The wardroom's deck plan: cabins with their characters' standing and waiting scenes.
+    const crewDeck = ref<CrewDeckView>(service.crewDeck([]))
+    // Service rooms on the ship map; locked until their sectors are won.
+    const facilities = ref<FacilityView[]>(service.facilities())
     // The scene on screen; `reply` is set once a choice was made.
     const activeScene = ref<{ scene: SceneView; reply: string | null } | null>(null)
     let sceneQueue: SceneView[] = []
@@ -39,8 +43,9 @@ export const useCampaignStore = defineStore('campaign', () => {
     function refresh() {
         levels.value = service.listLevels(profiles.difficulty)
         hasProgress.value = service.hasProgress
-        crew.value = service.crew()
         pendingScenes.value = settingsStore.settings.crewScenes ? service.scenesAfterMissions() : []
+        crewDeck.value = service.crewDeck(pendingScenes.value)
+        facilities.value = service.facilities()
         savedWaves.value = Object.fromEntries(
             LEVEL_IDS.map((id) => [id, checkpoints.savedWave(id)]),
         )
@@ -59,6 +64,10 @@ export const useCampaignStore = defineStore('campaign', () => {
     function clearCheckpoint(levelId: string) {
         checkpoints.clear(levelId)
         refresh()
+    }
+
+    function isFacilityOpen(id: string) {
+        return service.isFacilityOpen(id)
     }
 
     function isUnlocked(levelId: string) {
@@ -103,9 +112,13 @@ export const useCampaignStore = defineStore('campaign', () => {
         return new Promise((resolve) => (sceneDone = resolve))
     }
 
-    // The player opens the waiting scenes from the ship map; nothing plays by itself.
-    function openPendingScenes(): Promise<void> {
-        return playScenes(settingsStore.settings.crewScenes ? service.scenesAfterMissions() : [])
+    // The player opens waiting scenes in the wardroom (all of them, or one character's);
+    // nothing plays by itself.
+    function openPendingScenes(characterId?: string): Promise<void> {
+        const scenes = settingsStore.settings.crewScenes ? service.scenesAfterMissions() : []
+        return playScenes(
+            characterId ? scenes.filter((scene) => scene.speakerId === characterId) : scenes,
+        )
     }
 
     // Before a mission starts, its scenes play (each can be skipped).
@@ -139,7 +152,9 @@ export const useCampaignStore = defineStore('campaign', () => {
     }
 
     return {
-        crew,
+        crewDeck,
+        facilities,
+        isFacilityOpen,
         pendingScenes,
         activeScene,
         openPendingScenes,

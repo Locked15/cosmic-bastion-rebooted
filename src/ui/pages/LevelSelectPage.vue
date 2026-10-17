@@ -2,16 +2,38 @@
     import { storeToRefs } from 'pinia'
     import { computed, nextTick, ref, useTemplateRef } from 'vue'
     import { useRouter } from 'vue-router'
+    import type { FacilityRoomView, FacilityView } from '@/application'
     import { useCampaignStore } from '@/stores/campaignStore'
-    import AppButton from '@/ui/components/AppButton.vue'
-    import CrewRoster from '@/ui/components/CrewRoster.vue'
+    import { useRequisitionStore } from '@/stores/requisitionStore'
     import ShipDeckMap from '@/ui/components/ShipDeckMap.vue'
     import CrewScenes from '@/ui/layouts/CrewScenes.vue'
     import MissionInfo from '@/ui/layouts/MissionInfo.vue'
 
     const router = useRouter()
     const campaign = useCampaignStore()
-    const { levels, savedWaves, crew, pendingScenes } = storeToRefs(campaign)
+    const { levels, savedWaves, pendingScenes } = storeToRefs(campaign)
+    const { view: requisitions } = storeToRefs(useRequisitionStore())
+
+    // Service rooms with their readouts: waiting conversations, requisitions on account.
+    const facilities = computed<FacilityRoomView[]>(() =>
+        campaign.facilities.map((room) =>
+            room.locked
+                ? { ...room, status: `ПОСЛЕ ${room.prerequisites.join(', ')}`, alert: false }
+                : room.id === 'wardroom'
+                  ? {
+                        ...room,
+                        status: pendingScenes.value.length
+                            ? `РАЗГОВОРОВ: ${pendingScenes.value.length}`
+                            : 'ТИШИНА',
+                        alert: pendingScenes.value.length > 0,
+                    }
+                  : { ...room, status: `НА СЧЁТЕ: ${requisitions.value.balance}`, alert: false },
+        ),
+    )
+
+    function open(id: FacilityView['id']) {
+        if (campaign.isFacilityOpen(id)) router.push({ name: id })
+    }
 
     // Start on the first open sector not won yet: the training briefing for a new officer.
     const selectedId = ref<string | null>(
@@ -48,13 +70,13 @@
     <main class="level-select">
         <h2 class="level-select__title">СХЕМА КОРАБЛЯ - ВЫБОР СЕКТОРА</h2>
         <section class="level-select__map">
-            <ShipDeckMap :levels="levels" :selected-id="selectedId" @select="select" />
-            <div v-if="pendingScenes.length" class="level-select__scenes">
-                <AppButton variant="secondary" @click="campaign.openPendingScenes()">
-                    КАЮТ-КОМПАНИЯ · РАЗГОВОРОВ: {{ pendingScenes.length }}
-                </AppButton>
-            </div>
-            <CrewRoster v-if="crew.length" :members="crew" />
+            <ShipDeckMap
+                :levels="levels"
+                :facilities="facilities"
+                :selected-id="selectedId"
+                @select="select"
+                @open="open"
+            />
         </section>
         <CrewScenes />
         <MissionInfo
@@ -93,12 +115,6 @@
             align-self: start;
             padding: $spacing-md;
             border: 2px solid $color-primary;
-        }
-
-        &__scenes {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: $spacing-md;
         }
 
         // Mission details always fit the viewport, so the start button is reachable.

@@ -112,7 +112,7 @@ describe('profiles on the main menu', () => {
     it('gates romance by the profile, never reputation', async () => {
         await profiles.create('Без романов')
         const campaign = useCampaignStore()
-        const kirch = () => campaign.crew.find((member) => member.id === 'kirch')!
+        const kirch = () => campaign.crewDeck.members.find((member) => member.id === 'kirch')!
         expect(kirch().affection).toBeNull()
         await profiles.create('С романами', undefined, true)
         campaign.reload()
