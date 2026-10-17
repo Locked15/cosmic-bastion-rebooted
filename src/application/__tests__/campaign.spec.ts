@@ -79,7 +79,7 @@ describe('campaign story progression', () => {
             id,
             report({
                 outcome: 'defeat',
-                objectives: [{ id: key, text: 'Спасение', completed: true }],
+                objectives: [{ id: key, text: 'Спасение', completed: true, optional: true }],
             }),
         )
         expect(failed.advanced).toBe(false)
@@ -102,7 +102,7 @@ describe('campaign story progression', () => {
                 'level_2',
                 report({
                     outcome: 'defeat',
-                    objectives: [{ id: 'survive', text: '', completed: true }],
+                    objectives: [{ id: 'survive', text: '', completed: true, optional: false }],
                 }),
             ).advanced,
         ).toBe(false)

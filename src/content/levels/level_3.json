@@ -239,22 +239,31 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу доктора Сильвы",
+            "kind": "decision",
+            "events": ["scientist_evacuation"]
+        },
+        {
             "id": "upgrade_tower",
             "text": "Улучшить башню до 3 уровня",
             "kind": "towerLevel",
-            "target": 2
+            "target": 2,
+            "optional": true
         },
         {
             "id": "max_towers",
             "text": "Иметь минимум 6 активных башен",
             "kind": "activeTowers",
-            "target": 6
+            "target": 6,
+            "optional": true
         },
         {
             "id": "save_scientist",
             "text": "Эвакуировать доктора Сильву",
             "kind": "flag",
-            "flag": "scientist_saved"
+            "flag": "scientist_saved",
+            "optional": true
         }
     ],
     "events": [
@@ -300,6 +309,7 @@
             }
         },
         {
+            "id": "scientist_evacuation",
             "wave": 2,
             "trigger": "delay",
             "delay": 240,

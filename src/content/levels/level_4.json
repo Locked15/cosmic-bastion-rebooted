@@ -321,13 +321,15 @@
             "id": "max_towers",
             "text": "Иметь минимум 8 активных башен",
             "kind": "activeTowers",
-            "target": 8
+            "target": 8,
+            "optional": true
         },
         {
             "id": "save_reactor",
             "text": "Допустить не более 2 прорывов в жилой отсек",
             "kind": "maxBreaches",
-            "target": 2
+            "target": 2,
+            "optional": true
         }
     ],
     "events": [

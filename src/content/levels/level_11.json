@@ -248,16 +248,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу бригадира Горбаня",
+            "kind": "decision",
+            "events": ["foreman_evacuation"]
+        },
+        {
             "id": "save_foreman",
             "text": "Вывести бригадира Горбаня",
             "kind": "flag",
-            "flag": "foreman_saved"
+            "flag": "foreman_saved",
+            "optional": true
         },
         {
             "id": "no_personnel_loss",
             "text": "Потерять не более 6 человек",
             "kind": "maxLosses",
-            "target": 6
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -391,6 +399,7 @@
             }
         },
         {
+            "id": "foreman_evacuation",
             "wave": 5,
             "trigger": "delay",
             "delay": 120,

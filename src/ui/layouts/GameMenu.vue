@@ -14,6 +14,12 @@
     const { snapshot } = storeToRefs(game)
 
     const result = computed(() => snapshot.value?.result ?? null)
+    const mainObjectives = computed(() => result.value?.objectives.filter((o) => !o.optional) ?? [])
+    const optionalObjectives = computed(
+        () => result.value?.objectives.filter((o) => o.optional) ?? [],
+    )
+    // A victory counts for the campaign only with every main objective done.
+    const held = computed(() => mainObjectives.value.every((objective) => objective.completed))
     const visible = computed(() => !!result.value || snapshot.value?.status === 'paused')
 
     const title = computed(() => {
@@ -60,13 +66,24 @@
                 :value="row.value"
             />
             <div class="game-menu__objectives">
-                <h4>ЗАДАЧИ МИССИИ</h4>
+                <h4>ОСНОВНЫЕ ЗАДАЧИ</h4>
                 <ObjectiveItem
-                    v-for="objective in result.objectives"
+                    v-for="objective in mainObjectives"
                     :key="objective.id"
                     :text="objective.text"
                     :completed="objective.completed"
                 />
+                <h4 v-if="optionalObjectives.length" class="game-menu__optional">ДОПОЛНИТЕЛЬНО</h4>
+                <ObjectiveItem
+                    v-for="objective in optionalObjectives"
+                    :key="objective.id"
+                    :text="objective.text"
+                    :completed="objective.completed"
+                    optional
+                />
+                <p v-if="result.outcome === 'victory' && !held" class="game-menu__reason">
+                    Основные задачи не выполнены: сектор не засчитан.
+                </p>
             </div>
             <p v-if="result.requisitions" class="game-menu__requisitions">
                 Начислено: + {{ result.requisitions }}
@@ -134,6 +151,10 @@
             margin-top: $spacing-md;
             padding-top: $spacing-md;
             border-top: 1px solid $color-border;
+        }
+
+        &__optional {
+            margin-top: $spacing-sm;
         }
 
         &__unlocks ul {

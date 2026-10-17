@@ -50,6 +50,7 @@ describe('difficulty gameplay rules', () => {
     it('lets the player answer a simple dialog after an unlimited pause', () => {
         const value = session('simple')
         value.story.active = {
+            eventId: null,
             dialog: createLevel('level_1')!.events[0]!.dialog,
             phase: 'choice',
             consequence: null,
@@ -64,7 +65,13 @@ describe('difficulty gameplay rules', () => {
         const value = session(id)
         value.speedIndex = 4
         const dialog = createLevel('level_1')!.events[0]!.dialog
-        value.story.active = { dialog, phase: 'choice', consequence: null, framesLeft: 600 }
+        value.story.active = {
+            eventId: null,
+            dialog,
+            phase: 'choice',
+            consequence: null,
+            framesLeft: 600,
+        }
         const before = value.resources
         value.advance(60)
         const factor = id === 'xhard' ? 8 : DIFFICULTIES[id].dialogSpeed

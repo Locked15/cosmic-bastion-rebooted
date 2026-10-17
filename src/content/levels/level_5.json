@@ -458,22 +458,24 @@
     "objectives": [
         { "id": "survive", "text": "Уничтожить Средоточие", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу архива",
+            "kind": "decision",
+            "events": ["witness_ship"]
+        },
+        {
             "id": "save_reactor",
             "text": "Не допустить ни одного прорыва в жилой отсек",
             "kind": "maxBreaches",
-            "target": 0
+            "target": 0,
+            "optional": true
         },
         {
             "id": "no_personnel_loss",
             "text": "Потерять не более 5 человек",
             "kind": "maxLosses",
-            "target": 5
-        },
-        {
-            "id": "save_archive",
-            "text": "Передать архив на судно-свидетель «Безмолвие»",
-            "kind": "flag",
-            "flag": "archive_saved"
+            "target": 5,
+            "optional": true
         }
     ],
     "events": [
@@ -566,6 +568,7 @@
             "when": [{ "flag": "archive_silenced", "below": 1 }]
         },
         {
+            "id": "witness_ship",
             "wave": 3,
             "trigger": "delay",
             "delay": 60,

@@ -154,8 +154,8 @@ describe('story and campaign UI', () => {
                 ending: null,
                 requisitions: null,
                 objectives: [
-                    { id: 'save_engineer', text: 'Чен спасён', completed: true },
-                    { id: 'survive', text: 'Отразить волны', completed: false },
+                    { id: 'save_engineer', text: 'Чен спасён', completed: true, optional: true },
+                    { id: 'survive', text: 'Отразить волны', completed: false, optional: false },
                 ],
             },
         }

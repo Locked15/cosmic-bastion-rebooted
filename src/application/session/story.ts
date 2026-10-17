@@ -12,6 +12,8 @@ const MAX_PER_WAVE = 3
 const MAX_PER_LEVEL = 10
 
 export interface ActiveDialog {
+    // Id of the level event shown, if it has one (decision objectives name events by id).
+    eventId: string | null
     dialog: StoryDialog
     phase: 'choice' | 'consequence'
     consequence: string | null
@@ -39,6 +41,8 @@ export class StoryDirector {
     private elapsed = 0
     private scheduled = 0
     private perWave = new Map<number, number>()
+    // Events (by id) resolved this session: a choice was made or time ran out.
+    private readonly resolvedIds = new Set<string>()
 
     constructor(
         events: readonly LevelEvent[],
@@ -91,11 +95,13 @@ export class StoryDirector {
         const effect = choiceEffect(choice)
         if (!this.target.canAfford(effect)) return 'Недостаточно ресурсов или персонала'
         this.target.applyEffect(effect)
+        this.resolve(active)
         if (active.dialog.kind === 'unknown') {
             this.active = null
             this.openNext()
         } else {
             this.active = {
+                eventId: active.eventId,
                 dialog: active.dialog,
                 phase: 'consequence',
                 consequence: choice.consequence ?? 'Решение принято.',
@@ -103,6 +109,15 @@ export class StoryDirector {
             }
         }
         return null
+    }
+
+    // The event was decided this session (any choice, or time ran out with nothing affordable).
+    isResolved(eventId: string): boolean {
+        return this.resolvedIds.has(eventId)
+    }
+
+    private resolve(dialog: ActiveDialog): void {
+        if (dialog.eventId) this.resolvedIds.add(dialog.eventId)
     }
 
     acknowledge(): string | null {
@@ -128,6 +143,7 @@ export class StoryDirector {
             }
         }
         // No affordable choice: let the player acknowledge the missed event.
+        this.resolve(previous)
         if (previous.dialog.kind === 'unknown') {
             this.active = null
             this.openNext()
@@ -176,6 +192,7 @@ export class StoryDirector {
         if (event.id === 'refugees') this.flags.refugees_pending = 0
         const dialog = event.dialog
         this.active = {
+            eventId: event.id ?? null,
             dialog,
             phase: 'choice',
             consequence: null,

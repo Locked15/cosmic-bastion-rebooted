@@ -167,17 +167,30 @@
     "waves": { "total": 4, "difficulty": 0.7 },
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
-        { "id": "repair_tower", "text": "Починить хотя бы одну башню", "kind": "buildTower" },
+        {
+            "id": "decision",
+            "text": "Решить судьбу инженера Чена",
+            "kind": "decision",
+            "events": ["engineer_evacuation"]
+        },
+        {
+            "id": "repair_tower",
+            "text": "Починить хотя бы одну башню",
+            "kind": "buildTower",
+            "optional": true
+        },
         {
             "id": "build_barricade",
             "text": "Построить хотя бы одну баррикаду",
-            "kind": "buildBarricade"
+            "kind": "buildBarricade",
+            "optional": true
         },
         {
             "id": "save_engineer",
             "text": "Эвакуировать инженера Чена",
             "kind": "flag",
-            "flag": "engineer_saved"
+            "flag": "engineer_saved",
+            "optional": true
         }
     ],
     "events": [
@@ -288,6 +301,7 @@
             "id": "refugees"
         },
         {
+            "id": "engineer_evacuation",
             "wave": 3,
             "trigger": "start",
             "dialog": {

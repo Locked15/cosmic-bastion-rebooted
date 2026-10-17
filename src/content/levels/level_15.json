@@ -278,16 +278,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "decide_ballast",
+            "id": "decision",
             "text": "Решить судьбу святого балласта",
-            "kind": "flag",
-            "flag": "ballast_decided"
+            "kind": "decision",
+            "events": ["holy_ballast"]
         },
         {
             "id": "no_personnel_loss",
             "text": "Потерять не более 6 человек",
             "kind": "maxLosses",
-            "target": 6
+            "target": 6,
+            "optional": true
+        },
+        {
+            "id": "max_breaches",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [
@@ -395,6 +403,7 @@
             }
         },
         {
+            "id": "holy_ballast",
             "wave": 4,
             "trigger": "delay",
             "delay": 120,

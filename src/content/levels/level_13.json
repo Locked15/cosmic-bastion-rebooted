@@ -287,16 +287,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "save_gardens",
-            "text": "Сохранить оранжерею",
-            "kind": "flag",
-            "flag": "gardens_saved"
+            "id": "decision",
+            "text": "Решить судьбу оранжереи",
+            "kind": "decision",
+            "events": ["last_harvest"]
         },
         {
             "id": "max_towers",
             "text": "Иметь минимум 6 активных башен",
             "kind": "activeTowers",
-            "target": 6
+            "target": 6,
+            "optional": true
+        },
+        {
+            "id": "max_losses",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -400,6 +408,7 @@
             }
         },
         {
+            "id": "last_harvest",
             "wave": 4,
             "trigger": "delay",
             "delay": 120,

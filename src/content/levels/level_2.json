@@ -239,19 +239,22 @@
         {
             "id": "build_barricade",
             "text": "Построить хотя бы одну баррикаду",
-            "kind": "buildBarricade"
+            "kind": "buildBarricade",
+            "optional": true
         },
         {
             "id": "upgrade_tower",
             "text": "Улучшить башню до 2 уровня",
             "kind": "towerLevel",
-            "target": 1
+            "target": 1,
+            "optional": true
         },
         {
             "id": "no_personnel_loss",
             "text": "Потерять не более 3 человек",
             "kind": "maxLosses",
-            "target": 3
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [

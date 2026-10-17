@@ -220,13 +220,15 @@
             "id": "max_towers",
             "text": "Иметь минимум 6 активных башен",
             "kind": "activeTowers",
-            "target": 6
+            "target": 6,
+            "optional": true
         },
         {
             "id": "no_personnel_loss",
             "text": "Потерять не более 4 человек",
             "kind": "maxLosses",
-            "target": 4
+            "target": 4,
+            "optional": true
         }
     ],
     "events": [

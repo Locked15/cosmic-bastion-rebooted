@@ -233,6 +233,8 @@ Shown in the result window after level 5 and chosen by conditions (`src/content/
 
 Further notes are added to the endings by `gardens_saved`, `foreman_saved`, `ballast_kept` and `cult_spared` (see `endings.json`). At the reactor, the earlier choices arrive as start effects: the pact's reserves, the Communicants' guard or their desertion, Ренн's serum, the lead bulkheads, the shaft's ore, and the gardens' miners.
 
+Mission tasks are **main** (hold the sector, make its story decision) or **optional** (tactical goals and rescues of people, a star each). Only the main tasks open the next sectors, so the campaign goes on whatever was chosen: without Чен, Сильва, Ренн or Горбань, and on either side of the balanced choices (the gardens, the relic, the Archive), which give no star.
+
 Story levels can still move the plot forward after a tactical defeat (brief § 4.2). That is what the existing flags `engineer_saved`, `scientist_saved` and `archive_saved` are for, and the new story flags follow the same rule.
 
 ## 8a. Requisitions (Реквизиции)

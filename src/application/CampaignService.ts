@@ -132,7 +132,7 @@ export class CampaignService {
                 completed: entry.completed,
                 stars: entry.stars,
                 rank: entry.difficulty ? DIFFICULTIES[entry.difficulty].label : null,
-                objectives: level.objectives.map((objective) => objective.text),
+                objectives: level.objectives.map(({ text, optional }) => ({ text, optional })),
                 sector: sector.name,
                 code: sector.code,
                 layer: sector.layer,
@@ -198,8 +198,11 @@ export class CampaignService {
             }
         }
         this.campaign.flags[`survivors_${levelId}`] = Math.max(0, Math.floor(report.survivors))
-        // Only a won mission completes the level and opens the next sectors.
-        const advanced = report.outcome === 'victory'
+        // Only a won mission with every main objective done completes the level and opens the
+        // next sectors; optional objectives only add stars.
+        const advanced =
+            report.outcome === 'victory' &&
+            report.objectives.every((objective) => objective.optional || objective.completed)
         const firstVictory =
             advanced &&
             !this.campaign.levels.some((entry) => entry.id === levelId && entry.completed)

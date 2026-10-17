@@ -320,16 +320,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "judge_archive",
+            "id": "decision",
             "text": "Решить судьбу Архива",
-            "kind": "flag",
-            "flag": "archive_decided"
+            "kind": "decision",
+            "events": ["archive_trial"]
         },
         {
             "id": "save_core",
             "text": "Допустить не более 3 прорывов в жилой отсек",
             "kind": "maxBreaches",
-            "target": 3
+            "target": 3,
+            "optional": true
+        },
+        {
+            "id": "max_losses",
+            "text": "Потерять не более 6 человек",
+            "kind": "maxLosses",
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -447,6 +455,7 @@
             }
         },
         {
+            "id": "archive_trial",
             "wave": 4,
             "trigger": "delay",
             "delay": 120,

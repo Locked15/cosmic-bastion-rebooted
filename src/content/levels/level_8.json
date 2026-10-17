@@ -255,16 +255,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу копья «Отречение»",
+            "kind": "decision",
+            "events": ["relic_lance"]
+        },
+        {
             "id": "upgrade_tower",
             "text": "Улучшить башню до 3 уровня",
             "kind": "towerLevel",
-            "target": 2
+            "target": 2,
+            "optional": true
         },
         {
-            "id": "secure_relic",
-            "text": "Вынести копьё «Отречение»",
-            "kind": "flag",
-            "flag": "relic_secured"
+            "id": "active_towers",
+            "text": "Иметь минимум 6 активных башен",
+            "kind": "activeTowers",
+            "target": 6,
+            "optional": true
         }
     ],
     "events": [
@@ -309,6 +317,7 @@
             }
         },
         {
+            "id": "relic_lance",
             "wave": 2,
             "trigger": "delay",
             "delay": 180,

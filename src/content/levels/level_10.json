@@ -305,16 +305,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
-            "id": "retake_bridge",
-            "text": "Вернуть управление мостиком",
-            "kind": "flag",
-            "flag": "bridge_retaken"
+            "id": "decision",
+            "text": "Решить, кому доверить мостик",
+            "kind": "decision",
+            "events": ["command_codes"]
         },
         {
             "id": "max_towers",
             "text": "Иметь минимум 7 активных башен",
             "kind": "activeTowers",
-            "target": 7
+            "target": 7,
+            "optional": true
+        },
+        {
+            "id": "max_breaches",
+            "text": "Допустить не более 3 прорывов в жилой отсек",
+            "kind": "maxBreaches",
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [
@@ -408,6 +416,7 @@
             }
         },
         {
+            "id": "command_codes",
             "wave": 3,
             "trigger": "delay",
             "delay": 120,

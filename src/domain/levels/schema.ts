@@ -133,6 +133,9 @@ export const OBJECTIVE_KINDS = [
     // Finish building a tower / a barricade.
     'buildTower',
     'buildBarricade',
+    // One of the `events` (by id) was resolved, whatever the choice, even if time ran out.
+    // A decision that never came up (its branch did not happen) counts as made on victory.
+    'decision',
 ] as const
 export type ObjectiveKind = (typeof OBJECTIVE_KINDS)[number]
 const TARGETED: readonly ObjectiveKind[] = [
@@ -149,10 +152,22 @@ const objectiveSchema = v.pipe(
         kind: v.picklist(OBJECTIVE_KINDS),
         flag: v.optional(flagName),
         target: v.optional(count),
+        events: v.optional(v.pipe(v.array(text), v.nonEmpty())),
+        // Main objectives (the default) decide progression: the sector is completed only when
+        // all of them are done. Optional ones only add stars (and requisitions).
+        optional: v.optional(v.boolean(), false),
     }),
     v.check(
         (objective) => objective.kind !== 'flag' || objective.flag !== undefined,
         'A flag objective needs `flag`',
+    ),
+    v.check(
+        (objective) => (objective.kind === 'decision') === (objective.events !== undefined),
+        'A decision objective needs `events`, and only it',
+    ),
+    v.check(
+        (objective) => objective.kind !== 'survive' || !objective.optional,
+        'Surviving is always a main objective',
     ),
     v.check(
         (objective) => !TARGETED.includes(objective.kind) || objective.target !== undefined,
@@ -186,6 +201,27 @@ export const carryOverSchema = v.variant('type', [
     }),
 ])
 export type CarryOver = v.InferOutput<typeof carryOverSchema>
+
+// Whether an effect takes resources or people (a cost or a negative stat change).
+function hasCost(effect: EventEffect | null | undefined): boolean {
+    if (!effect) return false
+    switch (effect.type) {
+        case 'transaction':
+            return (
+                Object.values(effect.cost).some((value) => (value ?? 0) > 0) ||
+                effect.effects.some(hasCost)
+            )
+        case 'resources':
+            return effect.value < 0 || (effect.military ?? 0) < 0
+        case 'convert':
+        case 'removeMilitary':
+            return true
+        case 'superWeapon':
+            return effect.military < 0
+        default:
+            return false
+    }
+}
 
 const pathSchema = v.pipe(v.array(point), v.minLength(2))
 
@@ -301,6 +337,36 @@ export const levelSchema = v.pipe(
             new Set(level.objectives.map((objective) => objective.id)).size ===
             level.objectives.length,
         'Objective ids must be unique',
+    ),
+    v.check(
+        (level) => level.objectives.some((objective) => objective.kind === 'survive'),
+        'A level needs a survive objective',
+    ),
+    v.check(
+        (level) =>
+            level.objectives.every((objective) =>
+                (objective.events ?? []).every((id) =>
+                    level.events.some((event) => event.id === id),
+                ),
+            ),
+        'A decision objective may only name events of its level',
+    ),
+    // A timed-out decision picks the last affordable choice: a free one guarantees a decision.
+    v.check(
+        (level) =>
+            level.objectives.every((objective) =>
+                (objective.events ?? []).every((id) => {
+                    const event = level.events.find((candidate) => candidate.id === id)
+                    // A missing event is reported by the check above.
+                    return (
+                        !event ||
+                        event.dialog.choices.some(
+                            (choice) => !choice.cost && !hasCost(choice.effect),
+                        )
+                    )
+                }),
+            ),
+        'Every event behind a decision objective needs a free choice',
     ),
 )
 export type LevelDefinition = v.InferOutput<typeof levelSchema>

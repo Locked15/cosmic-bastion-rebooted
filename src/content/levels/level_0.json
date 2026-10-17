@@ -122,8 +122,13 @@
     "waves": { "total": 3, "difficulty": 0.5 },
     "objectives": [
         { "id": "survive", "text": "Пройти учебную тревогу", "kind": "survive" },
-        { "id": "build_tower", "text": "Построить башню", "kind": "buildTower" },
-        { "id": "build_barricade", "text": "Построить баррикаду", "kind": "buildBarricade" }
+        { "id": "build_tower", "text": "Построить башню", "kind": "buildTower", "optional": true },
+        {
+            "id": "build_barricade",
+            "text": "Построить баррикаду",
+            "kind": "buildBarricade",
+            "optional": true
+        }
     ],
     "events": [
         {

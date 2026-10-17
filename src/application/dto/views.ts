@@ -75,6 +75,8 @@ export interface ObjectiveView {
     id: string
     text: string
     completed: boolean
+    // Optional objectives add stars; main ones decide whether the sector counts as held.
+    optional: boolean
 }
 
 export interface EndingView {
@@ -223,7 +225,7 @@ export interface LevelSummary {
     locked: boolean
     completed: boolean
     stars: number
-    objectives: string[]
+    objectives: { text: string; optional: boolean }[]
     startingMiners: number
     startingMilitary: number
     startingResources: number

@@ -198,16 +198,24 @@
     "objectives": [
         { "id": "survive", "text": "Пережить все волны", "kind": "survive" },
         {
+            "id": "decision",
+            "text": "Решить судьбу сестры Ренн",
+            "kind": "decision",
+            "events": ["surgeon_evacuation", "surgeon_release"]
+        },
+        {
             "id": "save_surgeon",
             "text": "Эвакуировать сестру Ренн",
             "kind": "flag",
-            "flag": "surgeon_saved"
+            "flag": "surgeon_saved",
+            "optional": true
         },
         {
             "id": "save_ward",
             "text": "Допустить не более 3 прорывов в жилой отсек",
             "kind": "maxBreaches",
-            "target": 3
+            "target": 3,
+            "optional": true
         }
     ],
     "events": [
@@ -294,6 +302,7 @@
             }
         },
         {
+            "id": "surgeon_evacuation",
             "wave": 3,
             "trigger": "delay",
             "delay": 180,
@@ -320,6 +329,7 @@
             }
         },
         {
+            "id": "surgeon_release",
             "wave": 3,
             "trigger": "delay",
             "delay": 180,
